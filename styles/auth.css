@@ -1,0 +1,39 @@
+.auth { min-height: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+.auth-form { display: flex; flex-direction: column; padding: 32px max(24px, env(safe-area-inset-left, 0px)) 32px max(24px, env(safe-area-inset-right, 0px)); background: linear-gradient(135deg, #ffffff 0%, #fbfbf9 40%, #f1f4f2 100%); }
+.auth-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.auth-top a.back { font-size: 14px; color: var(--dim); text-decoration: none; }
+.auth-top a.back:hover { color: var(--paper); }
+.auth-box { width: 100%; max-width: 420px; margin: auto; padding-block: 40px; }
+.auth-box h1 { font-size: 36px; font-weight: 700; }
+.auth-box .sub { margin-top: 10px; color: var(--dim); font-size: 16px; }
+.google { margin-top: 30px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 13px 18px; border-radius: 99px; border: 1px solid rgba(31,40,41,.16); background: #fff; color: var(--paper); font: 500 15px var(--font); cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+.google:hover { border-color: var(--paper); box-shadow: 0 8px 20px rgba(31,40,41,.08); }
+.google svg { width: 20px; height: 20px; }
+.or { display: flex; align-items: center; gap: 14px; margin: 24px 0; font-size: 13px; color: var(--dim); }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+form { display: grid; gap: 14px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.err { color: var(--coral); font-size: 13px; min-height: 1em; }
+.switch-mode { margin-top: 22px; font-size: 14px; color: var(--dim); text-align: center; }
+.switch-mode a { color: var(--paper); font-weight: 600; text-underline-offset: 3px; }
+.legal { margin-top: 18px; font-size: 12px; color: var(--dim); text-align: center; }
+.preview-note { margin-top: 14px; font-size: 12.5px; color: var(--sage-hi); background: var(--sage-soft); padding: 10px 14px; border-radius: 12px; }
+
+.auth-side { position: relative; overflow: hidden; background: #1f2829; color: #c5d1cf; display: flex; flex-direction: column; justify-content: center; padding: 64px; }
+.auth-side::before { content: ""; position: absolute; width: 640px; height: 640px; right: -220px; top: -220px; border-radius: 50%; background: radial-gradient(circle, rgba(111,147,147,.45), transparent 65%); }
+.auth-side h2 { color: #f2f1eb; font-size: clamp(30px, 3vw, 44px); font-weight: 700; max-width: 14ch; position: relative; }
+.perks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; position: relative; }
+.perks li { display: flex; gap: 12px; align-items: center; }
+.perks li::before { content: "✓"; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: rgba(111,147,147,.3); color: #cfe2df; font-size: 12px; font-weight: 700; flex: none; }
+.side-phone { position: relative; margin-top: 48px; width: 250px; aspect-ratio: 9 / 16; background: #0b0f10; border-radius: 32px; padding: 8px; rotate: -5deg; box-shadow: 0 40px 70px rgba(0,0,0,.45); align-self: flex-end; margin-right: 40px; }
+.side-phone .scr { height: 100%; border-radius: 25px; overflow: hidden; background: #f7f6f2; color: #1f2829; }
+.side-phone .hd { background: #1f2829; color: #f2f1eb; padding: 18px 14px 10px; }
+.side-phone .hd small { font-size: 8px; letter-spacing: .24em; color: #9cc3c1; }
+.side-phone .hd b { display: block; font-size: 16px; }
+.side-phone .it { display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; align-items: center; margin: 8px; padding: 6px; background: #fff; border-radius: 12px; font-size: 10.5px; }
+.side-phone .it img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+.side-phone .it b { display: block; font-size: 11px; }
+.side-phone .it span { color: #7c8789; font-size: 9px; }
+.side-phone .it em { font-style: normal; font-weight: 600; }
+@media (max-width: 900px) { .auth { grid-template-columns: 1fr; } .auth-side { display: none; } }
+@media (max-width: 460px) { .row2 { grid-template-columns: 1fr; } .auth-box h1 { font-size: 30px; } }

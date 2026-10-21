@@ -1,0 +1,53 @@
+/* mnu.digital app: shared tokens and components for sign-up and dashboard */
+:root {
+  --ink: #f4f4f1;
+  --surface: #ffffff;
+  --beige: #efece5;
+  --sage: #6f9393;
+  --sage-hi: #4f7a7a;
+  --sage-soft: #e3ecea;
+  --cta: #363d41;
+  --paper: #1f2829;
+  --text: #4d5759;
+  --dim: #7c8789;
+  --line: rgba(31,40,41,.09);
+  --mint: #4f9a5a;
+  --amber: #c98a2e;
+  --coral: #c4614f;
+  --font: "Outfit", "Heebo", "Noto Sans Arabic", "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.55 var(--font); }
+h1, h2, h3, h4 { margin: 0; color: var(--paper); letter-spacing: -.01em; line-height: 1.15; }
+p { margin: 0; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+button { font: inherit; }
+:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; border-radius: 8px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 500 15px var(--font); padding: 12px 22px; border-radius: 99px; border: 1px solid var(--cta); background: var(--cta); color: #fff; cursor: pointer; text-decoration: none; transition: background .2s, transform .2s, box-shadow .2s; }
+.btn:hover { background: #23292c; }
+.btn.ghost { background: #fff; color: var(--paper); border-color: rgba(31,40,41,.14); }
+.btn.ghost:hover { border-color: var(--paper); }
+.btn.soft { background: var(--sage-soft); color: var(--sage-hi); border-color: transparent; }
+.btn.soft:hover { background: #d5e3e0; }
+.btn.danger { background: #fff; color: var(--coral); border-color: rgba(196,97,79,.35); }
+.btn.sm { padding: 8px 14px; font-size: 13.5px; }
+.btn.block { width: 100%; }
+
+label.field { display: grid; gap: 6px; font-size: 13px; font-weight: 500; color: var(--paper); min-width: 0; }
+.field input, .field select, .field textarea { font: 400 15px var(--font); padding: 11px 14px; border-radius: 12px; border: 1px solid rgba(31,40,41,.14); background: #fff; color: var(--paper); width: 100%; }
+.field textarea { resize: vertical; min-height: 80px; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--sage); outline-offset: 0; border-color: transparent; }
+.field small { font-weight: 400; color: var(--dim); }
+
+.switch { position: relative; width: 42px; height: 24px; border-radius: 99px; border: 0; background: var(--mint); cursor: pointer; transition: background .2s; flex: none; padding: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 21px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.switch[aria-checked="false"] { background: rgba(31,40,41,.2); }
+.switch[aria-checked="false"]::after { left: 3px; }
+
+.logo img { height: 40px; width: auto; }
+.toast { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom, 0px)); translate: -50% 20px; opacity: 0; background: var(--paper); color: #fff; padding: 12px 20px; border-radius: 99px; font-size: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.2); transition: opacity .25s, translate .25s; z-index: 100; pointer-events: none; }
+.toast.show { opacity: 1; translate: -50% 0; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

@@ -4,16 +4,15 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 // Writes a short menu description for a dish. Runs on the server so the API key stays secret.
 const MODEL = "claude-haiku-5-5";
-const LANG_NAMES: Record<string, string> = { en: "English", he: "Hebrew", ar: "Arabic", ru: "Russian", fr: "French" };
 
 const SYSTEM = `You write dish descriptions for restaurant menus.
-Write one description of 12 to 30 words in the requested language.
+Write one description of 12 to 30 words, in the same language as the dish name (if the owner's notes are in a different language, follow the notes).
 Make it appetising and concrete: name the main ingredients and how the dish is prepared or served.
 Use only the ingredients and facts you are given, plus natural wording about texture and flavour. Do not invent allergens, prices, origins or awards.
 Match the tone requested. No emoji, no quotation marks, no hashtags, no exclamation marks.
 Reply with the description text only.`;
 
-type Body = { name?: string; category?: string; tags?: string[]; notes?: string; lang?: string; tone?: string; venueType?: string };
+type Body = { name?: string; category?: string; tags?: string[]; notes?: string; tone?: string; venueType?: string };
 
 export async function POST(request: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -40,7 +39,6 @@ export async function POST(request: Request) {
   }
   const usage = Array.isArray(credit) ? credit[0] : credit;
 
-  const lang = LANG_NAMES[body.lang ?? "en"] ?? "English";
   const facts = [
     `Dish: ${name}`,
     body.category && `Menu section: ${body.category.slice(0, 40)}`,
@@ -48,7 +46,6 @@ export async function POST(request: Request) {
     body.notes?.trim() && `Owner's notes or ingredients: ${body.notes.trim().slice(0, 400)}`,
     `Venue type: ${(body.venueType ?? venue.type ?? "Restaurant").slice(0, 30)}`,
     `Tone: ${(body.tone ?? "warm and simple").slice(0, 40)}`,
-    `Language: ${lang}`,
   ].filter(Boolean).join("\n");
 
   try {

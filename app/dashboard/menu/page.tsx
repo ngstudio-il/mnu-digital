@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
-import { LABELS, LANGS, money, photoUrl } from "@/lib/format";
+import { LABELS, money, photoUrl } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 
 type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; available: boolean; tags: string[] };
@@ -138,7 +138,7 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [ai, setAi] = useState<{ busy: boolean; used: number | null; quota: number | null; lang: string; msg: string }>({ busy: false, used: null, quota: null, lang: venue.langs[0] ?? "en", msg: "" });
+  const [ai, setAi] = useState<{ busy: boolean; used: number | null; quota: number | null; msg: string }>({ busy: false, used: null, quota: null, msg: "" });
   const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }));
 
   useEffect(() => {
@@ -154,7 +154,7 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
     const res = await fetch("/api/ai/describe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: d.name, category: cats.find((c) => c.id === d.category_id)?.name, tags: d.tags, notes: d.description, lang: ai.lang, venueType: venue.type }),
+      body: JSON.stringify({ name: d.name, category: cats.find((c) => c.id === d.category_id)?.name, tags: d.tags, notes: d.description, venueType: venue.type }),
     }).catch(() => null);
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res || !res.ok) return setAi((a) => ({ ...a, busy: false, msg: json.error ?? "Couldn’t reach the AI service." }));
@@ -214,11 +214,6 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
           <div className="ai-row">
             <label htmlFor="d-desc">Description</label>
             <div className="ai-tools">
-              {venue.langs.length > 1 && (
-                <select aria-label="Language for the AI description" value={ai.lang} onChange={(e) => setAi((a) => ({ ...a, lang: e.target.value }))}>
-                  {venue.langs.map((l) => <option key={l} value={l}>{LANGS[l] ?? l}</option>)}
-                </select>
-              )}
               <button className="btn soft sm" type="button" onClick={writeWithAi} disabled={ai.busy || aiLeft === 0}>{ai.busy ? "Writing…" : "✨ Write with AI"}</button>
             </div>
           </div>

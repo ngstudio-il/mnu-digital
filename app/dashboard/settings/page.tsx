@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
@@ -14,6 +14,11 @@ export default function Settings() {
   const [currency, setCurrency] = useState(venue.currency);
   const [slug, setSlug] = useState(venue.slug);
   const [busy, setBusy] = useState(false);
+  const [ai, setAi] = useState<{ used: number; quota: number } | null>(null);
+
+  useEffect(() => {
+    supabaseBrowser().rpc("ai_quota", { p_venue: venue.id }).then(({ data }: { data: { used: number; quota: number }[] | null }) => setAi(data?.[0] ?? null));
+  }, [venue.id, venue.plan]);
 
   async function patch(p: Partial<Venue>, msg?: string) {
     const { data, error } = await supabaseBrowser().from("venues").update(p).eq("id", venue.id).select().single();
@@ -95,6 +100,11 @@ export default function Settings() {
 
       <div className="card">
         <h3>Plan &amp; account</h3>
+        <div className="set-row" style={{ display: "block" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><b>AI descriptions this month</b><span>{ai ? `${ai.used} of ${ai.quota}` : "–"}</span></div>
+          <div className="ai-meter"><i style={{ width: ai ? `${Math.min(100, Math.round((ai.used / ai.quota) * 100))}%` : "0%" }} /></div>
+          <span>Free plan: 100 a month. Paid plan: 1,000 a month. Resets on the 1st.</span>
+        </div>
         <div className="set-row"><div><b>{venue.plan === "free" ? "Free plan" : "Pro plan"}</b><span>QR code, design styles, unlimited views</span></div><button className="btn sm" type="button" onClick={() => toast("Paid plans and billing are coming soon")}>Upgrade · $19/mo</button></div>
         <div className="set-row"><div><b>{user.name || "Your account"}</b><span>{user.email}{user.provider === "google" ? " · Google account" : ""}</span></div><button className="btn danger sm" type="button" onClick={logout}>Log out</button></div>
       </div>

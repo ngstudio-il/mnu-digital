@@ -162,6 +162,12 @@
 .inline { display: flex; align-items: center; gap: 12px; font-weight: 500; color: var(--paper); }
 .fieldset-label { font-size: 13px; font-weight: 500; color: var(--paper); margin-bottom: 8px; }
 
+.ai-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ai-tools { display: flex; gap: 6px; align-items: center; }
+.ai-tools select { font: 400 13px var(--font); padding: 6px 8px; border-radius: 10px; border: 1px solid rgba(31,40,41,.14); background: #fff; }
+.ai-meter { height: 8px; border-radius: 99px; background: var(--ink); overflow: hidden; margin-top: 8px; }
+.ai-meter i { display: block; height: 100%; background: var(--sage); border-radius: inherit; }
+
 /* QR */
 .qr-grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; align-items: start; }
 .qr-main { text-align: center; display: grid; gap: 16px; justify-items: center; }

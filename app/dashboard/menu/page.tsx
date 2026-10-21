@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
-import { LABELS, money, photoUrl } from "@/lib/format";
+import { LABELS, LANGS, money, photoUrl } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 
 type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; available: boolean; tags: string[] };
@@ -138,7 +138,30 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [ai, setAi] = useState<{ busy: boolean; used: number | null; quota: number | null; lang: string; msg: string }>({ busy: false, used: null, quota: null, lang: venue.langs[0] ?? "en", msg: "" });
   const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }));
+
+  useEffect(() => {
+    supabaseBrowser().rpc("ai_quota", { p_venue: venue.id }).then(({ data }: { data: { used: number; quota: number }[] | null }) => {
+      const q = data?.[0];
+      if (q) setAi((a) => ({ ...a, used: q.used, quota: q.quota }));
+    });
+  }, [venue.id]);
+
+  async function writeWithAi() {
+    if (!d.name.trim()) return setAi((a) => ({ ...a, msg: "Add the dish name first." }));
+    setAi((a) => ({ ...a, busy: true, msg: "" }));
+    const res = await fetch("/api/ai/describe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: d.name, category: cats.find((c) => c.id === d.category_id)?.name, tags: d.tags, notes: d.description, lang: ai.lang, venueType: venue.type }),
+    }).catch(() => null);
+    const json = res ? await res.json().catch(() => ({})) : {};
+    if (!res || !res.ok) return setAi((a) => ({ ...a, busy: false, msg: json.error ?? "Couldn’t reach the AI service." }));
+    set({ description: json.text });
+    setAi((a) => ({ ...a, busy: false, used: json.used ?? a.used, quota: json.quota ?? a.quota }));
+  }
+  const aiLeft = ai.quota !== null && ai.used !== null ? Math.max(0, ai.quota - ai.used) : null;
 
   useEffect(() => {
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -187,7 +210,21 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
       <form className="modal" role="dialog" aria-modal="true" aria-labelledby="m-title" onSubmit={save} noValidate>
         <div className="modal-head"><h3 id="m-title">{d.id ? "Edit dish" : "New dish"}</h3><button className="x" type="button" onClick={onClose} aria-label="Close">×</button></div>
         <label className="field" htmlFor="d-name">Dish name<input id="d-name" autoFocus value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Grilled salmon" /></label>
-        <label className="field" htmlFor="d-desc">Description<textarea id="d-desc" value={d.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ingredients, how it’s served" /></label>
+        <div className="field">
+          <div className="ai-row">
+            <label htmlFor="d-desc">Description</label>
+            <div className="ai-tools">
+              {venue.langs.length > 1 && (
+                <select aria-label="Language for the AI description" value={ai.lang} onChange={(e) => setAi((a) => ({ ...a, lang: e.target.value }))}>
+                  {venue.langs.map((l) => <option key={l} value={l}>{LANGS[l] ?? l}</option>)}
+                </select>
+              )}
+              <button className="btn soft sm" type="button" onClick={writeWithAi} disabled={ai.busy || aiLeft === 0}>{ai.busy ? "Writing…" : "✨ Write with AI"}</button>
+            </div>
+          </div>
+          <textarea id="d-desc" value={d.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ingredients, how it’s served. Jot a few words and let AI polish them." />
+          <small>{ai.msg ? <span style={{ color: "var(--coral)" }}>{ai.msg}</span> : aiLeft !== null ? `${aiLeft} of ${ai.quota} AI descriptions left this month` : "AI uses the dish name, category, labels and anything you type here."}</small>
+        </div>
         <div className="row2">
           <label className="field" htmlFor="d-price">Price ({venue.currency})<input id="d-price" type="number" min="0" step="0.5" value={d.price} onChange={(e) => set({ price: e.target.value })} /></label>
           <label className="field" htmlFor="d-cat">Category

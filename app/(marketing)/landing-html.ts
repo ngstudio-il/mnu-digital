@@ -182,7 +182,7 @@ export const LANDING_HTML = String.raw`<header>
           <div class="plan-price"><sup>$</sup><b>0</b><small>/month</small></div>
           <p class="plan-sub">Everything you need to go digital.</p>
           <ul>
-            <li>Professional AI image &amp; content creation</li>
+            <li>AI dish descriptions, 100 a month</li>
             <li>QR code and direct link</li>
             <li>Design styles to choose from</li>
             <li>Unlimited views and visitors</li>

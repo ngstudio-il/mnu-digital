@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   if (creditError) {
     const over = creditError.message.includes("quota_exceeded");
     return NextResponse.json(
-      { error: over ? "You’ve used all your AI descriptions for this month." : "Couldn’t check your AI allowance." },
+      { error: over ? "You’ve used all your AI descriptions for this month." : (creditError.code === "PGRST202" ? "Database update missing: run the latest SQL file in Supabase." : `Couldn’t check your AI allowance: ${creditError.message}`) },
       { status: over ? 429 : 500 },
     );
   }

@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   const { data: credit, error: creditError } = await supabase.rpc("consume_import_credit", { p_venue: venue.id });
   if (creditError) {
     const over = creditError.message.includes("quota_exceeded");
-    return NextResponse.json({ error: over ? "You’ve used all your menu imports for this month." : "Couldn’t check your import allowance." }, { status: over ? 429 : 500 });
+    return NextResponse.json({ error: over ? "You’ve used all your menu imports for this month." : (creditError.code === "PGRST202" ? "Database update missing: run the latest SQL file in Supabase." : `Couldn’t check your import allowance: ${creditError.message}`) }, { status: over ? 429 : 500 });
   }
   const usage = Array.isArray(credit) ? credit[0] : credit;
 

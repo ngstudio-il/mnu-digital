@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const { data: credit, error: creditError } = await supabase.rpc("consume_image_credit", { p_venue: venue.id });
   if (creditError) {
     const over = creditError.message.includes("quota_exceeded");
-    return NextResponse.json({ error: over ? "You’ve used all your AI images. Buy a pack to keep going." : "Couldn’t check your image allowance.", outOfCredits: over }, { status: over ? 429 : 500 });
+    return NextResponse.json({ error: over ? "You’ve used all your AI images. Buy a pack to keep going." : (creditError.code === "PGRST202" ? "Database update missing: run the latest SQL file in Supabase." : `Couldn’t check your image allowance: ${creditError.message}`), outOfCredits: over }, { status: over ? 429 : 500 });
   }
   const usage = (Array.isArray(credit) ? credit[0] : credit) as { used: number; quota: number; extra: number; source: string };
 

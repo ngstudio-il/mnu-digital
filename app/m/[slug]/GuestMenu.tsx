@@ -1,11 +1,21 @@
 "use client";
 import "@/styles/guest.css";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { money, photoUrl } from "@/lib/format";
 import type { Category, Dish, Venue } from "@/lib/types";
 
 type Props = { venue: Venue; categories: Category[]; dishes: Dish[]; table: string | null };
+type Saved = { token: string | null; number: number; at: string; total: number; label: string; items: { name: string; qty: number; price: number }[] };
+type Live = { token: string; status: string; total: number; items: { name: string; qty: number; price: number }[] };
+
+const GUEST_STATUS: Record<string, [string, string]> = {
+  new: ["Sent to the kitchen", "st-new"],
+  preparing: ["Being prepared", "st-preparing"],
+  ready: ["Ready", "st-ready"],
+  done: ["Served", "st-done"],
+  cancelled: ["Declined by the venue", "st-cancelled"],
+};
 
 export default function GuestMenu({ venue, categories, dishes, table }: Props) {
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -18,6 +28,32 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [placed, setPlaced] = useState<number | null>(null);
+  const [mine, setMine] = useState<Saved[]>([]);
+  const [live, setLive] = useState<Record<string, Live>>({});
+  const [showMine, setShowMine] = useState(false);
+  const storeKey = `mnu.orders.${venue.slug}`;
+
+  // Orders placed from this phone in the last 24 hours, kept only on the guest's device.
+  useEffect(() => {
+    try {
+      const all = JSON.parse(localStorage.getItem(storeKey) ?? "[]") as Saved[];
+      setMine(all.filter((o) => Date.now() - new Date(o.at).getTime() < 86400000));
+    } catch { /* storage unavailable */ }
+  }, [storeKey]);
+
+  const refreshLive = useCallback(async () => {
+    const tokens = mine.map((o) => o.token).filter(Boolean) as string[];
+    if (!tokens.length) return;
+    const { data } = await supabaseBrowser().rpc("guest_orders", { p_tokens: tokens });
+    if (Array.isArray(data)) setLive(Object.fromEntries((data as Live[]).map((o) => [o.token, o])));
+  }, [mine]);
+
+  useEffect(() => {
+    if (!showMine) return;
+    refreshLive();
+    const t = setInterval(() => { if (!document.hidden) refreshLive(); }, 10000);
+    return () => clearInterval(t);
+  }, [showMine, refreshLive]);
 
   const groups = useMemo(() => {
     const g = categories.map((c) => ({ id: c.id, name: c.name, items: dishes.filter((d) => d.category_id === c.id) })).filter((g) => g.items.length);
@@ -38,13 +74,27 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
     if (type === "takeaway" && !name.trim()) return setErr("Enter a name for the order.");
     setBusy(true);
     const label = type === "dinein" ? (table ?? (/^\d+$/.test(tableNo.trim()) ? `Table ${tableNo.trim()}` : tableNo.trim())) : "Takeaway";
-    const { data, error } = await supabaseBrowser().rpc("place_order", {
+    const args = {
       p_slug: venue.slug, p_table: label, p_type: type, p_name: name.trim() || null, p_note: note.trim() || null,
       p_items: lines.map((l) => ({ dish_id: l.dish.id, qty: l.q })),
-    });
+    };
+    const sb = supabaseBrowser();
+    let number: number | null = null;
+    let token: string | null = null;
+    const v2 = await sb.rpc("place_order_v2", args);
+    if (!v2.error) { number = (v2.data as { number: number; token: string }).number; token = (v2.data as { number: number; token: string }).token; }
+    else if (v2.error.code === "PGRST202") {
+      // Tracking isn't set up in the database yet: place the order the old way.
+      const v1 = await sb.rpc("place_order", args);
+      if (v1.error) { setBusy(false); return setErr(v1.error.message.replace(/^.*?: /, "")); }
+      number = v1.data as number;
+    } else { setBusy(false); return setErr(v2.error.message.replace(/^.*?: /, "")); }
     setBusy(false);
-    if (error) return setErr(error.message.replace(/^.*?: /, ""));
-    setPlaced(data as number); setCart({}); setCheckout(false);
+    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Takeaway · ${name.trim()}`, items: lines.map((l) => ({ name: l.dish.name, qty: l.q, price: Number(l.dish.price) })) };
+    const next = [saved, ...mine].slice(0, 20);
+    setMine(next);
+    try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* storage unavailable */ }
+    setPlaced(number); setCart({}); setCheckout(false);
   }
 
   return (
@@ -54,6 +104,7 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
         <small>{venue.type.toUpperCase()}</small>
         <h1>{venue.name}</h1>
         {table && <span className="g-table">{table}</span>}
+        {mine.length > 0 && <button type="button" className="g-mine" onClick={() => setShowMine(true)}>My orders · {mine.length}</button>}
       </header>
       <nav className="g-cats" aria-label="Categories">{groups.map((g) => <a key={g.id} href={`#c-${g.id}`}>{g.name}</a>)}</nav>
 
@@ -63,8 +114,8 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
           <section key={g.id} id={`c-${g.id}`}>
             <h2>{g.name}</h2>
             {g.items.map((d) => { const src = photoUrl(d.image_path); return (
-              <article className="g-item" key={d.id} onClick={() => setOpen(d)}>
-                {src ? <img src={src} alt="" /> : <span className="g-noimg" />}
+              <article className={`g-item${src ? "" : " noimg"}`} key={d.id} onClick={() => setOpen(d)}>
+                {src && <img src={src} alt="" />}
                 <div className="g-info"><b>{d.name}</b><p>{d.description}</p>{d.tags?.length > 0 && <div className="g-tags">{d.tags.map((t) => <span key={t}>{t}</span>)}</div>}</div>
                 <div className="g-side"><em>{money(d.price, venue.currency)}</em>
                   {canOrder && (cart[d.id] ? (
@@ -123,7 +174,31 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
       {placed !== null && (
         <div className="g-sheet-wrap" onClick={() => setPlaced(null)}>
           <div className="g-sheet g-done" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Order sent">
-            <div className="g-sheet-body"><span className="g-check">✓</span><h3>Order #{placed} sent</h3><p>The kitchen has your order. We’ll bring it over as soon as it’s ready.</p><button className="g-cta" type="button" onClick={() => setPlaced(null)}>Back to the menu</button></div>
+            <div className="g-sheet-body"><span className="g-check">✓</span><h3>Order #{placed} sent</h3><p>The kitchen has your order. We’ll bring it over as soon as it’s ready.</p><button className="g-cta" type="button" onClick={() => { setPlaced(null); setShowMine(true); }}>Track my order</button><button className="g-cta ghost" type="button" onClick={() => setPlaced(null)}>Back to the menu</button></div>
+          </div>
+        </div>
+      )}
+      {showMine && (
+        <div className="g-sheet-wrap" onClick={() => setShowMine(false)}>
+          <div className="g-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="My orders">
+            <div className="g-sheet-body">
+              <h3>My orders</h3>
+              <p>Orders from this phone in the last 24 hours. Status updates automatically.</p>
+              {mine.map((o) => {
+                const l = o.token ? live[o.token] : undefined;
+                const st = l ? GUEST_STATUS[l.status] ?? [l.status, "st-new"] : null;
+                const items = l?.items?.length ? l.items : o.items;
+                return (
+                  <div className="g-order" key={`${o.number}-${o.at}`}>
+                    <div className="g-order-top"><b>Order #{o.number}</b>{st ? <span className={`g-pill ${st[1]}`}>{st[0]}</span> : <span className="g-pill st-new">{o.token ? "Checking…" : "Sent"}</span>}</div>
+                    <small>{o.label} · {new Date(o.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</small>
+                    <ul>{items.map((it, i) => <li key={i}><span>{it.qty}× {it.name}</span><em>{money(it.qty * Number(it.price), venue.currency)}</em></li>)}</ul>
+                    <div className="g-order-total"><span>Total</span><b>{money(l?.total ?? o.total, venue.currency)}</b></div>
+                  </div>
+                );
+              })}
+              <button className="g-cta ghost" type="button" onClick={() => setShowMine(false)}>Back to the menu</button>
+            </div>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ import "@/styles/app.css";
 import "@/styles/auth.css";
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import ScanShowcase from "@/components/marketing/ScanShowcase";
 
 const FEATURES = [
   "Unlimited dishes, photos and menu views",
@@ -57,9 +58,10 @@ export default function BillingPlan({ venueName, returning }: { venueName: strin
           <p className="legal">Payments are processed by Stripe. We never see your card number.</p>
         </div>
       </section>
-      <aside className="auth-side light" aria-hidden="true">
+      <aside className="auth-side" aria-hidden="true">
         <h2>Your menu, live tonight.</h2>
-        <ul className="perks"><li>7 days free, cancel anytime</li><li>Menu, photos and prices in one place</li><li>Take orders straight from the table</li></ul>
+        <ul className="perks"><li>7 days free, cancel anytime</li><li>Guests scan, browse and order</li><li>Orders land in your dashboard instantly</li></ul>
+        <ScanShowcase />
       </aside>
     </div>
   );

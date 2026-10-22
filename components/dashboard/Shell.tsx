@@ -86,12 +86,7 @@ export default function Shell({ initialVenue, subscription, user, children }: { 
               const daysLeft = subscription.trial_end ? Math.ceil((new Date(subscription.trial_end).getTime() - Date.now()) / 86400000) : 99;
               const urgent = subscription.status === "past_due" || (subscription.status === "trialing" && daysLeft <= 2);
               if (urgent) return <div className="plan-card"><b>{plan.title}</b><p>{plan.detail}</p><button className="btn sm" type="button" onClick={openBilling}>{subscription.status === "past_due" ? "Update card" : "Manage billing"}</button></div>;
-              return (
-                <button type="button" className="plan-quiet" onClick={openBilling}>
-                  <span className="pq-name">mnu.digital Pro{subscription.status === "trialing" && <i>Trial</i>}</span>
-                  <span className="pq-sub">Billing &amp; plan</span>
-                </button>
-              );
+              return null;
             })()}
             <div className="me"><span className="avatar">{(user.name || user.email || "U").charAt(0).toUpperCase()}</span><div><b>{user.name || user.email}</b><span>{venue.name}</span></div></div>
           </div>

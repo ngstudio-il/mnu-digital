@@ -28,7 +28,8 @@ export default function AdminSupport() {
     load();
     const sb = supabaseBrowser();
     const ch = sb.channel("admin-inbox").on("postgres_changes", { event: "*", schema: "public", table: "support_messages" }, () => load()).subscribe();
-    return () => { sb.removeChannel(ch); };
+    const t = setInterval(() => { if (!document.hidden) load(); }, 15000);
+    return () => { sb.removeChannel(ch); clearInterval(t); };
   }, [load]);
 
   useEffect(() => { if (!open && convs?.length) setOpen(convs[0].venue_id); }, [convs, open]);

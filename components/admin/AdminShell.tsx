@@ -25,7 +25,8 @@ export default function AdminShell({ email, children }: { email: string; childre
     };
     count();
     const ch = sb.channel("admin-support-badge").on("postgres_changes", { event: "*", schema: "public", table: "support_messages" }, () => count()).subscribe();
-    return () => { sb.removeChannel(ch); };
+    const t = setInterval(() => { if (!document.hidden) count(); }, 20000);
+    return () => { sb.removeChannel(ch); clearInterval(t); };
   }, []);
 
   const active = (href: string) => (href === "/admin" ? path === "/admin" : path.startsWith(href));

@@ -33,6 +33,23 @@ export function ChatThread({ venueId, as, onRead }: { venueId: string; as: "owne
     return () => { sb.removeChannel(ch); };
   }, [venueId, as, other, markRead]);
 
+  // Backup for realtime: fetch anything newer than the last message every few seconds.
+  useEffect(() => {
+    const sb = supabaseBrowser();
+    const t = setInterval(async () => {
+      if (document.hidden) return;
+      const last = msgs?.[msgs.length - 1]?.created_at;
+      let q = sb.from("support_messages").select("*").eq("venue_id", venueId).order("created_at");
+      if (last) q = q.gt("created_at", last);
+      const { data } = await q;
+      const fresh = (data ?? []) as Msg[];
+      if (!fresh.length) return;
+      setMsgs((m) => { const ids = new Set((m ?? []).map((x) => x.id)); const add = fresh.filter((x) => !ids.has(x.id)); return add.length ? [...(m ?? []), ...add] : m; });
+      if (fresh.some((x) => x.sender === other)) markRead();
+    }, 4000);
+    return () => clearInterval(t);
+  }, [venueId, msgs, other, markRead]);
+
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs]);
 
   async function send(e: React.FormEvent) {
@@ -95,7 +112,8 @@ export default function SupportChat({ venueId }: { venueId: string }) {
     const ch = sb.channel(`support-badge-${venueId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages", filter: `venue_id=eq.${venueId}` }, () => count())
       .subscribe();
-    return () => { sb.removeChannel(ch); };
+    const t = setInterval(() => { if (!document.hidden) count(); }, 20000);
+    return () => { sb.removeChannel(ch); clearInterval(t); };
   }, [venueId, count]);
 
   return (

@@ -34,6 +34,8 @@ export default function ImportMenu({ cats, onClose, onDone }: { cats: Category[]
   const [err, setErr] = useState("");
   const [left, setLeft] = useState<string>("");
   const [drag, setDrag] = useState(false);
+  const [mode, setMode] = useState<"file" | "text">("file");
+  const [text, setText] = useState("");
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -55,7 +57,8 @@ export default function ImportMenu({ cats, onClose, onDone }: { cats: Category[]
   async function read() {
     setStep("reading"); setErr("");
     const fd = new FormData();
-    for (const f of files) fd.append("files", await shrink(f));
+    if (mode === "text") fd.append("text", text);
+    else for (const f of files) fd.append("files", await shrink(f));
     const res = await fetch("/api/ai/import", { method: "POST", body: fd }).catch(() => null);
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res || !res.ok) { setErr(json.error ?? "Couldn’t read the menu. Try again."); setStep("pick"); return; }
@@ -107,7 +110,16 @@ export default function ImportMenu({ cats, onClose, onDone }: { cats: Category[]
 
         {(step === "pick" || step === "reading") && (
           <>
-            <p className="note">Upload photos of your printed menu or a PDF. AI reads the sections, dishes, descriptions and prices, and you check everything before it’s added.</p>
+            <div className="seg imp-tabs" role="group" aria-label="Import from">
+              <button type="button" aria-pressed={mode === "file"} onClick={() => setMode("file")} disabled={busy}>Photo or PDF</button>
+              <button type="button" aria-pressed={mode === "text"} onClick={() => setMode("text")} disabled={busy}>Paste text</button>
+            </div>
+            <p className="note">{mode === "file"
+              ? "Upload photos of your printed menu, screenshots from a delivery app, or a PDF. AI reads the sections, dishes, descriptions and prices, and you check everything before it’s added."
+              : "Copy your menu from your website, a delivery app page or a document, and paste it here. Extra page text like ratings or buttons is ignored."}</p>
+            {mode === "text" ? (
+              <textarea className="imp-text" value={text} onChange={(e) => setText(e.target.value)} disabled={busy} placeholder={"Starters\nSourdough & dips – warm sourdough, tahini, tomato salsa  $12\nGoat cheese salad – frisée, walnuts, balsamic  $16\n…"} aria-label="Menu text" />
+            ) : (
             <div
               className={`drop${drag ? " over" : ""}`}
               onClick={() => !busy && input.current?.click()}
@@ -123,11 +135,12 @@ export default function ImportMenu({ cats, onClose, onDone }: { cats: Category[]
               <span>{files.length ? "Click to choose different files" : "or click to choose · up to 6 photos or one PDF (4 MB)"}</span>
               <input ref={input} type="file" accept="image/*,application/pdf" multiple hidden onChange={(e) => pick(e.target.files)} />
             </div>
+            )}
             {step === "reading" && <div className="reading"><i /><span>Reading your menu… this takes up to a minute.</span></div>}
             {err && <p className="note" style={{ color: "var(--coral)" }}>{err}</p>}
             <div className="modal-foot"><span /><div style={{ display: "flex", gap: 8 }}>
               <button className="btn ghost" type="button" onClick={onClose} disabled={busy}>Cancel</button>
-              <button className="btn" type="button" onClick={read} disabled={!files.length || busy}>{step === "reading" ? "Reading…" : "Read menu"}</button>
+              <button className="btn" type="button" onClick={read} disabled={(mode === "file" ? !files.length : text.trim().length < 10) || busy}>{step === "reading" ? "Reading…" : "Read menu"}</button>
             </div></div>
           </>
         )}

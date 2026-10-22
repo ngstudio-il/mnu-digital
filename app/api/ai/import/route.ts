@@ -10,6 +10,7 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as co
 type ImageType = (typeof IMAGE_TYPES)[number];
 
 const SYSTEM = `You read restaurant menus from photos or PDFs and turn them into structured data.
+The menu may come as photos, a PDF, or text copied from a website or delivery app (which can include extra page text such as ratings, delivery times or buttons; ignore that).
 Extract every dish and drink you can read, grouped by the menu's own sections, in the order they appear.
 Keep names and descriptions in the menu's original language and spelling. Copy descriptions only when the menu prints one; otherwise use an empty string. Never invent dishes, ingredients or prices.
 Price is the number only, without a currency sign. If a dish lists several prices (sizes), use the first one and mention the sizes in the description. If no price is printed, use null.
@@ -59,7 +60,9 @@ export async function POST(request: Request) {
 
   const form = await request.formData().catch(() => null);
   const files = (form?.getAll("files") ?? []).filter((f): f is File => f instanceof File);
-  if (!files.length) return NextResponse.json({ error: "Choose a photo or PDF of your menu." }, { status: 400 });
+  const pasted = String(form?.get("text") ?? "").trim();
+  if (!files.length && !pasted) return NextResponse.json({ error: "Choose a photo or PDF of your menu, or paste its text." }, { status: 400 });
+  if (pasted.length > 40000) return NextResponse.json({ error: "That text is too long. Paste the menu in two parts." }, { status: 400 });
   if (files.length > 6) return NextResponse.json({ error: "Up to 6 photos at a time." }, { status: 400 });
 
   const content: Anthropic.ContentBlockParam[] = [];
@@ -69,6 +72,7 @@ export async function POST(request: Request) {
     else if ((IMAGE_TYPES as readonly string[]).includes(f.type)) content.push({ type: "image", source: { type: "base64", media_type: f.type as ImageType, data } });
     else return NextResponse.json({ error: `${f.name} isn’t a photo or PDF.` }, { status: 400 });
   }
+  if (pasted) content.push({ type: "text", text: `Menu text pasted by the owner:\n<menu>\n${pasted}\n</menu>` });
   content.push({ type: "text", text: "Extract this menu." });
 
   const { data: credit, error: creditError } = await supabase.rpc("consume_import_credit", { p_venue: venue.id });

@@ -197,6 +197,10 @@
 .imp-price span { font-size: 13px; color: var(--dim); }
 .imp-price input { width: 100%; border: 0; font: 600 14px var(--font); color: var(--paper); text-align: right; background: none; }
 
+.imp-tabs { justify-self: start; }
+.imp-text { width: 100%; min-height: 220px; resize: vertical; font: 400 14px/1.5 var(--font); padding: 14px; border-radius: 16px; border: 1px solid rgba(31,40,41,.14); background: var(--ink); color: var(--paper); }
+.imp-text:focus { outline: 2px solid var(--sage); outline-offset: 0; background: #fff; }
+
 /* QR */
 .qr-grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; align-items: start; }
 .qr-main { text-align: center; display: grid; gap: 16px; justify-items: center; }

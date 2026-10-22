@@ -4,6 +4,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
 import { LABELS, money, photoUrl } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
+import ImportMenu from "@/components/dashboard/ImportMenu";
 
 type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; available: boolean; tags: string[] };
 
@@ -14,6 +15,7 @@ export default function MenuPage() {
   const [active, setActive] = useState<string>("all");
   const [newCat, setNewCat] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const load = useCallback(async () => {
     const sb = supabaseBrowser();
@@ -82,7 +84,7 @@ export default function MenuPage() {
         </div>
 
         <div>
-          <div className="card-head" style={{ marginBottom: 12 }}><h3 style={{ fontSize: 18 }}>{activeName}</h3><button className="btn sm" type="button" onClick={openNew}>+ Add dish</button></div>
+          <div className="card-head" style={{ marginBottom: 12 }}><h3 style={{ fontSize: 18 }}>{activeName}</h3><div style={{ display: "flex", gap: 8 }}><button className="btn ghost sm" type="button" onClick={() => setImporting(true)}>Import menu</button><button className="btn sm" type="button" onClick={openNew}>+ Add dish</button></div></div>
           {dishes === null ? <p className="note">Loading your menu…</p> : list.length ? (
             <div className="dish-list">
               {list.map((d) => {
@@ -102,7 +104,7 @@ export default function MenuPage() {
               })}
             </div>
           ) : (
-            <div className="empty"><b>No dishes here yet</b>Add your first dish and it appears on your guests’ menu straight away.<br /><br /><button className="btn sm" type="button" onClick={openNew}>+ Add dish</button></div>
+            <div className="empty"><b>No dishes here yet</b>Upload a photo or PDF of your current menu and we’ll fill it in for you, or add dishes one by one.<br /><br /><div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}><button className="btn sm" type="button" onClick={() => setImporting(true)}>Import from photo or PDF</button><button className="btn ghost sm" type="button" onClick={openNew}>+ Add dish</button></div></div>
           )}
         </div>
 
@@ -127,6 +129,7 @@ export default function MenuPage() {
           </div></div>
         </div>
       </div>
+      {importing && <ImportMenu cats={cats} onClose={() => setImporting(false)} onDone={() => { setImporting(false); setActive("all"); load(); }} />}
       {draft && <DishEditor draft={draft} cats={cats} onClose={() => setDraft(null)} onSaved={() => { setDraft(null); load(); }} />}
     </>
   );

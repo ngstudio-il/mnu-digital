@@ -30,7 +30,7 @@ export function planSummary(sub: { status: string; trial_end: string | null; cur
   const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "");
   if (sub.status === "trialing") {
     const left = sub.trial_end ? Math.max(0, Math.ceil((new Date(sub.trial_end).getTime() - Date.now()) / 86400000)) : 0;
-    return { title: `Free trial · ${left} day${left === 1 ? "" : "s"} left`, detail: sub.cancel_at_period_end ? `Ends ${day(sub.trial_end)}, no charge` : `First charge of $39 on ${day(sub.trial_end)}` };
+    return { title: left <= 2 ? `Trial ends in ${left} day${left === 1 ? "" : "s"}` : "mnu.digital Pro · Free trial", detail: sub.cancel_at_period_end ? `Ends ${day(sub.trial_end)}, no charge` : `First charge of $39 on ${day(sub.trial_end)}` };
   }
   if (sub.status === "past_due") return { title: "Payment failed", detail: "Update your card to keep your menu online" };
   return { title: "Pro · $39/month", detail: sub.cancel_at_period_end ? `Cancels on ${day(sub.current_period_end)}` : `Renews on ${day(sub.current_period_end)}` };

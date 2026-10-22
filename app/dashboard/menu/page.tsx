@@ -5,8 +5,9 @@ import { useDash } from "@/components/dashboard/VenueContext";
 import { LABELS, money, photoUrl } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 import ImportMenu from "@/components/dashboard/ImportMenu";
+import ImagePacks from "@/components/dashboard/ImagePacks";
 
-type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; available: boolean; tags: string[] };
+type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; image_ai?: boolean; available: boolean; tags: string[] };
 
 export default function MenuPage() {
   const { venue, toast } = useDash();
@@ -27,6 +28,12 @@ export default function MenuPage() {
     setDishes(d.data ?? []);
   }, [venue.id]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("images") === "bought") {
+      toast("Thanks! Your AI images were added.");
+      window.history.replaceState(null, "", "/dashboard/menu");
+    }
+  }, [toast]);
 
   const list = (dishes ?? []).filter((d) => active === "all" || d.category_id === active);
   const activeName = active === "all" ? "All dishes" : cats.find((c) => c.id === active)?.name ?? "Dishes";
@@ -59,7 +66,7 @@ export default function MenuPage() {
     setDraft({ name: "", description: "", price: "", category_id: active !== "all" ? active : cats[0]?.id ?? null, image_path: null, available: true, tags: [] });
   }
   function openEdit(d: Dish) {
-    setDraft({ id: d.id, name: d.name, description: d.description, price: String(d.price), category_id: d.category_id, image_path: d.image_path, available: d.available, tags: d.tags ?? [] });
+    setDraft({ id: d.id, name: d.name, description: d.description, price: String(d.price), category_id: d.category_id, image_path: d.image_path, image_ai: d.image_ai ?? false, available: d.available, tags: d.tags ?? [] });
   }
 
   return (
@@ -199,7 +206,29 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
     const { error } = await supabaseBrowser().storage.from("dish-photos").upload(path, file, { cacheControl: "31536000", contentType: file.type });
     setUploading(false);
     if (error) return setErr("Upload failed: " + error.message);
-    set({ image_path: path });
+    set({ image_path: path, image_ai: false });
+  }
+
+  const [img, setImg] = useState<{ busy: "" | "create" | "enhance"; used: number | null; quota: number | null; extra: number; msg: string; out: boolean; packs: boolean }>({ busy: "", used: null, quota: null, extra: 0, msg: "", out: false, packs: false });
+  useEffect(() => {
+    supabaseBrowser().rpc("image_quota", { p_venue: venue.id }).then(({ data }: { data: { used: number; quota: number; extra: number }[] | null }) => {
+      const q = data?.[0];
+      if (q) setImg((a) => ({ ...a, used: q.used, quota: q.quota, extra: q.extra }));
+    });
+  }, [venue.id]);
+  const imgLeft = img.quota !== null && img.used !== null ? Math.max(0, img.quota - img.used) + img.extra : null;
+
+  async function aiImage(mode: "create" | "enhance") {
+    if (!d.name.trim()) return setImg((a) => ({ ...a, msg: "Add the dish name first." }));
+    setImg((a) => ({ ...a, busy: mode, msg: "" }));
+    const res = await fetch("/api/ai/image", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode, name: d.name, description: d.description, imagePath: d.image_path }),
+    }).catch(() => null);
+    const json = res ? await res.json().catch(() => ({})) : {};
+    if (!res || !res.ok) return setImg((a) => ({ ...a, busy: "", msg: json.error ?? "Couldn’t create the image.", out: Boolean(json.outOfCredits) }));
+    set({ image_path: json.path, image_ai: Boolean(json.ai) });
+    setImg((a) => ({ ...a, busy: "", used: json.used, quota: json.quota, extra: json.extra, out: false }));
   }
 
   async function save(e: React.FormEvent) {
@@ -208,7 +237,7 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
     const price = parseFloat(d.price);
     if (isNaN(price) || price < 0) return setErr("Enter a price, for example 18.");
     setBusy(true);
-    const row = { venue_id: venue.id, name: d.name.trim(), description: d.description.trim(), price, category_id: d.category_id, image_path: d.image_path, available: d.available, tags: d.tags };
+    const row = { venue_id: venue.id, name: d.name.trim(), description: d.description.trim(), price, category_id: d.category_id, image_path: d.image_path, image_ai: Boolean(d.image_path && d.image_ai), available: d.available, tags: d.tags };
     const sb = supabaseBrowser();
     const { error } = d.id ? await sb.from("dishes").update(row).eq("id", d.id) : await sb.from("dishes").insert(row);
     setBusy(false);
@@ -261,8 +290,24 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
               {uploading ? "Uploading…" : src ? "Replace photo" : "Upload photo"}
               <input type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }} />
             </label>
-            {src && <button type="button" className="btn ghost sm" style={{ width: "auto", height: "auto", alignSelf: "center" }} onClick={() => set({ image_path: null })}>Remove</button>}
+            {src && <button type="button" className="btn ghost sm" style={{ width: "auto", height: "auto", alignSelf: "center" }} onClick={() => set({ image_path: null, image_ai: false })}>Remove</button>}
           </div>
+          <div className="ai-img">
+            <button type="button" className={`ai-btn${img.busy === "enhance" ? " busy" : ""}`} onClick={() => aiImage("enhance")} disabled={!!img.busy || !src} title={src ? "" : "Upload a photo first"}>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6zM15.5 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></svg>
+              {img.busy === "enhance" ? "Enhancing…" : "Enhance photo"}
+            </button>
+            <button type="button" className={`ai-btn${img.busy === "create" ? " busy" : ""}`} onClick={() => aiImage("create")} disabled={!!img.busy}>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6zM15.5 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></svg>
+              {img.busy === "create" ? "Creating…" : "Create with AI"}
+            </button>
+          </div>
+          <small className="note" style={{ display: "block", marginTop: 6 }}>
+            {img.busy ? "This takes about 10–20 seconds." : img.msg ? <span style={{ color: "var(--coral)" }}>{img.msg}</span> : imgLeft !== null ? `${imgLeft} AI image${imgLeft === 1 ? "" : "s"} left${img.extra ? ` (incl. ${img.extra} from packs)` : ""}.` : ""}
+            {" "}<button type="button" className="link-btn" onClick={() => setImg((a) => ({ ...a, packs: true }))}>{img.out ? "Buy more images" : "Buy more"}</button>
+            {d.image_ai && src && <><br />Created by AI. Your menu shows a small “Illustration” tag on it.</>}
+          </small>
+          {img.packs && <ImagePacks onClose={() => setImg((a) => ({ ...a, packs: false }))} />}
         </div>
         <div>
           <div className="ai-row">

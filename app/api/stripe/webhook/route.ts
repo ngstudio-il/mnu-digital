@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { stripe, syncSubscription } from "@/lib/stripe";
+import { grantImagePackFromSession, stripe, syncSubscription } from "@/lib/stripe";
 
 // Stripe → app: keeps public.subscriptions in step with trials, renewals, failed payments and cancellations.
 export async function POST(request: Request) {
@@ -17,6 +17,7 @@ export async function POST(request: Request) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (session.mode === "payment") { await grantImagePackFromSession(session); break; }
       if (session.subscription) {
         const id = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
         await syncSubscription(await s.subscriptions.retrieve(id));

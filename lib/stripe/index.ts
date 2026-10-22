@@ -45,3 +45,19 @@ export async function syncSubscription(sub: Stripe.Subscription) {
     updated_at: new Date().toISOString(),
   });
 }
+
+export const IMAGE_PACKS = {
+  p50: { credits: 50, amount: 900, label: "50 AI images" },
+  p200: { credits: 200, amount: 2900, label: "200 AI images" },
+} as const;
+export type PackId = keyof typeof IMAGE_PACKS;
+
+// Credits an image pack once per paid checkout session (safe to call from both the webhook and the return page).
+export async function grantImagePackFromSession(session: Stripe.Checkout.Session) {
+  if (session.metadata?.kind !== "image_pack" || session.payment_status !== "paid") return false;
+  const venueId = session.metadata.venue_id;
+  const credits = Number(session.metadata.credits);
+  if (!venueId || !credits) return false;
+  const { data } = await supabaseAdmin().rpc("grant_image_pack", { p_session: session.id, p_venue: venueId, p_credits: credits, p_amount: session.amount_total ?? 0 });
+  return data === true;
+}

@@ -27,6 +27,7 @@ export type Dish = {
   description: string;
   price: number;
   image_path: string | null;
+  image_ai?: boolean;
   available: boolean;
   tags: string[];
   position: number;

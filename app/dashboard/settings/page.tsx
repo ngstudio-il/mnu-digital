@@ -29,8 +29,10 @@ export default function Settings() {
     setLogoBusy(false);
   }
   const [ai, setAi] = useState<{ used: number; quota: number } | null>(null);
+  const [imgQ, setImgQ] = useState<{ used: number; quota: number; extra: number } | null>(null);
 
   useEffect(() => {
+    supabaseBrowser().rpc("image_quota", { p_venue: venue.id }).then(({ data }: { data: { used: number; quota: number; extra: number }[] | null }) => setImgQ(data?.[0] ?? null));
     supabaseBrowser().rpc("ai_quota", { p_venue: venue.id }).then(({ data }: { data: { used: number; quota: number }[] | null }) => setAi(data?.[0] ?? null));
   }, [venue.id, venue.plan]);
 
@@ -132,6 +134,11 @@ export default function Settings() {
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><b>AI descriptions this month</b><span>{ai ? `${ai.used} of ${ai.quota}` : "–"}</span></div>
           <div className="ai-meter"><i style={{ width: ai ? `${Math.min(100, Math.round((ai.used / ai.quota) * 100))}%` : "0%" }} /></div>
           <span>100 a month during the free trial, 1,000 a month on the paid plan. Resets on the 1st.</span>
+        </div>
+        <div className="set-row" style={{ display: "block" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><b>AI images this month</b><span>{imgQ ? `${imgQ.used} of ${imgQ.quota}${imgQ.extra ? ` · ${imgQ.extra} from packs` : ""}` : "–"}</span></div>
+          <div className="ai-meter"><i style={{ width: imgQ && imgQ.quota ? `${Math.min(100, Math.round((imgQ.used / imgQ.quota) * 100))}%` : "0%" }} /></div>
+          <span>10 a month during the trial, 30 on the paid plan. Extra packs from the dish editor never expire.</span>
         </div>
         <div className="set-row"><div><b>{plan.title}</b><span>{plan.detail}</span></div><button className="btn sm" type="button" onClick={openBilling}>{subscription.status === "past_due" ? "Update card" : "Manage billing"}</button></div>
         <div className="set-row"><div><b>{user.name || "Your account"}</b><span>{user.email}{user.provider === "google" ? " · Google account" : ""}</span></div><button className="btn danger sm" type="button" onClick={logout}>Log out</button></div>

@@ -7,7 +7,7 @@ export type VenueRow = {
   owner_id: string; owner_email: string; owner_name: string; provider: string; last_sign_in: string | null;
   status: string; trial_end: string | null; current_period_end: string | null; stripe_customer_id: string | null;
   dishes: number; orders30: number; revenue30: number; ordersToday: number; lastOrder: string | null;
-  aiUsed: number; imports: number; unread: number;
+  aiUsed: number; imports: number; images: number; unread: number;
 };
 
 const month = () => new Date().toISOString().slice(0, 7);
@@ -24,7 +24,7 @@ export async function loadAdminData() {
     db.from("subscriptions").select("venue_id, status, trial_end, current_period_end, stripe_customer_id"),
     db.from("dishes").select("venue_id"),
     db.from("orders").select("venue_id, total, status, created_at").gte("created_at", since30),
-    db.from("ai_usage").select("venue_id, used, imports").eq("month", month()),
+    db.from("ai_usage").select("venue_id, used, imports, images").eq("month", month()),
     db.from("support_messages").select("venue_id").eq("sender", "owner").eq("read_by_admin", false),
     db.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ]);
@@ -57,7 +57,7 @@ export async function loadAdminData() {
       last_sign_in: u?.last_sign_in_at ?? null,
       status: s?.status ?? "none", trial_end: s?.trial_end ?? null, current_period_end: s?.current_period_end ?? null, stripe_customer_id: s?.stripe_customer_id ?? null,
       dishes: dishCount.get(v.id) ?? 0, orders30: o?.n ?? 0, revenue30: o?.rev ?? 0, ordersToday: o?.today ?? 0, lastOrder: o?.last ?? null,
-      aiUsed: a?.used ?? 0, imports: a?.imports ?? 0, unread: unreadBy.get(v.id) ?? 0,
+      aiUsed: a?.used ?? 0, imports: a?.imports ?? 0, images: (a as { images?: number } | undefined)?.images ?? 0, unread: unreadBy.get(v.id) ?? 0,
     };
   });
 

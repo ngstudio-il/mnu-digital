@@ -115,7 +115,7 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
             <h2>{g.name}</h2>
             {g.items.map((d) => { const src = photoUrl(d.image_path); return (
               <article className={`g-item${src ? "" : " noimg"}`} key={d.id} onClick={() => setOpen(d)}>
-                {src && <img src={src} alt="" />}
+                {src && <span className="g-img">{<img src={src} alt="" />}{d.image_ai && <i>Illustration</i>}</span>}
                 <div className="g-info"><b>{d.name}</b><p>{d.description}</p>{d.tags?.length > 0 && <div className="g-tags">{d.tags.map((t) => <span key={t}>{t}</span>)}</div>}</div>
                 <div className="g-side"><em>{money(d.price, venue.currency)}</em>
                   {canOrder && (cart[d.id] ? (
@@ -136,7 +136,7 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
       {open && (
         <div className="g-sheet-wrap" onClick={() => setOpen(null)}>
           <div className="g-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={open.name}>
-            {photoUrl(open.image_path) && <img className="g-hero" src={photoUrl(open.image_path)!} alt="" />}
+            {photoUrl(open.image_path) && <div className="g-hero-wrap"><img className="g-hero" src={photoUrl(open.image_path)!} alt="" />{open.image_ai && <i>Illustration · actual dish may look different</i>}</div>}
             <div className="g-sheet-body">
               <h3>{open.name}</h3><p>{open.description}</p>
               {open.tags?.length > 0 && <div className="g-tags">{open.tags.map((t) => <span key={t}>{t}</span>)}</div>}

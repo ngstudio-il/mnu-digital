@@ -72,3 +72,9 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-pill.st-ready { background: #e4f1e5; color: #3f8a4a; }
 .g-pill.st-done { background: #eceeed; color: #7c8789; }
 .g-pill.st-cancelled { background: #fbe9e5; color: #b0584a; }
+
+.g-img { position: relative; display: block; width: 84px; height: 84px; }
+.g-img img { width: 84px; height: 84px; border-radius: 14px; object-fit: cover; display: block; }
+.g-img i, .g-hero-wrap i { position: absolute; left: 4px; bottom: 4px; font-style: normal; font-size: 8.5px; font-weight: 500; padding: 2px 6px; border-radius: 99px; background: rgba(20,26,27,.6); color: #fff; letter-spacing: .02em; }
+.g-hero-wrap { position: relative; }
+.g-hero-wrap i { left: 12px; bottom: 12px; font-size: 11px; padding: 4px 10px; }

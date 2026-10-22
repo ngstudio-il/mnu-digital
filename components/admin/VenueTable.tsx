@@ -38,7 +38,7 @@ export default function VenueTable({ rows, noVenue, initialStatus }: { rows: Ven
                 <td>{r.dishes}</td>
                 <td>{r.orders30}<small>{r.lastOrder ? `last ${ago(r.lastOrder)}` : ""}</small></td>
                 <td>${Math.round(r.revenue30).toLocaleString("en-US")}</td>
-                <td>{r.aiUsed}<small>{r.imports} imports</small></td>
+                <td>{r.aiUsed}<small>{r.imports} imports · {r.images} images</small></td>
                 <td>{r.last_sign_in ? ago(r.last_sign_in) : "—"}</td>
               </tr>
             ))}

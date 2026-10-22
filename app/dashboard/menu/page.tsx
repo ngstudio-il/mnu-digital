@@ -136,7 +136,25 @@ export default function MenuPage() {
 }
 
 function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Category[]; onClose: () => void; onSaved: () => void }) {
-  const { venue, toast } = useDash();
+  const { venue, setVenue, toast } = useDash();
+  const [newLabel, setNewLabel] = useState("");
+  const [editLabels, setEditLabels] = useState(false);
+  const labels = venue.labels?.length ? venue.labels : LABELS;
+
+  async function saveLabels(next: string[], msg: string) {
+    const { data, error } = await supabaseBrowser().from("venues").update({ labels: next }).eq("id", venue.id).select().single();
+    if (error || !data) return toast(error?.message.includes("labels") ? "Labels need a database update first." : "Couldn’t save labels.");
+    setVenue(data);
+    toast(msg);
+  }
+  function addLabel() {
+    const t = newLabel.trim().slice(0, 30);
+    if (!t) return;
+    if (labels.some((l) => l.toLowerCase() === t.toLowerCase())) { setNewLabel(""); return toast(`${t} already exists`); }
+    saveLabels([...labels, t], `Label “${t}” added`);
+    set({ tags: [...d.tags, t] });
+    setNewLabel("");
+  }
   const [d, setD] = useState<Draft>(draft);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -247,10 +265,21 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
           </div>
         </div>
         <div>
-          <p className="fieldset-label">Labels</p>
-          <div className="chips">{LABELS.map((t) => (
-            <button key={t} type="button" aria-pressed={d.tags.includes(t)} onClick={() => set({ tags: d.tags.includes(t) ? d.tags.filter((x) => x !== t) : [...d.tags, t] })}>{t}</button>
-          ))}</div>
+          <div className="ai-row">
+            <p className="fieldset-label" style={{ margin: 0 }}>Labels</p>
+            <button type="button" className="link-btn" onClick={() => setEditLabels((v) => !v)}>{editLabels ? "Done" : "Manage labels"}</button>
+          </div>
+          <div className="chips" style={{ marginTop: 8 }}>
+            {[...labels, ...d.tags.filter((t) => !labels.includes(t))].map((t) => editLabels ? (
+              <span key={t} className="chip-edit">{t}<button type="button" aria-label={`Delete label ${t}`} onClick={() => { saveLabels(labels.filter((x) => x !== t), `Label “${t}” removed`); set({ tags: d.tags.filter((x) => x !== t) }); }}>×</button></span>
+            ) : (
+              <button key={t} type="button" aria-pressed={d.tags.includes(t)} onClick={() => set({ tags: d.tags.includes(t) ? d.tags.filter((x) => x !== t) : [...d.tags, t] })}>{t}</button>
+            ))}
+          </div>
+          <div className="add-label">
+            <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLabel(); } }} placeholder="New label, e.g. Chef’s pick" aria-label="New label" maxLength={30} />
+            <button type="button" className="btn ghost sm" onClick={addLabel} disabled={!newLabel.trim()}>Add</button>
+          </div>
         </div>
         <div className="inline">Available on the menu <button className="switch" type="button" role="switch" aria-checked={d.available} aria-label="Available" onClick={() => set({ available: !d.available })} /></div>
         {err && <p className="note" style={{ color: "var(--coral)" }}>{err}</p>}

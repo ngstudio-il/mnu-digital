@@ -3,7 +3,6 @@ import type { Metadata, Viewport } from "next";
 export const metadata: Metadata = {
   title: "mnu.digital · Digital menus for restaurants",
   description: "Digital QR menus for restaurants, cafés, bars and hotels. Update dishes and prices from your phone and take orders from the table.",
-  icons: { icon: "/assets/mnu-logo.png" },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };

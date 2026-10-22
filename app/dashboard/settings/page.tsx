@@ -19,7 +19,7 @@ export default function Settings() {
 
   async function uploadLogo(file: File) {
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return toast("Use a PNG, JPG or WebP image.");
-    if (file.size > 2 * 1024 * 1024) return toast("Logo must be under 2 MB.");
+    if (file.size > 5 * 1024 * 1024) return toast("Logo must be under 5 MB.");
     setLogoBusy(true);
     const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
     const path = `${venue.id}/logo-${crypto.randomUUID()}.${ext}`;

@@ -42,9 +42,13 @@ export function ChatThread({ venueId, as, onRead }: { venueId: string; as: "owne
     setBusy(true); setErr("");
     const { data, error } = await supabaseBrowser().from("support_messages").insert({ venue_id: venueId, sender: as, body, [readCol]: true }).select().single();
     setBusy(false);
-    if (error || !data) return setErr("Message not sent. Check your connection and try again.");
+    if (error || !data) {
+      const missing = error?.code === "42P01" || error?.message?.includes("support_messages");
+      return setErr(missing ? "Chat isn’t set up yet (database update missing)." : `Message not sent: ${error?.message ?? "unknown error"}`);
+    }
     setMsgs((m) => (m && !m.some((x) => x.id === data.id) ? [...m, data] : m));
     setText("");
+    if (as === "owner") fetch("/api/support/notify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: data.id }) }).catch(() => {});
   }
 
   return (

@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { resolveVenue } from "@/lib/admin";
 
 // Reads a menu from photos or a PDF and returns its sections and dishes for the owner to review.
 export const maxDuration = 120;
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
-  const { data: venue } = await supabase.from("venues").select("id").eq("owner_id", user.id).order("created_at").limit(1).maybeSingle();
+  const venue = await resolveVenue(supabase, user.id);
   if (!venue) return NextResponse.json({ error: "Venue not found." }, { status: 404 });
 
   const form = await request.formData().catch(() => null);

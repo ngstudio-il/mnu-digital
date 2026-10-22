@@ -4,6 +4,7 @@
 body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5 var(--font); }
 .g { max-width: 640px; margin: 0 auto; min-height: 100vh; padding-bottom: 110px; }
 .g-head { background: var(--brand); color: #fff; padding: calc(28px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) 22px max(20px, env(safe-area-inset-right, 0px)); position: relative; }
+.g-logo { display: block; width: 64px; height: 64px; object-fit: contain; border-radius: 16px; background: rgba(255,255,255,.12); padding: 6px; margin-bottom: 12px; }
 .g-head small { font-size: 11px; letter-spacing: .26em; opacity: .75; }
 .g-head h1 { margin: 4px 0 0; font-size: 28px; font-weight: 700; color: #fff; }
 .g-table { position: absolute; right: max(20px, env(safe-area-inset-right, 0px)); bottom: 22px; font-size: 13px; font-weight: 500; background: rgba(255,255,255,.18); padding: 5px 12px; border-radius: 99px; }

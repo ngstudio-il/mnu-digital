@@ -8,6 +8,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Subscription, Venue } from "@/lib/types";
 import { planSummary } from "@/lib/format";
 import { VenueContext } from "./VenueContext";
+import SupportChat from "@/components/SupportChat";
 
 const NAV = [
   { href: "/dashboard", label: "Overview", icon: <><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></> },
@@ -17,7 +18,7 @@ const NAV = [
   { href: "/dashboard/settings", label: "Settings", icon: <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></> },
 ];
 
-export default function Shell({ initialVenue, subscription, user, children }: { initialVenue: Venue; subscription: Subscription; user: { id: string; name: string; email: string; provider: string }; children: React.ReactNode }) {
+export default function Shell({ initialVenue, support = false, subscription, user, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; user: { id: string; name: string; email: string; provider: string }; children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [venue, setVenue] = useState(initialVenue);
@@ -92,6 +93,12 @@ export default function Shell({ initialVenue, subscription, user, children }: { 
           </div>
         </aside>
         <div className="main">
+          {support && (
+            <div className="support-bar">
+              <span><b>Support mode</b> · You’re viewing and editing <b>{venue.name}</b> as an admin. Changes are saved to their account.</span>
+              <button type="button" className="btn sm" onClick={async () => { await fetch("/api/admin/support-mode", { method: "DELETE" }); window.location.href = `/admin/venues/${venue.id}`; }}>Exit support mode</button>
+            </div>
+          )}
           <header className="top">
             <h1>{title}</h1>
             <div className="top-actions">
@@ -103,6 +110,7 @@ export default function Shell({ initialVenue, subscription, user, children }: { 
           <main className="view">{children}</main>
         </div>
       </div>
+      {!support && <SupportChat venueId={venue.id} />}
       <div className={`toast${msg ? " show" : ""}`} role="status">{msg}</div>
     </VenueContext.Provider>
   );

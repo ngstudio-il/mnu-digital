@@ -13,6 +13,7 @@ export type Venue = {
   takeaway: boolean;
   notes: boolean;
   plan: string;
+  logo_path?: string | null;
 };
 
 export type Category = { id: string; venue_id: string; name: string; position: number };

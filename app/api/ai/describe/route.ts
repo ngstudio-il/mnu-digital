@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { resolveVenue } from "@/lib/admin";
 
 // Writes a short menu description for a dish. Runs on the server so the API key stays secret.
 const MODEL = "claude-haiku-5-5";
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   const name = (body.name ?? "").trim().slice(0, 80);
   if (!name) return NextResponse.json({ error: "Add the dish name first." }, { status: 400 });
 
-  const { data: venue } = await supabase.from("venues").select("id, type").eq("owner_id", user.id).limit(1).maybeSingle();
+  const venue = await resolveVenue(supabase, user.id);
   if (!venue) return NextResponse.json({ error: "Venue not found." }, { status: 404 });
 
   const { data: credit, error: creditError } = await supabase.rpc("consume_ai_credit", { p_venue: venue.id });

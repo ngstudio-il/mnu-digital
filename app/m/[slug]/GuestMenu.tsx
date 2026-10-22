@@ -50,6 +50,7 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
   return (
     <div className="g" style={{ ["--brand" as string]: venue.brand }}>
       <header className="g-head">
+        {photoUrl(venue.logo_path) && <img className="g-logo" src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} />}
         <small>{venue.type.toUpperCase()}</small>
         <h1>{venue.name}</h1>
         {table && <span className="g-table">{table}</span>}

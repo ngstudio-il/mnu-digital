@@ -37,7 +37,7 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
     if (type === "dinein" && !tableNo.trim()) return setErr("Enter your table number.");
     if (type === "takeaway" && !name.trim()) return setErr("Enter a name for the order.");
     setBusy(true);
-    const label = type === "dinein" ? (/^\d+$/.test(tableNo.trim()) ? `Table ${tableNo.trim()}` : tableNo.trim()) : "Takeaway";
+    const label = type === "dinein" ? (table ?? (/^\d+$/.test(tableNo.trim()) ? `Table ${tableNo.trim()}` : tableNo.trim())) : "Takeaway";
     const { data, error } = await supabaseBrowser().rpc("place_order", {
       p_slug: venue.slug, p_table: label, p_type: type, p_name: name.trim() || null, p_note: note.trim() || null,
       p_items: lines.map((l) => ({ dish_id: l.dish.id, qty: l.q })),
@@ -108,7 +108,9 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
                 <div className="g-seg"><button type="button" aria-pressed={type === "dinein"} onClick={() => setType("dinein")}>At the table</button><button type="button" aria-pressed={type === "takeaway"} onClick={() => setType("takeaway")}>Takeaway</button></div>
               )}
               {type === "dinein"
-                ? <label className="g-field">Table number<input value={tableNo.replace(/^Table /, "")} onChange={(e) => setTableNo(e.target.value)} inputMode="numeric" placeholder="e.g. 7" /></label>
+                ? (table
+                  ? <div className="g-fixed"><span>Your table</span><b>{table}</b></div>
+                  : <label className="g-field">Table number<input value={tableNo.replace(/^Table /, "")} onChange={(e) => setTableNo(e.target.value)} inputMode="numeric" placeholder="e.g. 7" /></label>)
                 : <label className="g-field">Name for the order<input value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>}
               {venue.notes && <label className="g-field">Note for the kitchen (optional)<input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Allergies, no onions…" /></label>}
               {err && <p className="g-err">{err}</p>}

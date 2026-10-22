@@ -34,7 +34,7 @@ export default function OnboardingForm({ defaultName, ownerName }: { defaultName
     }
     if (!venue) { setErr("Couldn’t create a link for this venue. Try a different name."); setBusy(false); return; }
     await sb.from("categories").insert(STARTER_CATEGORIES.map((n, i) => ({ venue_id: venue.id, name: n, position: i })));
-    router.push("/dashboard");
+    router.push("/billing");
     router.refresh();
   }
 

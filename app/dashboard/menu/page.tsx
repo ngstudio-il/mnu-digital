@@ -214,7 +214,10 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
           <div className="ai-row">
             <label htmlFor="d-desc">Description</label>
             <div className="ai-tools">
-              <button className="btn soft sm" type="button" onClick={writeWithAi} disabled={ai.busy || aiLeft === 0}>{ai.busy ? "Writing…" : "✨ Write with AI"}</button>
+              <button className={`ai-btn${ai.busy ? " busy" : ""}`} type="button" onClick={writeWithAi} disabled={ai.busy || aiLeft === 0}>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6zM15.5 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></svg>
+                {ai.busy ? "Writing…" : "Write with AI"}
+              </button>
             </div>
           </div>
           <textarea id="d-desc" value={d.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ingredients, how it’s served. Jot a few words and let AI polish them." />

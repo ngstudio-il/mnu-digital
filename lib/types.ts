@@ -47,3 +47,10 @@ export type Order = {
   created_at: string;
   order_items?: OrderItem[];
 };
+
+export type Subscription = {
+  status: string;
+  trial_end: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+};

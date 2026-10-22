@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import type { Venue } from "@/lib/types";
+import type { Subscription, Venue } from "@/lib/types";
+import { planSummary } from "@/lib/format";
 import { VenueContext } from "./VenueContext";
 
 const NAV = [
@@ -16,7 +17,7 @@ const NAV = [
   { href: "/dashboard/settings", label: "Settings", icon: <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></> },
 ];
 
-export default function Shell({ initialVenue, user, children }: { initialVenue: Venue; user: { id: string; name: string; email: string; provider: string }; children: React.ReactNode }) {
+export default function Shell({ initialVenue, subscription, user, children }: { initialVenue: Venue; subscription: Subscription; user: { id: string; name: string; email: string; provider: string }; children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [venue, setVenue] = useState(initialVenue);
@@ -51,6 +52,14 @@ export default function Shell({ initialVenue, user, children }: { initialVenue: 
     return () => { sb.removeChannel(ch); };
   }, [venue.id, refreshNewOrders, toast]);
 
+  const plan = planSummary(subscription);
+  async function openBilling() {
+    const res = await fetch("/api/stripe/portal", { method: "POST" }).catch(() => null);
+    const json = res ? await res.json().catch(() => ({})) : {};
+    if (res?.ok && json.url) window.location.href = json.url;
+    else toast(json.error ?? "Couldn’t open billing. Try again.");
+  }
+
   const title = NAV.find((n) => n.href === path)?.label ?? "Dashboard";
 
   async function logout() {
@@ -60,7 +69,7 @@ export default function Shell({ initialVenue, user, children }: { initialVenue: 
   }
 
   return (
-    <VenueContext.Provider value={{ venue, setVenue, user, toast, newOrders, refreshNewOrders, orderTick }}>
+    <VenueContext.Provider value={{ venue, setVenue, user, toast, newOrders, refreshNewOrders, orderTick, subscription, openBilling }}>
       <div className="shell">
         <aside className="side">
           <a className="logo" href="/"><img src="/assets/mnu-logo.png" alt="mnu.digital" /></a>
@@ -73,7 +82,7 @@ export default function Shell({ initialVenue, user, children }: { initialVenue: 
             ))}
           </nav>
           <div className="side-foot">
-            <div className="plan-card"><b>{venue.plan === "free" ? "Free plan" : "Pro plan"}</b><p>Unlock more features from $19/month.</p><Link className="btn sm" href="/dashboard/settings">Upgrade</Link></div>
+            <div className="plan-card"><b>{plan.title}</b><p>{plan.detail}</p><button className="btn sm" type="button" onClick={openBilling}>{subscription.status === "past_due" ? "Update card" : "Manage billing"}</button></div>
             <div className="me"><span className="avatar">{(user.name || user.email || "U").charAt(0).toUpperCase()}</span><div><b>{user.name || user.email}</b><span>{venue.name}</span></div></div>
           </div>
         </aside>

@@ -37,3 +37,11 @@ form { display: grid; gap: 14px; }
 .side-phone .it em { font-style: normal; font-weight: 600; }
 @media (max-width: 900px) { .auth { grid-template-columns: 1fr; } .auth-side { display: none; } }
 @media (max-width: 460px) { .row2 { grid-template-columns: 1fr; } .auth-box h1 { font-size: 30px; } }
+.plan-box { margin-top: 26px; border-radius: 22px; padding: 24px; background: #1f2829; color: #c5d1cf; }
+.plan-price { display: flex; align-items: baseline; gap: 6px; color: #fff; }
+.plan-price b { font-size: 48px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+.plan-price span { color: #9fb0ae; }
+.perks.dark { margin-top: 18px; gap: 10px; font-size: 14.5px; }
+.trial-steps { list-style: none; padding: 16px 0 0; margin: 18px 0 0; border-top: 1px solid rgba(255,255,255,.12); display: grid; gap: 10px; }
+.trial-steps li { display: grid; grid-template-columns: 70px 1fr; gap: 10px; font-size: 14px; }
+.trial-steps b { color: #fff; font-weight: 600; }

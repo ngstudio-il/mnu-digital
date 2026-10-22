@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext } from "react";
-import type { Venue } from "@/lib/types";
+import type { Subscription, Venue } from "@/lib/types";
 
 export type DashCtx = {
   venue: Venue;
@@ -10,6 +10,8 @@ export type DashCtx = {
   newOrders: number;
   refreshNewOrders: () => void;
   orderTick: number;
+  subscription: Subscription;
+  openBilling: () => void;
 };
 
 export const VenueContext = createContext<DashCtx | null>(null);

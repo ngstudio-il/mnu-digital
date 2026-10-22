@@ -174,28 +174,32 @@ export const LANDING_HTML = String.raw`<header>
         <div class="pricing-copy">
           <span class="pill"><i></i>Pricing</span>
           <h2 style="margin-top: 18px">Turn your menu digital <span>in minutes.</span></h2>
-          <p>Start creating now, for free. Upgrade whenever it suits you.</p>
-          <ul class="perks"><li>No credit card to start</li><li>Cancel anytime</li><li>Live in under 24 hours</li></ul>
+          <p>Try everything free for 7 days. Then one simple plan at $39 a month.</p>
+          <ul class="perks"><li>All features from day one</li><li>Cancel anytime before day 7, pay nothing</li><li>Live in under 24 hours</li></ul>
         </div>
         <div class="plan">
-          <div class="plan-name"><h3>Free</h3><span class="tag-pill">Start here</span></div>
-          <div class="plan-price"><sup>$</sup><b>0</b><small>/month</small></div>
-          <p class="plan-sub">Everything you need to go digital.</p>
-          <ul>
-            <li>AI dish descriptions, 100 a month</li>
-            <li>QR code and direct link</li>
-            <li>Design styles to choose from</li>
-            <li>Unlimited views and visitors</li>
-          </ul>
+          <div class="plan-name"><h3>Free trial</h3><span class="tag-pill">Start here</span></div>
+          <div class="plan-price"><sup>$</sup><b>0</b><small>for 7 days</small></div>
+          <p class="plan-sub">Full access while you set up and test.</p>
+          <ol class="trial-line">
+            <li><b>Today</b><span>Sign up, add your card and build your menu</span></li>
+            <li><b>Days 1–7</b><span>Take real orders, print your QR codes</span></li>
+            <li><b>Day 7</b><span>First charge of $39, then monthly</span></li>
+          </ol>
           <a class="btn" href="/signup">Start for Free <i>→</i></a>
         </div>
         <div class="plan dark">
-          <div class="plan-name"><h3>Paid plans</h3><span class="tag-pill">From</span></div>
-          <div class="plan-price"><sup>$</sup><b>19</b><small>/month</small></div>
-          <p class="plan-sub">For venues that want more.</p>
-          <p class="plan-text">Additional features and flexibility, available whenever you're ready.</p>
+          <div class="plan-name"><h3>mnu.digital Pro</h3><span class="tag-pill">One plan</span></div>
+          <div class="plan-price"><sup>$</sup><b>39</b><small>/month</small></div>
+          <p class="plan-sub">Everything included, per venue.</p>
+          <ul>
+            <li>Unlimited dishes, photos and views</li>
+            <li>Table and takeaway ordering</li>
+            <li>QR codes for every table</li>
+            <li>AI dish descriptions, 1,000 a month</li>
+          </ul>
           <div class="plates" aria-hidden="true"><img src="/assets/food/bread-sq.jpg" alt=""><img src="/assets/food/salmon-sq.jpg" alt=""><img src="/assets/food/fries-sq.jpg" alt=""><span>Restaurants, cafés, bars &amp; hotels</span></div>
-          <a class="btn" href="/signup">See all plans <i>→</i></a>
+          <a class="btn" href="/signup">Start free trial <i>→</i></a>
         </div>
       </div>
     </div>
@@ -215,7 +219,7 @@ export const LANDING_HTML = String.raw`<header>
         <details><summary><span>02</span>Do guests need to install an app?</summary><p>No. The menu opens in the phone's browser as soon as the code is scanned.</p></details>
         <details><summary><span>03</span>Can I update the menu myself?</summary><p>Yes. Prices, dishes, photos and availability can all be changed from your phone, and guests see the change right away.</p></details>
         <details><summary><span>04</span>Which languages are supported?</summary><p>English, Hebrew and Arabic out of the box, with right-to-left layouts. More languages can be added.</p></details>
-        <details><summary><span>05</span>Can I start for free?</summary><p>Yes. The free plan includes a QR code, design styles and unlimited views. Upgrade whenever you need more.</p></details>
+        <details><summary><span>05</span>How does the free trial work?</summary><p>You get 7 days with every feature. A card is needed to start, and the first $39 charge happens on day 7. Cancel in Settings before then and you pay nothing.</p></details>
       </div>
     </div>
   </section>
@@ -225,7 +229,7 @@ export const LANDING_HTML = String.raw`<header>
     <div class="wrap cta-grid">
       <div class="cta-copy">
         <h2>See your own menu on mnu.digital</h2>
-        <p>Create your digital menu in minutes. Free to start, no credit card needed.</p>
+        <p>Create your digital menu in minutes. Free for 7 days, then $39 a month.</p>
         <div class="cta-actions">
           <a class="btn cta-btn" href="/signup">Start for Free <i>→</i></a>
           <span class="cta-note">Live in under 24 hours</span>

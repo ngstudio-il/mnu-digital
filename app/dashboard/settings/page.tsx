@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
-import { BRANDS, LANGS, slugify } from "@/lib/format";
+import { BRANDS, LANGS, planSummary, slugify } from "@/lib/format";
 import type { Venue } from "@/lib/types";
 
 export default function Settings() {
-  const { venue, setVenue, user, toast } = useDash();
+  const { venue, setVenue, user, toast, subscription, openBilling } = useDash();
+  const plan = planSummary(subscription);
   const router = useRouter();
   const [name, setName] = useState(venue.name);
   const [type, setType] = useState(venue.type);
@@ -103,9 +104,9 @@ export default function Settings() {
         <div className="set-row" style={{ display: "block" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><b>AI descriptions this month</b><span>{ai ? `${ai.used} of ${ai.quota}` : "–"}</span></div>
           <div className="ai-meter"><i style={{ width: ai ? `${Math.min(100, Math.round((ai.used / ai.quota) * 100))}%` : "0%" }} /></div>
-          <span>Free plan: 100 a month. Paid plan: 1,000 a month. Resets on the 1st.</span>
+          <span>100 a month during the free trial, 1,000 a month on the paid plan. Resets on the 1st.</span>
         </div>
-        <div className="set-row"><div><b>{venue.plan === "free" ? "Free plan" : "Pro plan"}</b><span>QR code, design styles, unlimited views</span></div><button className="btn sm" type="button" onClick={() => toast("Paid plans and billing are coming soon")}>Upgrade · $19/mo</button></div>
+        <div className="set-row"><div><b>{plan.title}</b><span>{plan.detail}</span></div><button className="btn sm" type="button" onClick={openBilling}>{subscription.status === "past_due" ? "Update card" : "Manage billing"}</button></div>
         <div className="set-row"><div><b>{user.name || "Your account"}</b><span>{user.email}{user.provider === "google" ? " · Google account" : ""}</span></div><button className="btn danger sm" type="button" onClick={logout}>Log out</button></div>
       </div>
     </div>

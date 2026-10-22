@@ -111,7 +111,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       <aside className="auth-side" aria-hidden="true">
         <h2>Your menu, live tonight.</h2>
         <ul className="perks">
-          <li>Free plan, no credit card</li>
+          <li>7 days free, cancel anytime</li>
           <li>Menu, photos and prices in one place</li>
           <li>Take orders straight from the table</li>
         </ul>

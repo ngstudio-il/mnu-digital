@@ -147,7 +147,7 @@ export default function MenuPage() {
             <div className="pv-head" style={{ background: venue.brand }}>{photoUrl(venue.logo_path) && <img className="pv-logo" src={photoUrl(venue.logo_path)!} alt="" />}<small>{venue.type.toUpperCase()}</small><b>{venue.name}</b></div>
             <div className="pv-list">
               {cats.map((c) => {
-                const ds = (dishes ?? []).filter((d) => d.category_id === c.id && d.available);
+                const ds = (dishes ?? []).filter((d) => d.category_id === c.id && d.available).sort((a, b) => a.position - b.position);
                 if (!ds.length) return null;
                 return (
                   <div key={c.id}>

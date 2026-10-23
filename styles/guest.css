@@ -157,3 +157,9 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 
 /* Ordering sheets are always light and easy to read, whatever the menu's style */
 .g-sheet.g-light { --sheet: #fff; --card: #fff; --chip: #f1efe9; --paper: #1f2829; --text: #4d5759; --dim: #7c8789; --line: rgba(31,40,41,.08); --line-strong: rgba(31,40,41,.16); --hfont: var(--font); --hscale: 1; color: var(--text); }
+
+/* Draft order in My orders */
+.g-draft { border-style: dashed; border-color: var(--line-strong); }
+.g-pill.st-draft { background: #f4efe2; color: #8a6d2a; }
+.g-draft-actions { display: grid; gap: 8px; margin-top: 6px; }
+.g-draft-actions .g-cta { padding: 13px; font-size: 15px; }

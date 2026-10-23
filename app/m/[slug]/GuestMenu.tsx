@@ -80,6 +80,20 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
   const [showMine, setShowMine] = useState(false);
   const storeKey = `mnu.orders.${venue.slug}`;
 
+  // An order the guest started but didn't send is kept on the phone for 12 hours as a draft.
+  const draftKey = `mnu.cart.${venue.slug}`;
+  const draftLoaded = useRef(false);
+  useEffect(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(draftKey) ?? "null") as { cart: Record<string, number>; name?: string; note?: string; at: number } | null;
+      if (d && Date.now() - d.at < 12 * 3600000) {
+        const kept = Object.fromEntries(Object.entries(d.cart).filter(([id, q]) => q > 0 && dishes.some((x) => x.id === id)));
+        if (Object.keys(kept).length) { setCart(kept); if (d.name) setName(d.name); if (d.note) setNote(d.note); }
+      }
+    } catch { /* storage unavailable */ }
+    draftLoaded.current = true;
+  }, [draftKey, dishes]);
+
   // Orders placed from this phone in the last 24 hours, kept only on the guest's device.
   useEffect(() => {
     try {
@@ -156,6 +170,14 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
     setTimeout(() => { jumping.current = false; }, 700);
   }
 
+  useEffect(() => {
+    if (!draftLoaded.current) return;
+    try {
+      if (Object.values(cart).some((q) => q > 0)) localStorage.setItem(draftKey, JSON.stringify({ cart, name, note, at: Date.now() }));
+      else localStorage.removeItem(draftKey);
+    } catch { /* storage unavailable */ }
+  }, [cart, name, note, draftKey]);
+
   const lines = Object.entries(cart).filter(([, q]) => q > 0).map(([id, q]) => ({ dish: dishes.find((d) => d.id === id)!, q })).filter((l) => l.dish);
   const count = lines.reduce((t, l) => t + l.q, 0);
   const total = lines.reduce((t, l) => t + l.q * Number(l.dish.price), 0);
@@ -201,7 +223,7 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
         <h1>{venue.name}</h1>
         {table && <span className="g-table">{tableText(table)}</span>}
         <div className="g-top">
-          {mine.length > 0 && <button type="button" className="g-mine" onClick={() => setShowMine(true)}>{t("myOrders")}<b>{mine.length}</b></button>}
+          {(mine.length > 0 || count > 0) && <button type="button" className="g-mine" onClick={() => setShowMine(true)}>{t("myOrders")}<b>{mine.length + (count > 0 ? 1 : 0)}</b></button>}
           {i18n.langs.length > 1 && (
             <button type="button" className="g-lang" onClick={() => setPickLang(true)} aria-label={`${t("language")}: ${language(lang).native}`} title={language(lang).native}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>
@@ -287,7 +309,19 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
         <Sheet closeLabel={t("close")} onClose={() => setShowMine(false)} label={t("myOrders")} className="g-light">
             <div className="g-sheet-body">
               <h3>{t("myOrders")}</h3>
-              <p>{t("mineIntro")}</p>
+              {count > 0 && (
+                <div className="g-order g-draft">
+                  <div className="g-order-top"><b>{t("draft")}</b><span className="g-pill st-draft">{t("notSent")}</span></div>
+                  <small>{t("draftIntro")}</small>
+                  <ul>{lines.map((l) => <li key={l.dish.id}><span>{l.q}× {dishName(l.dish)}</span><em>{money(l.q * Number(l.dish.price), venue.currency)}</em></li>)}</ul>
+                  <div className="g-order-total"><span>{t("total")}</span><b>{money(total, venue.currency)}</b></div>
+                  <div className="g-draft-actions">
+                    <button type="button" className="g-cta" onClick={() => { setShowMine(false); setCheckout(true); }}>{t("finishOrder")}</button>
+                    <button type="button" className="g-cta ghost" onClick={() => { setCart({}); setNote(""); if (!mine.length) setShowMine(false); }}>{t("deleteDraft")}</button>
+                  </div>
+                </div>
+              )}
+              {mine.length > 0 && <p>{t("mineIntro")}</p>}
               {mine.map((o) => {
                 const l = o.token ? live[o.token] : undefined;
                 const known = l ? GUEST_STATUS[l.status] : undefined;

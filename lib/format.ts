@@ -38,5 +38,4 @@ export function planSummary(sub: { status: string; trial_end: string | null; cur
 
 export const STATUS_LABEL = { new: "New", preparing: "Preparing", ready: "Ready", done: "Completed", cancelled: "Declined" } as const;
 export const LABELS = ["Vegan", "Vegetarian", "Gluten-free", "Contains nuts", "Dairy", "Fish", "Spicy"];
-export const LANGS: Record<string, string> = { en: "English", he: "Hebrew", ar: "Arabic", ru: "Russian", fr: "French" };
 export const BRANDS = ["#1f2829", "#6f9393", "#3a2a21", "#b07656", "#2f4a6b"];

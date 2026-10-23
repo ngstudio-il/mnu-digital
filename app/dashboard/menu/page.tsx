@@ -8,6 +8,7 @@ import ImportMenu from "@/components/dashboard/ImportMenu";
 import ImagePacks from "@/components/dashboard/ImagePacks";
 import BulkPhotos from "@/components/dashboard/BulkPhotos";
 import { Grip, SortableList } from "@/components/dashboard/Sortable";
+import { syncTranslations } from "@/lib/translate-client";
 
 type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; image_ai?: boolean; available: boolean; tags: string[] };
 
@@ -32,6 +33,15 @@ export default function MenuPage() {
     setDishes(d.data ?? []);
   }, [venue.id]);
   useEffect(() => { load(); }, [load]);
+
+  // Keep translations in step with the menu: a few seconds after names, descriptions or labels change.
+  const translates = venue.langs.some((l) => l !== (venue.primary_lang || "en"));
+  const contentSig = dishes ? JSON.stringify([cats.map((c) => c.name), dishes.map((d) => [d.name, d.description, d.tags])]) : "";
+  useEffect(() => {
+    if (!translates || !contentSig) return;
+    const t = setTimeout(() => { syncTranslations(); }, 2500);
+    return () => clearTimeout(t);
+  }, [translates, contentSig]);
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("images") === "bought") {
       toast("Thanks! Your AI images were added.");

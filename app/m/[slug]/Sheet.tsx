@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 
 // Bottom sheet that closes on a tap outside or a swipe down.
-export default function Sheet({ onClose, label, className = "", children }: { onClose: () => void; label: string; className?: string; children: React.ReactNode }) {
+export default function Sheet({ onClose, label, className = "", closeLabel = "Close", children }: { onClose: () => void; label: string; className?: string; closeLabel?: string; children: React.ReactNode }) {
   const sheet = useRef<HTMLDivElement>(null);
   const start = useRef<number | null>(null);
   const [dy, setDy] = useState(0);
@@ -36,7 +36,7 @@ export default function Sheet({ onClose, label, className = "", children }: { on
         onTouchCancel={up}
         style={{ transform: dy ? `translateY(${dy}px)` : undefined, transition: start.current === null ? "transform .25s ease" : "none" }}
       >
-        <button type="button" className="g-grab" onClick={onClose} aria-label="Close"><i /></button>
+        <button type="button" className="g-grab" onClick={onClose} aria-label={closeLabel}><i /></button>
         {children}
       </div>
     </div>

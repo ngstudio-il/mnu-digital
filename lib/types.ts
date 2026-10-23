@@ -7,6 +7,7 @@ export type Venue = {
   currency: string;
   brand: string;
   langs: string[];
+  primary_lang?: string;
   tables: number;
   ordering_on: boolean;
   dinein: boolean;

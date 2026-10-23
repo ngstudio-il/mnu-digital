@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
-import { BRANDS, LANGS, photoUrl, planSummary, slugify } from "@/lib/format";
+import MenuLanguages from "@/components/dashboard/MenuLanguages";
+import { BRANDS, photoUrl, planSummary, slugify } from "@/lib/format";
 import type { Venue } from "@/lib/types";
 
 export default function Settings() {
@@ -55,12 +56,6 @@ export default function Settings() {
     setSlug(s);
     await patch({ name: name.trim(), type, currency, slug: s }, "Venue details saved");
     setBusy(false);
-  }
-
-  function toggleLang(k: string) {
-    const langs = venue.langs.includes(k) ? venue.langs.filter((x) => x !== k) : [...venue.langs, k];
-    if (!langs.length) return toast("Keep at least one language");
-    patch({ langs });
   }
 
   async function logout() {
@@ -120,13 +115,9 @@ export default function Settings() {
             <button key={b} type="button" aria-pressed={venue.brand === b} aria-label={`Brand colour ${b}`} style={{ background: b }} onClick={() => patch({ brand: b }, "Brand colour updated")} />
           ))}</div>
         </div>
-        <div><p className="fieldset-label">Menu languages</p>
-          <div className="chips langs">{Object.entries(LANGS).map(([k, l]) => (
-            <button key={k} type="button" aria-pressed={venue.langs.includes(k)} onClick={() => toggleLang(k)}>{l}</button>
-          ))}</div>
-          <p className="note" style={{ marginTop: 8 }}>Translating dish names comes in a later update.</p>
-        </div>
       </div>
+
+      <MenuLanguages />
 
       <div className="card">
         <h3>Plan &amp; account</h3>

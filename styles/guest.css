@@ -165,8 +165,9 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-draft-actions .g-cta { padding: 13px; font-size: 15px; }
 
 /* Long orders: the item list scrolls on its own so the buttons stay in view */
-.g-lines, .g-order ul { max-height: min(34vh, 280px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.g-lines, .g-order ul { max-height: min(28vh, 210px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .g-lines { padding-inline-end: 4px; }
-.g-order:not(.g-draft) ul { max-height: min(26vh, 200px); }
+.g-draft ul { max-height: min(22vh, 170px); }
+.g-order:not(.g-draft) ul { max-height: 116px; }
 .g-lines, .g-order ul { mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent); -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent); padding-bottom: 14px; }
 .g-sticky { position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 2; box-shadow: 0 -14px 20px 6px var(--sheet); }

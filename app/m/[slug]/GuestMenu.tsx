@@ -336,7 +336,7 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
                   </div>
                 );
               })}
-              <button className="g-cta ghost" type="button" onClick={() => setShowMine(false)}>{t("backToMenu")}</button>
+              <button className="g-cta ghost g-sticky" type="button" onClick={() => setShowMine(false)}>{t("backToMenu")}</button>
             </div>
         </Sheet>
       )}

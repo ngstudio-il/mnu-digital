@@ -31,9 +31,16 @@ async function load(slug: string) {
   const { data: venue } = await sb.from("venues").select("*").eq("slug", slug).maybeSingle();
   if (!venue) return null;
   const primary: string = venue.primary_lang || "en";
+  // A private menu is shown only to its owner and admins, with a note that guests can't see it.
+  let ownerView = false;
+  if (venue.is_public === false) {
+    const { data: { user } } = await sb.auth.getUser();
+    ownerView = !!user && (user.id === venue.owner_id || (await sb.rpc("is_admin")).data === true);
+    if (!ownerView) return { venue: venue as Venue, categories: [], dishes: [], offline: true, private: true, ownerView, primary, langs: [primary], content: {}, ui: await loadUi(sb, [primary]) };
+  }
   const { data: active, error } = await sb.rpc("venue_active", { p_venue: venue.id });
   if (billingConfigured() && !error && active === false) {
-    return { venue: venue as Venue, categories: [], dishes: [], offline: true, primary, langs: [primary], content: {}, ui: await loadUi(sb, [primary]) };
+    return { venue: venue as Venue, categories: [], dishes: [], offline: true, private: false, ownerView, primary, langs: [primary], content: {}, ui: await loadUi(sb, [primary]) };
   }
   const targets = ((venue.langs as string[]) ?? []).filter((l) => l !== primary);
   const [c, d, tr] = await Promise.all([
@@ -46,14 +53,17 @@ async function load(slug: string) {
   // A language is offered once at least part of the menu is translated into it.
   const langs = [primary, ...targets.filter((l) => content[l])];
   return {
-    venue: venue as Venue, categories: (c.data ?? []) as Category[], dishes: (d.data ?? []) as Dish[], offline: false,
+    venue: venue as Venue, categories: (c.data ?? []) as Category[], dishes: (d.data ?? []) as Dish[], offline: false, private: false, ownerView,
     primary, langs, content, ui: await loadUi(sb, langs),
   };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await load((await params).slug);
-  return { title: data ? `${data.venue.name} · ${data.ui[data.primary].menu}` : "Menu not found" };
+  return {
+    title: data ? `${data.venue.name} · ${data.ui[data.primary].menu}` : "Menu not found",
+    ...(data?.venue.is_public === false ? { robots: { index: false, follow: false } } : {}),
+  };
 }
 
 export default async function Page({ params, searchParams }: Props) {
@@ -61,7 +71,7 @@ export default async function Page({ params, searchParams }: Props) {
   const { t } = await searchParams;
   const data = await load(slug);
   if (!data) notFound();
-  if (data.offline) return <OfflineMenu name={data.venue.name} lang={data.primary} ui={data.ui[data.primary]} />;
+  if (data.offline) return <OfflineMenu name={data.venue.name} lang={data.primary} ui={data.ui[data.primary]} message={data.private ? data.ui[data.primary].privateMenu : undefined} />;
   const table = t && /^\d{1,3}$/.test(t) ? `Table ${t}` : null;
-  return <GuestMenu venue={data.venue} categories={data.categories} dishes={data.dishes} table={table} i18n={{ primary: data.primary, langs: data.langs, content: data.content, ui: data.ui }} />;
+  return <GuestMenu ownerView={data.ownerView} venue={data.venue} categories={data.categories} dishes={data.dishes} table={table} i18n={{ primary: data.primary, langs: data.langs, content: data.content, ui: data.ui }} />;
 }

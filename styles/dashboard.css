@@ -506,3 +506,14 @@
   .guest-view { position: static; }
   .guest-phone { width: min(360px, 100%); height: 640px; }
 }
+
+/* Menu visibility */
+.live-dot.private i { background: #c9a227; box-shadow: 0 0 0 4px rgba(201,162,39,.2); }
+.vis-opts { display: grid; gap: 10px; }
+.vis-opt { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start; text-align: start; padding: 14px; border-radius: 14px; border: 1px solid rgba(31,40,41,.12); background: #fff; cursor: pointer; font: inherit; color: var(--text); }
+.vis-opt[aria-checked="true"] { border-color: var(--paper); box-shadow: inset 0 0 0 1px var(--paper); }
+.vis-opt b { display: block; color: var(--paper); font-size: 15px; font-weight: 600; }
+.vis-opt small { display: block; font-size: 13px; color: var(--dim); line-height: 1.45; margin-top: 2px; }
+.vis-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--ink); color: var(--paper); }
+.vis-opt[aria-checked="true"] .vis-icon { background: var(--paper); color: #fff; }
+.vis-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

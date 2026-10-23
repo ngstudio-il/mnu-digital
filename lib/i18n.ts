@@ -1,6 +1,6 @@
 // Words on the guest menu. English and Hebrew are written by hand; every other
 // language is translated once by AI and cached in the ui_translations table.
-export const UI_VERSION = 5;
+export const UI_VERSION = 6;
 
 export const UI_EN = {
   type_Restaurant: "Restaurant",
@@ -60,6 +60,7 @@ export const UI_EN = {
   st_done: "Served",
   st_cancelled: "Declined by the venue",
   offline: "This menu isn’t available right now. Please ask a member of staff.",
+  privateMenu: "This menu is private right now. Please ask a member of staff.",
   draft: "Draft order",
   notSent: "Not sent",
   draftIntro: "You started this order but haven’t sent it yet.",
@@ -128,6 +129,7 @@ export const UI_HE: UiStrings = {
   st_done: "הוגשה",
   st_cancelled: "נדחתה על ידי המקום",
   offline: "התפריט אינו זמין כרגע. נא לפנות לצוות.",
+  privateMenu: "התפריט פרטי כרגע. נא לפנות לצוות.",
   draft: "טיוטת הזמנה",
   notSent: "לא נשלחה",
   draftIntro: "התחלת את ההזמנה הזאת ועוד לא שלחת אותה.",

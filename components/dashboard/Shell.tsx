@@ -112,7 +112,7 @@ export default function Shell({ initialVenue, support = false, subscription, use
           <header className="top">
             <h1>{title}</h1>
             <div className="top-actions">
-              <span className="live-dot"><i /><span>{venue.ordering_on ? "Menu live · taking orders" : "Menu live · orders paused"}</span></span>
+              <span className={`live-dot${venue.is_public === false ? " private" : ""}`}><i /><span>{venue.is_public === false ? "Menu private · only you can see it" : venue.ordering_on ? "Menu live · taking orders" : "Menu live · orders paused"}</span></span>
               <button className="top-btn" type="button" onClick={() => setPreview(true)} aria-label="Preview your menu">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Preview</span>
               </button>

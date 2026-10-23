@@ -34,6 +34,13 @@ export default function Settings() {
     return true;
   }
 
+  async function patchVisibility(pub: boolean) {
+    const { data, error } = await supabaseBrowser().from("venues").update({ is_public: pub }).eq("id", venue.id).select().single();
+    if (error || !data) return toast(error?.message.includes("is_public") ? "Visibility needs a database update first (0013_menu_visibility.sql)." : "Couldn’t save. Check your connection.");
+    setVenue(data);
+    toast(pub ? "Your menu is public" : "Your menu is private. Only you can see it.");
+  }
+
   async function saveVenue(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return toast("Venue name can’t be empty");
@@ -71,6 +78,24 @@ export default function Settings() {
         <label className="field" htmlFor="v-slug">Menu link<input id="v-slug" value={slug} onChange={(e) => setSlug(e.target.value)} /><small>/m/{slugify(slug || name)}. Changing it breaks QR codes you already printed.</small></label>
         <div><button className="btn" type="submit" disabled={busy}>{busy ? "Saving…" : "Save changes"}</button></div>
       </form>
+
+      <div className="card">
+        <h3>Menu visibility</h3>
+        <div className="vis-opts" role="radiogroup" aria-label="Menu visibility">
+          {([
+            [true, "Public", "Anyone with your QR code or link can see the menu and order."],
+            [false, "Private", "Only you can see the menu. Guests see a “private” notice and can’t order. Good while you’re still setting up."],
+          ] as const).map(([pub, label, sub]) => (
+            <button key={label} type="button" role="radio" aria-checked={(venue.is_public !== false) === pub} className="vis-opt"
+              onClick={() => { if ((venue.is_public !== false) !== pub) patchVisibility(pub); }}>
+              <span className="vis-icon" aria-hidden="true">{pub
+                ? <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>
+                : <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>}</span>
+              <span><b>{label}</b><small>{sub}</small></span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="card">
         <h3>Ordering</h3>

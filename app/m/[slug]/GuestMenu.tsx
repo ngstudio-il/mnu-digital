@@ -13,7 +13,7 @@ import { look } from "@/lib/themes";
 import type { Category, Dish, Venue } from "@/lib/types";
 
 type I18n = { primary: string; langs: string[]; content: ContentMap; ui: Record<string, UiStrings> };
-type Props = { venue: Venue; categories: Category[]; dishes: Dish[]; table: string | null; i18n: I18n };
+type Props = { venue: Venue; categories: Category[]; dishes: Dish[]; table: string | null; i18n: I18n; ownerView?: boolean };
 type Saved = { token: string | null; number: number; at: string; total: number; label: string; items: { name: string; qty: number; price: number }[] };
 type Live = { token: string; status: string; total: number; items: { name: string; qty: number; price: number }[] };
 
@@ -28,7 +28,7 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
 // Design fields the dashboard's live preview may change while the owner edits them.
 const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path"] as const;
 
-export default function GuestMenu({ venue: savedVenue, categories, dishes, table: initialTable, i18n }: Props) {
+export default function GuestMenu({ venue: savedVenue, categories, dishes, table: initialTable, i18n, ownerView = false }: Props) {
   const [venue, setVenue] = useState(savedVenue);
   useEffect(() => {
     if (window.parent === window) return;
@@ -239,6 +239,7 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
     <div className={`g ${design.className}`} lang={lang} dir={isRtl(lang) ? "rtl" : "ltr"}>
       <style>{design.css}</style>
       {design.fonts && <link rel="stylesheet" href={design.fonts} precedence="default" />}
+      {ownerView && venue.is_public === false && <div className="g-private">Private menu · only you can see it. Guests see a “private” notice until you make it public in Settings → General.</div>}
       <header className={`g-head${cover ? " has-cover" : ""}`} style={cover ? { ["--cover" as string]: `url("${cover}")` } : undefined}>
         {photoUrl(venue.logo_path) && <LogoMark className="g-logo" src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} layout={venue.logo_layout} />}
         <small>{(ui[`type_${venue.type}` as UiKey] ?? venue.type).toUpperCase()}</small>

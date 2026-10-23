@@ -509,14 +509,14 @@
 
 /* Menu visibility */
 .live-dot.private i { background: #c9a227; box-shadow: 0 0 0 4px rgba(201,162,39,.2); }
-.vis-opts { display: grid; gap: 10px; }
-.vis-opt { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start; text-align: start; padding: 14px; border-radius: 14px; border: 1px solid rgba(31,40,41,.12); background: #fff; cursor: pointer; font: inherit; color: var(--text); }
-.vis-opt[aria-checked="true"] { border-color: var(--paper); box-shadow: inset 0 0 0 1px var(--paper); }
-.vis-opt b { display: block; color: var(--paper); font-size: 15px; font-weight: 600; }
-.vis-opt small { display: block; font-size: 13px; color: var(--dim); line-height: 1.45; margin-top: 2px; }
-.vis-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--ink); color: var(--paper); }
-.vis-opt[aria-checked="true"] .vis-icon { background: var(--paper); color: #fff; }
-.vis-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.set-col { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.vis-card { gap: 0 !important; }
+.vis-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.vis-head > div:first-child { display: grid; gap: 4px; flex: 1 1 220px; }
+.vis-switch { display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px; background: var(--ink); flex: none; }
+.vis-switch button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 0; border-radius: 9px; background: none; cursor: pointer; font: 500 14px var(--font, inherit); color: var(--text); }
+.vis-switch button[aria-checked="true"] { background: #fff; color: var(--paper); box-shadow: 0 2px 6px rgba(31,40,41,.1); }
+.vis-switch svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Profile button (sidebar on desktop, avatar in the header on phones) */
 button.me { width: 100%; border: 1px solid var(--line); background: #fff; cursor: pointer; font: inherit; text-align: start; padding: 8px 10px 8px 8px; transition: border-color .2s, background .2s; }

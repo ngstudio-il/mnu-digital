@@ -69,6 +69,7 @@ export default function Settings() {
 
   return (
     <div className="set-grid">
+      <div className="set-col">
       <form className="card" onSubmit={saveVenue}>
         <h3>Venue</h3>
         <label className="field" htmlFor="v-name">Venue name<input id="v-name" value={name} onChange={(e) => setName(e.target.value)} /></label>
@@ -87,29 +88,26 @@ export default function Settings() {
       </form>
 
       <div className="card">
-        <h3>Menu visibility</h3>
-        <div className="vis-opts" role="radiogroup" aria-label="Menu visibility">
-          {([
-            [true, "Public", "Anyone with your QR code or link can see the menu and order."],
-            [false, "Private", "Only you can see the menu. Guests see a “private” notice and can’t order. Good while you’re still setting up."],
-          ] as const).map(([pub, label, sub]) => (
-            <button key={label} type="button" role="radio" aria-checked={(venue.is_public !== false) === pub} className="vis-opt"
-              onClick={() => { if ((venue.is_public !== false) !== pub) patchVisibility(pub); }}>
-              <span className="vis-icon" aria-hidden="true">{pub
-                ? <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>
-                : <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>}</span>
-              <span><b>{label}</b><small>{sub}</small></span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="card">
         <h3>Ordering</h3>
         {sw("ordering_on", "Accept orders", "Guests can order from the menu")}
         {sw("dinein", "Dine-in", "Orders come in with a table number")}
         {sw("takeaway", "Takeaway", "Guests can order to take away")}
         {sw("notes", "Order notes", "Let guests add a note to their order")}
+      </div>
+
+      </div>
+
+      <div className="set-col">
+      <div className="card vis-card">
+        <div className="vis-head">
+          <div><h3>Menu visibility</h3><span className="note">{venue.is_public === false ? "Only you can see the menu. Guests see a “private” notice and can’t order." : "Anyone with your QR code or link can see the menu and order."}</span></div>
+          <div className="vis-switch" role="radiogroup" aria-label="Menu visibility">
+            <button type="button" role="radio" aria-checked={venue.is_public !== false} onClick={() => { if (venue.is_public === false) patchVisibility(true); }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>Public</button>
+            <button type="button" role="radio" aria-checked={venue.is_public === false} onClick={() => { if (venue.is_public !== false) patchVisibility(false); }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>Private</button>
+          </div>
+        </div>
       </div>
 
       <div className="card">
@@ -126,6 +124,7 @@ export default function Settings() {
         </div>
         <div className="set-row"><div><b>{plan.title}</b><span>{plan.detail}</span></div><button className="btn sm" type="button" onClick={openBilling}>{subscription.status === "past_due" ? "Update card" : "Manage billing"}</button></div>
         <div className="set-row"><div><b>{user.name || "Your account"}</b><span>{user.email}{user.provider === "google" ? " · Google account" : ""}</span></div><button className="btn danger sm" type="button" onClick={logout}>Log out</button></div>
+      </div>
       </div>
     </div>
   );

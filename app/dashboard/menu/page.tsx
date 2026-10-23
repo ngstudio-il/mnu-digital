@@ -6,6 +6,7 @@ import { LABELS, money, photoUrl } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 import ImportMenu from "@/components/dashboard/ImportMenu";
 import ImagePacks from "@/components/dashboard/ImagePacks";
+import BulkPhotos from "@/components/dashboard/BulkPhotos";
 
 type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; image_ai?: boolean; available: boolean; tags: string[] };
 
@@ -17,6 +18,8 @@ export default function MenuPage() {
   const [newCat, setNewCat] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
   const [importing, setImporting] = useState(false);
+  const [bulk, setBulk] = useState(false);
+  const missingPhotos = (dishes ?? []).filter((d) => !d.image_path).length;
 
   const load = useCallback(async () => {
     const sb = supabaseBrowser();
@@ -91,7 +94,7 @@ export default function MenuPage() {
         </div>
 
         <div>
-          <div className="card-head" style={{ marginBottom: 12 }}><h3 style={{ fontSize: 18 }}>{activeName}</h3><div style={{ display: "flex", gap: 8 }}><button className="btn ghost sm" type="button" onClick={() => setImporting(true)}>Import menu</button><button className="btn sm" type="button" onClick={openNew}>+ Add dish</button></div></div>
+          <div className="card-head" style={{ marginBottom: 12 }}><h3 style={{ fontSize: 18 }}>{activeName}</h3><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{missingPhotos > 0 && <button className="ai-btn" type="button" onClick={() => setBulk(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6zM15.5 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></svg>Photos for {missingPhotos} dish{missingPhotos === 1 ? "" : "es"}</button>}<button className="btn ghost sm" type="button" onClick={() => setImporting(true)}>Import menu</button><button className="btn sm" type="button" onClick={openNew}>+ Add dish</button></div></div>
           {dishes === null ? <p className="note">Loading your menu…</p> : list.length ? (
             <div className="dish-list">
               {list.map((d) => {
@@ -136,6 +139,7 @@ export default function MenuPage() {
           </div></div>
         </div>
       </div>
+      {bulk && <BulkPhotos missing={missingPhotos} onClose={() => { setBulk(false); load(); }} onProgress={load} />}
       {importing && <ImportMenu cats={cats} onClose={() => setImporting(false)} onDone={() => { setImporting(false); setActive("all"); load(); }} />}
       {draft && <DishEditor draft={draft} cats={cats} onClose={() => setDraft(null)} onSaved={() => { setDraft(null); load(); }} />}
     </>

@@ -14,9 +14,13 @@ export default async function DraftPreview({ searchParams }: Props) {
   const { draft, name, lang: startLang } = await searchParams;
   if (!draft || !/^[0-9a-f-]{36}$/.test(draft) || !process.env.SUPABASE_SERVICE_ROLE_KEY) notFound();
   const db = supabaseAdmin();
-  let { data } = await db.from("lp_drafts").select("currency, sections, translations").eq("id", draft).maybeSingle() as { data: { currency: string | null; sections: unknown; translations?: unknown } | null };
-  // Before 0020 there is no translations column.
-  if (!data) ({ data } = await db.from("lp_drafts").select("currency, sections").eq("id", draft).maybeSingle());
+  type Row = { currency: string | null; sections: unknown; translations?: unknown; cover_path?: string | null };
+  // Newer columns first; fall back for databases that don't have them yet (0020, 0021).
+  let data: Row | null = null;
+  for (const cols of ["currency, sections, translations, cover_path", "currency, sections, translations", "currency, sections"]) {
+    const res = await db.from("lp_drafts").select(cols).eq("id", draft).maybeSingle();
+    if (!res.error) { data = res.data as Row | null; break; }
+  }
   if (!data) notFound();
   const sections = (data.sections ?? []) as { name: string; dishes: { name: string; description: string; price: number | null }[] }[];
   const all = sections.flatMap((s) => [s.name, ...s.dishes.map((d) => d.name)]).join(" ");
@@ -31,8 +35,8 @@ export default async function DraftPreview({ searchParams }: Props) {
     id: "draft", owner_id: "", name: (name ?? "").trim().slice(0, 60) || (lang === "he" ? "התפריט שלי" : "Your restaurant"), slug: `draft-${draft.slice(0, 8)}`,
     type: "Restaurant", currency: data.currency && ["$", "₪", "€", "£"].includes(data.currency) ? data.currency : "$", brand: "#1f2829",
     langs, primary_lang: lang, tables: 0, ordering_on: false, dinein: false, takeaway: false, notes: false, plan: "", theme: "classic",
-    // A sample cover so the first look feels like a real restaurant's menu.
-    cover_path: "/assets/food/bread.jpg",
+    // AI photo of one of their own dishes (see /api/lp/cover), once it's ready.
+    cover_path: data.cover_path ?? null,
   } as Venue;
   const categories: Category[] = sections.map((s, i) => ({ id: `c${i}`, venue_id: "draft", name: s.name, position: i }));
   const dishes = sections.flatMap((s, i) => s.dishes.map((d, j) => ({

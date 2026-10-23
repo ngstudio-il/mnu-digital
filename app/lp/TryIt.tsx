@@ -29,6 +29,7 @@ export default function TryIt() {
   const [tErr, setTErr] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const [qr, setQr] = useState("");
+  const [cover, setCover] = useState(false);
   useEffect(() => { QRCode.toDataURL("https://www.mnu.digital", { margin: 0, width: 120, color: { dark: "#1f2829", light: "#ffffff" } }).then(setQr).catch(() => {}); }, []);
 
   // Sign-up lives on the main site (www), also when this page is opened on lp.mnu.digital.
@@ -66,8 +67,12 @@ export default function TryIt() {
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res?.ok) { setStep("pick"); return setErr(json.error ?? t.errGeneric); }
     setDraft({ id: json.draft, dishes: (json.sections as { dishes: unknown[] }[]).reduce((n, s) => n + s.dishes.length, 0) });
-    setLangs([]); setShowLang(null); setTErr("");
+    setLangs([]); setShowLang(null); setTErr(""); setCover(false);
     setStep("done");
+    // A photo of one of their dishes for the menu's cover; the preview reloads once it's ready.
+    const id = json.draft as string;
+    fetch("/api/lp/cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ draft: id }) })
+      .then((r) => r.json()).then((j) => { if (j?.cover) setDraft((d) => { if (d?.id === id) setCover(true); return d; }); }).catch(() => {});
   }
 
   async function translate(code: string) {
@@ -82,7 +87,7 @@ export default function TryIt() {
     setShowLang(code);
   }
 
-  const previewSrc = draft ? `/lp/preview?${new URLSearchParams({ draft: draft.id, ...(previewName.trim() ? { name: previewName.trim() } : {}), ...(showLang ? { lang: showLang } : {}), v: String(langs.length) })}` : "";
+  const previewSrc = draft ? `/lp/preview?${new URLSearchParams({ draft: draft.id, ...(previewName.trim() ? { name: previewName.trim() } : {}), ...(showLang ? { lang: showLang } : {}), v: `${langs.length}${cover ? "c" : ""}` })}` : "";
 
   return (
     <div className="lp" dir={rtl ? "rtl" : "ltr"}>
@@ -134,6 +139,7 @@ export default function TryIt() {
               </div>
             )}
             {err && <p className="lp-err" role="alert">{err}</p>}
+            <div className="lp-qr lp-qr-card" aria-hidden="true">{qr && <img src={qr} alt="" />}<small>Scan me</small></div>
           </div>
           <a className="lp-empty" href={startUrl(false)}>{t.empty}</a>
         </main>

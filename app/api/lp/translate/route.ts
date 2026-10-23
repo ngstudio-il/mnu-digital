@@ -32,8 +32,10 @@ export async function POST(request: Request) {
   try {
     const [out] = await Promise.all([translateItems(from, lang, items.slice(0, 300)), ensureUiStrings(lang)]);
     const next = { ...translations, [lang]: Object.fromEntries(out.map((o) => [o.key, { name: o.name, description: o.description }])) };
-    await db.from("lp_drafts").update({ translations: next }).eq("id", draft);
-    return NextResponse.json({ ok: true, langs: Object.keys(next) });
+    const { data: saved, error: saveError } = await db.from("lp_drafts").update({ translations: next }).eq("id", draft).select("translations").single();
+    const stored = Object.keys((saved?.translations ?? {}) as object);
+    if (saveError || !stored.includes(lang)) return NextResponse.json({ error: `Couldn’t save the translation${saveError ? `: ${saveError.message}` : ""}. Try again.` }, { status: 500 });
+    return NextResponse.json({ ok: true, langs: stored });
   } catch {
     return NextResponse.json({ error: "Couldn’t translate right now. Try again." }, { status: 502 });
   }

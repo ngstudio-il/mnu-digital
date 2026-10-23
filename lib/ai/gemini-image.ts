@@ -6,7 +6,7 @@ const MODEL = GEMINI_IMAGE_MODEL;
 
 type Part = { text?: string; inlineData?: { mimeType: string; data: string }; inline_data?: { mime_type: string; data: string } };
 
-export async function generateImage(prompt: string, source?: { mimeType: string; data: string }) {
+export async function generateImage(prompt: string, source?: { mimeType: string; data: string }, aspectRatio = "1:1") {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new GeminiError("not_configured", "AI images aren’t set up yet.");
   const parts: Part[] = [{ text: prompt }];
@@ -17,7 +17,7 @@ export async function generateImage(prompt: string, source?: { mimeType: string;
     headers: { "Content-Type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify({
       contents: [{ role: "user", parts }],
-      generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: "1:1" } },
+      generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio } },
     }),
   });
   const json = (await res.json().catch(() => ({}))) as {
@@ -50,6 +50,13 @@ export function createPrompt(name: string, description: string, venueType: strin
   return `Professional food photograph for a ${venueType.toLowerCase()} menu: ${name}${description ? `. ${description}` : ""}.
 Photorealistic and appetizing. The dish is plated beautifully on a simple ceramic plate on a restaurant table, shot at a 45-degree angle with natural soft window light and shallow depth of field.
 Square composition with the dish centred. No text, no logos, no watermarks, no hands or people.`;
+}
+
+// A wide hero photo for the top of a menu, built around one dish.
+export function coverPrompt(name: string, description: string) {
+  return `Professional wide food photograph for the cover of a restaurant's digital menu: ${name}${description ? `. ${description}` : ""}.
+The dish is beautifully plated on a restaurant table, with warm natural window light, soft shadows and a shallow depth of field. A few fitting ingredients or a drink in the softly blurred background.
+Landscape composition with the dish slightly off-centre and calm space around it. Photorealistic and appetizing. No text, no logos, no watermarks, no hands or people.`;
 }
 
 export function enhancePrompt(name: string) {

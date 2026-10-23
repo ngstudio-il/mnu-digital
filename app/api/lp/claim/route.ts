@@ -19,7 +19,7 @@ export async function POST() {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ added: 0 }, { status: 401 });
-  const { data: venue } = await supabase.from("venues").select("id, currency").eq("owner_id", user.id).order("created_at").limit(1).maybeSingle();
+  const { data: venue } = await supabase.from("venues").select("id, currency, cover_path").eq("owner_id", user.id).order("created_at").limit(1).maybeSingle();
   if (!venue) return NextResponse.json({ added: 0, waiting: "venue" });
 
   const db = supabaseAdmin();
@@ -53,6 +53,8 @@ export async function POST() {
   // A brand-new menu takes the currency printed on the uploaded one.
   const cur = draft.currency && ["$", "₪", "€", "£"].includes(draft.currency) ? draft.currency : null;
   if (cur && !dishCount && cur !== venue.currency) await supabase.from("venues").update({ currency: cur }).eq("id", venue.id);
+  // The AI cover made on the try-it page becomes the venue's cover photo.
+  if (draft.cover_path && !venue.cover_path) await supabase.from("venues").update({ cover_path: draft.cover_path }).eq("id", venue.id);
   // Starter categories from sign-up that stayed empty are no longer needed.
   if (added && !dishCount) {
     const starters = (cats ?? []).filter((c) => ["starters", "mains", "desserts", "drinks"].includes(c.name.trim().toLowerCase()) && !sections.some((s) => s.name.trim().toLowerCase() === c.name.trim().toLowerCase()));

@@ -20,9 +20,16 @@ const NAV = [
   { href: "/dashboard/settings", label: "Settings", icon: <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></> },
 ];
 
-export default function Shell({ initialVenue, support = false, subscription, user: initialUser, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; user: { id: string; name: string; email: string; provider: string; lang: string }; children: React.ReactNode }) {
+export default function Shell({ initialVenue, support = false, subscription, user: initialUser, pendingDraft = false, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; pendingDraft?: boolean; user: { id: string; name: string; email: string; provider: string; lang: string }; children: React.ReactNode }) {
   const [user, setUser] = useState(initialUser);
   const [profile, setProfile] = useState(false);
+  // A menu made on the try-it page before signing up is added once the owner reaches the dashboard.
+  useEffect(() => {
+    if (!pendingDraft) return;
+    fetch("/api/lp/claim", { method: "POST" }).then((r) => r.json()).then((j: { added?: number }) => {
+      if (j.added) { toast(`Your menu is here: ${j.added} dishes added`); router.refresh(); setTimeout(() => window.location.reload(), 900); }
+    }).catch(() => {});
+  }, [pendingDraft]); // eslint-disable-line react-hooks/exhaustive-deps
   const path = usePathname();
   const router = useRouter();
   const [preview, setPreview] = useState(false);

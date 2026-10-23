@@ -9,7 +9,7 @@ import { slugify } from "@/lib/format";
 const TYPES = ["Restaurant", "Café", "Bar", "Hotel", "Other"];
 const STARTER_CATEGORIES = ["Starters", "Mains", "Desserts", "Drinks"];
 
-export default function OnboardingForm({ defaultName, ownerName }: { defaultName: string; ownerName: string }) {
+export default function OnboardingForm({ defaultName, ownerName, hasDraft = false }: { defaultName: string; ownerName: string; hasDraft?: boolean }) {
   const router = useRouter();
   const [name, setName] = useState(defaultName);
   const [type, setType] = useState("Restaurant");
@@ -33,7 +33,8 @@ export default function OnboardingForm({ defaultName, ownerName }: { defaultName
       else { setErr(error?.message ?? "Something went wrong. Try again."); setBusy(false); return; }
     }
     if (!venue) { setErr("Couldn’t create a link for this venue. Try a different name."); setBusy(false); return; }
-    await sb.from("categories").insert(STARTER_CATEGORIES.map((n, i) => ({ venue_id: venue.id, name: n, position: i })));
+    if (hasDraft) await fetch("/api/lp/claim", { method: "POST" }).catch(() => null);
+    else await sb.from("categories").insert(STARTER_CATEGORIES.map((n, i) => ({ venue_id: venue.id, name: n, position: i })));
     router.push("/billing");
     router.refresh();
   }
@@ -44,7 +45,7 @@ export default function OnboardingForm({ defaultName, ownerName }: { defaultName
         <div className="auth-top"><a className="logo" href="/"><img src="/assets/mnu-logo.png" alt="mnu.digital" /></a></div>
         <div className="auth-box">
           <h1>{ownerName ? `Welcome, ${ownerName.split(" ")[0]}` : "Welcome"}</h1>
-          <p className="sub">Tell us about your venue. You can change this later.</p>
+          <p className="sub">{hasDraft ? "Your menu is ready. Tell us about your venue and we’ll add it to your account." : "Tell us about your venue. You can change this later."}</p>
           <form onSubmit={submit} noValidate style={{ marginTop: 28 }}>
             <label className="field" htmlFor="v-name">Venue name<input id="v-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Olive & Salt" /></label>
             <div className="row2">

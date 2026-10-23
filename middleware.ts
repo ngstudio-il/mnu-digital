@@ -4,6 +4,13 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/sup
 
 // Keeps the Supabase session fresh and sends signed-out visitors from /dashboard to /login.
 export async function middleware(request: NextRequest) {
+  // lp.mnu.digital is the try-it page.
+  if (request.headers.get("host")?.startsWith("lp.") && request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/lp";
+    return NextResponse.rewrite(url);
+  }
+  if (request.nextUrl.pathname === "/") return NextResponse.next();
   let response = NextResponse.next({ request });
   if (!isSupabaseConfigured) return response;
 
@@ -37,5 +44,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/onboarding", "/billing/:path*", "/admin/:path*", "/login", "/signup"],
+  matcher: ["/", "/dashboard/:path*", "/onboarding", "/billing/:path*", "/admin/:path*", "/login", "/signup"],
 };

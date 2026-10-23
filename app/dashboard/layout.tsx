@@ -1,3 +1,4 @@
+import { DRAFT_COOKIE } from "@/lib/lp";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -43,11 +44,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (isAdmin !== true) redirect("/billing");
   }
   const meta = user.user_metadata ?? {};
+  const pendingDraft = !support && !!(await cookies()).get(DRAFT_COOKIE);
   return (
     <Shell
       initialVenue={venue}
       support={support}
       subscription={(sub ?? { status: "none", trial_end: null, current_period_end: null, cancel_at_period_end: false }) as Subscription}
+      pendingDraft={pendingDraft}
       user={{ id: user.id, name: meta.first_name ?? meta.full_name ?? meta.name ?? "", email: user.email ?? "", provider: user.app_metadata?.provider ?? "email", lang: meta.ui_lang ?? "en" }}
     >
       {children}

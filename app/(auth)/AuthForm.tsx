@@ -104,7 +104,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         </div>
       </section>
 
-      <aside className="auth-side light" aria-hidden="true">
+      <aside className="auth-side" aria-hidden="true">
         <h2>Your menu, live tonight.</h2>
         <ul className="perks">
           <li>7 days free, cancel anytime</li>

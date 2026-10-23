@@ -4,7 +4,6 @@ import { createHash } from "node:crypto";
 // Shared bits of the public try-it page (lp.mnu.digital).
 export const DRAFT_COOKIE = "mnu_draft";
 export const DRAFT_NAME_COOKIE = "mnu_draft_name";
-export const LP_DAILY_LIMIT = 5;
 export { LP_PDF_MAX } from "./lp-limits";
 export const DRAFT_DAYS = 14;
 

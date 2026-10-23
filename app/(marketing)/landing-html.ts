@@ -215,11 +215,16 @@ export const LANDING_HTML = String.raw`<header>
         <a class="btn ghost" href="#contact">Ask us anything</a>
       </div>
       <div class="faq-lines">
-        <details open><summary><span>01</span>What is mnu.digital?</summary><p>A digital menu service for restaurants, cafés, bars and hotels. Guests open your menu by scanning a QR code, and you manage it from any device.</p></details>
-        <details><summary><span>02</span>Do guests need to install an app?</summary><p>No. The menu opens in the phone's browser as soon as the code is scanned.</p></details>
-        <details><summary><span>03</span>Can I update the menu myself?</summary><p>Yes. Prices, dishes, photos and availability can all be changed from your phone, and guests see the change right away.</p></details>
-        <details><summary><span>04</span>Which languages are supported?</summary><p>English, Hebrew and Arabic out of the box, with right-to-left layouts. More languages can be added.</p></details>
-        <details><summary><span>05</span>How does the free trial work?</summary><p>You get 7 days with every feature. A card is needed to start, and the first $39 charge happens on day 7. Cancel in Settings before then and you pay nothing.</p></details>
+        <details open><summary><span>01</span>What is MNU?</summary><p>MNU is a platform for managing smart digital menus, offering full control, fast updates, and a simple user experience. It's an advanced, convenient, and cost-effective solution for businesses in the digital world.</p></details>
+        <details><summary><span>02</span>How do you display the digital menu to customers?</summary><p>It's simple and convenient. After creating your menu, you receive a direct link and a unique QR code. You can place the QR code at your business entrance, on tables, or at the register, allowing customers to scan it and view the menu instantly on their phones. You can also share the link through any marketing channel you choose, including WhatsApp, Instagram, Facebook, your business website, or any other platform.</p></details>
+        <details><summary><span>03</span>Do customers need to download an app?</summary><p>No. The menu opens directly in the browser via a link or QR code, with no installation or registration required.</p></details>
+        <details><summary><span>04</span>I already have a printed, digital, or sign menu and don't want to enter everything again. What should I do?</summary><p>Simple and easy. Just take a photo or upload an image or file of your existing menu. The system uses AI to scan the content and convert it into a ready-to-use digital menu. In a short time, all items, categories, and prices are automatically added. From there, you can easily update, edit, or add images. You can also use AI to generate images with a single click.</p></details>
+        <details><summary><span>05</span>Do I need design knowledge to create a digital menu in MNU?</summary><p>No. No prior design knowledge is required. MNU offers ready-made design styles to choose from, such as urban, rustic, elegant, luxurious, and more. You can also use AI to design the menu for you with a single click, based on your logo or brand colors and the style you choose. You can easily try multiple versions until you find the one that feels just right for your business.</p></details>
+        <details><summary><span>06</span>Can I set the system language and the digital menu language?</summary><p>Yes. You can set the system language to Hebrew, Arabic, or English. In addition, you can choose the menu language independently. The menu supports full language directionality and automatically adapts to right-to-left or left-to-right languages, ensuring a natural and comfortable experience for customers in any language.</p></details>
+        <details><summary><span>07</span>Can I track menu visitors for advertising and marketing purposes?</summary><p>Yes. With the Pro and Elite plans, you can embed tracking pixels and advertising tools from platforms such as Facebook, Instagram, Google, and more. The system includes a dedicated area for easy embedding, allowing you to track menu visitors, understand their behavior, and run more targeted and effective campaigns.</p></details>
+        <details><summary><span>08</span>Do I need to enter payment details to start?</summary><p>No. You can start using MNU for free, with no credit card or payment details required.</p></details>
+        <details><summary><span>09</span>Can I upgrade or downgrade my subscription?</summary><p>Yes. You can upgrade your subscription at any time, and the upgrade takes effect immediately. Downgrading is also possible and will take effect at the end of the current billing period. This gives you the flexibility to choose the plan that suits you at every stage, with no pressure and no surprises.</p></details>
+        <details><summary><span>10</span>Is payment in MNU secure?</summary><p>Yes. All payments are processed through Stripe, one of the most secure and widely used payment platforms in the world. Your payment details are never stored in our system and are handled directly by Stripe, ensuring a safe and seamless payment experience.</p></details>
       </div>
     </div>
   </section>
@@ -273,6 +278,7 @@ export const LANDING_HTML = String.raw`<header>
     </div>
     <div><b>Product</b><a href="#live">Live demo</a><a href="#features">Features</a><a href="#pricing">Pricing</a></div>
     <div><b>Company</b><a href="#how">How it works</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></div>
+    <div><b>Legal</b><a href="/privacy">Privacy Policy</a><a href="/accessibility">Accessibility</a></div>
   </div>
   <div class="wrap foot-base"><span>© 2026 mnu.digital. All rights reserved.</span><a class="to-top" href="#top">Scroll to top <i>↑</i></a></div>
 </footer>`;

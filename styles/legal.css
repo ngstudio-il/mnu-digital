@@ -1,0 +1,19 @@
+/* Legal pages */
+:root { --ink: #f2f1eb; --paper: #1f2829; --text: #4d5759; --dim: #7c8789; --line: rgba(31,40,41,.1); }
+body { margin: 0; background: var(--ink); color: var(--text); font: 400 16px/1.7 "Outfit", "Heebo", system-ui, sans-serif; }
+.legal { min-height: 100vh; display: flex; flex-direction: column; }
+.legal-head { max-width: 860px; width: 100%; margin: 0 auto; padding: 28px 24px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.legal-logo img { height: 34px; display: block; }
+.legal-back { color: var(--dim); text-decoration: none; font-weight: 500; font-size: 14px; }
+.legal-back:hover { color: var(--paper); }
+.legal-main { max-width: 860px; width: 100%; margin: 28px auto 0; padding: 48px 56px 56px; background: #fff; border: 1px solid var(--line); border-radius: 28px; box-sizing: border-box; }
+.legal-main h1 { margin: 0; font-size: clamp(32px, 5vw, 44px); line-height: 1.1; color: var(--paper); font-weight: 700; letter-spacing: -.01em; }
+.legal-updated { margin: 10px 0 28px; color: var(--dim); font-size: 14px; }
+.legal-main h2 { margin: 36px 0 8px; font-size: 20px; color: var(--paper); font-weight: 600; }
+.legal-main p { margin: 0 0 14px; }
+.legal-main a { color: var(--paper); text-underline-offset: 3px; }
+.legal-foot { max-width: 860px; width: 100%; margin: 0 auto; padding: 28px 24px 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; color: var(--dim); font-size: 14px; box-sizing: border-box; }
+.legal-foot nav { display: flex; gap: 18px; flex-wrap: wrap; }
+.legal-foot a { color: var(--dim); text-decoration: none; }
+.legal-foot a:hover { color: var(--paper); }
+@media (max-width: 640px) { .legal-main { margin: 20px 16px 0; width: auto; padding: 30px 22px 36px; border-radius: 22px; } .legal-head, .legal-foot { padding-inline: 16px; } }

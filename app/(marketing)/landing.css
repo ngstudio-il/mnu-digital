@@ -323,7 +323,7 @@ section.block { padding-block: 120px; }
 .to-top i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: var(--cta); color: #fff; transition: transform .2s; }
 .to-top:hover i { transform: translateY(-3px); }
 footer { border-top: 0; margin-top: 0; background: #f4f4f1; }
-.foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; padding-block: 64px 40px; }
+.foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; padding-block: 64px 40px; }
 .foot-brand p { margin-top: 14px; color: var(--dim); max-width: 34ch; }
 .foot-grid > div:not(.foot-brand) { display: grid; gap: 10px; align-content: start; }
 .foot-grid b { color: var(--paper); font-weight: 600; margin-bottom: 4px; }

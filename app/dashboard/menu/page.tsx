@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
 import { dishPrice, money, photoUrl } from "@/lib/format";
@@ -66,14 +66,20 @@ export default function MenuPage() {
     .filter((d) => active === "all" || d.category_id === active)
     .sort((a, b) => (catOrder.get(a.category_id ?? "") ?? 999) - (catOrder.get(b.category_id ?? "") ?? 999) || a.position - b.position);
 
+  // Reorders show in the Guest View right away, before they are saved.
+  const preview = useRef<HTMLIFrameElement>(null);
+  const tellPreview = (msg: object) => preview.current?.contentWindow?.postMessage({ type: "mnu:order", ...msg }, window.location.origin);
+
   async function reorderCats(next: Category[]) {
     setCats(next.map((c, i) => ({ ...c, position: i })));
+    tellPreview({ cats: next.map((c) => c.id) });
     const sb = supabaseBrowser();
     const results = await Promise.all(next.map((c, i) => sb.from("categories").update({ position: i }).eq("id", c.id)));
     if (results.some((r) => r.error)) { toast("Couldn’t save the new order."); load(); } else toast("Category order saved");
   }
   async function reorderDishes(next: Dish[]) {
     const pos = new Map(next.map((d, i) => [d.id, i]));
+    tellPreview({ dishes: next.map((d, i) => ({ id: d.id, position: i })) });
     setDishes((all) => all?.map((d) => (pos.has(d.id) ? { ...d, position: pos.get(d.id)! } : d)) ?? null);
     const sb = supabaseBrowser();
     const results = await Promise.all(next.map((d, i) => sb.from("dishes").update({ position: i }).eq("id", d.id)));
@@ -163,7 +169,7 @@ export default function MenuPage() {
           )}
         </div>
 
-        <GuestView slug={venue.slug} version={previewVersion} note="Updates after you save a dish or change the order." />
+        <GuestView ref={preview} slug={venue.slug} version={previewVersion} note="Updates after you save a dish or change the order." />
       </div>
       {bulk && <BulkPhotos missing={missingPhotos} onClose={() => { setBulk(false); load(); }} onProgress={load} />}
       {importing && <ImportMenu cats={cats} onClose={() => setImporting(false)} onDone={() => { setImporting(false); setActive("all"); load(); }} />}

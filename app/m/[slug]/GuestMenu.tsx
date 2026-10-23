@@ -28,12 +28,23 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
 // Design fields the dashboard's live preview may change while the owner edits them.
 const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path"] as const;
 
-export default function GuestMenu({ venue: savedVenue, categories, dishes, table: initialTable, i18n, ownerView = false }: Props) {
+export default function GuestMenu({ venue: savedVenue, categories: savedCats, dishes: savedDishes, table: initialTable, i18n, ownerView = false }: Props) {
   const [venue, setVenue] = useState(savedVenue);
+  // In the dashboard preview, dragging categories or dishes reorders this copy straight away.
+  const [categories, setCategories] = useState(savedCats);
+  const [dishes, setDishes] = useState(savedDishes);
+  useEffect(() => { setCategories(savedCats); setDishes(savedDishes); }, [savedCats, savedDishes]);
   useEffect(() => {
     if (window.parent === window) return;
     const on = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin || e.data?.type !== "mnu:design") return;
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === "mnu:order") {
+        const cats = e.data.cats as string[] | undefined, pos = new Map((e.data.dishes as { id: string; position: number }[] | undefined ?? []).map((x) => [x.id, x.position]));
+        if (cats) setCategories((cs) => [...cs].sort((a, b) => cats.indexOf(a.id) - cats.indexOf(b.id)));
+        if (pos.size) setDishes((ds) => ds.map((d) => (pos.has(d.id) ? { ...d, position: pos.get(d.id)! } : d)).sort((a, b) => a.position - b.position));
+        return;
+      }
+      if (e.data?.type !== "mnu:design") return;
       const d = e.data.design as Partial<Venue>;
       setVenue((v) => ({ ...v, ...Object.fromEntries(PREVIEW_FIELDS.filter((k) => k in d).map((k) => [k, d[k]])) }));
     };

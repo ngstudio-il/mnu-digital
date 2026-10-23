@@ -1,6 +1,6 @@
 // Words on the guest menu. English and Hebrew are written by hand; every other
 // language is translated once by AI and cached in the ui_translations table.
-export const UI_VERSION = 6;
+export const UI_VERSION = 7;
 
 export const UI_EN = {
   type_Restaurant: "Restaurant",
@@ -61,6 +61,8 @@ export const UI_EN = {
   st_cancelled: "Declined by the venue",
   offline: "This menu isn’t available right now. Please ask a member of staff.",
   privateMenu: "This menu is private right now. Please ask a member of staff.",
+  fromPrice: "from {p}",
+  chooseOption: "Choose an option",
   draft: "Draft order",
   notSent: "Not sent",
   draftIntro: "You started this order but haven’t sent it yet.",
@@ -130,6 +132,8 @@ export const UI_HE: UiStrings = {
   st_cancelled: "נדחתה על ידי המקום",
   offline: "התפריט אינו זמין כרגע. נא לפנות לצוות.",
   privateMenu: "התפריט פרטי כרגע. נא לפנות לצוות.",
+  fromPrice: "החל מ-{p}",
+  chooseOption: "בחירת אפשרות",
   draft: "טיוטת הזמנה",
   notSent: "לא נשלחה",
   draftIntro: "התחלת את ההזמנה הזאת ועוד לא שלחת אותה.",
@@ -144,5 +148,5 @@ export function fill(s: string, vars?: Record<string, string | number>) {
 }
 
 // Key for one translated piece of the menu.
-export const tkey = { dish: (id: string) => `d:${id}`, cat: (id: string) => `c:${id}`, label: (text: string) => `l:${text}` };
+export const tkey = { dish: (id: string) => `d:${id}`, cat: (id: string) => `c:${id}`, label: (text: string) => `l:${text}`, variant: (dishId: string, name: string) => `v:${dishId}:${name}` };
 export type ContentMap = Record<string, Record<string, { name: string; description: string }>>;

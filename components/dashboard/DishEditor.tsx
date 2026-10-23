@@ -6,7 +6,7 @@ import { LABELS, photoUrl } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 import ImagePacks from "./ImagePacks";
 
-export type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; image_ai?: boolean; available: boolean; tags: string[] };
+export type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; image_ai?: boolean; available: boolean; tags: string[]; options: { name: string; price: string }[] };
 
 // Adding or editing a dish, on a page of its own over the menu.
 export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Category[]; onClose: () => void; onSaved: () => void }) {
@@ -104,14 +104,20 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!d.name.trim()) return setErr("Give the dish a name.");
-    const price = parseFloat(d.price);
-    if (isNaN(price) || price < 0) return setErr("Enter a price, for example 18.");
+    // Price is optional: leave it empty for a menu that's only a catalogue.
+    const num = (v: string) => (v.trim() === "" ? null : parseFloat(v));
+    const price = num(d.price);
+    if (price !== null && (isNaN(price) || price < 0)) return setErr("Enter a price like 18, or leave it empty.");
+    const options = d.options.filter((o) => o.name.trim() || o.price.trim()).map((o) => ({ name: o.name.trim().slice(0, 40), price: num(o.price) }));
+    if (options.some((o) => !o.name)) return setErr("Give every variation a name, or remove it.");
+    if (options.some((o) => o.price !== null && (isNaN(o.price) || o.price < 0))) return setErr("Variation prices must be numbers like 14, or empty to use the dish price.");
+    if (new Set(options.map((o) => o.name.toLowerCase())).size !== options.length) return setErr("Two variations have the same name.");
     setBusy(true);
-    const row = { venue_id: venue.id, name: d.name.trim(), description: d.description.trim(), price, category_id: d.category_id, image_path: d.image_path, image_ai: Boolean(d.image_path && d.image_ai), available: d.available, tags: d.tags };
+    const row = { venue_id: venue.id, name: d.name.trim(), description: d.description.trim(), price, options, category_id: d.category_id, image_path: d.image_path, image_ai: Boolean(d.image_path && d.image_ai), available: d.available, tags: d.tags };
     const sb = supabaseBrowser();
     const { error } = d.id ? await sb.from("dishes").update(row).eq("id", d.id) : await sb.from("dishes").insert(row);
     setBusy(false);
-    if (error) return setErr(error.message);
+    if (error) return setErr(/options|null value in column "price"/.test(error.message) ? "Optional prices and variations need a database update first (0015_variations_optional_price.sql)." : error.message);
     toast(d.id ? "Saved. Your menu is updated." : `${row.name} added to the menu`);
     onSaved();
   }
@@ -152,22 +158,39 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
           <textarea id="d-desc" value={d.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ingredients, how it’s served. Jot a few words and let AI polish them." />
           <small>{ai.msg ? <span style={{ color: "var(--coral)" }}>{ai.msg}</span> : aiLeft !== null ? `${aiLeft} of ${ai.quota} AI text credits left this month` : "AI uses the dish name, category, labels and anything you type here."}</small>
         </div>
-        <div className="row2">
-          <label className="field" htmlFor="d-price">Price ({venue.currency})<input id="d-price" type="number" min="0" step="0.5" value={d.price} onChange={(e) => set({ price: e.target.value })} /></label>
-          <label className="field" htmlFor="d-cat">Category
-            <select id="d-cat" value={d.category_id ?? ""} onChange={(e) => set({ category_id: e.target.value || null })}>
-              <option value="">No category</option>
-              {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </label>
-        </div>
+        <label className="field" htmlFor="d-cat">Category
+          <select id="d-cat" value={d.category_id ?? ""} onChange={(e) => set({ category_id: e.target.value || null })}>
+            <option value="">No category</option>
+            {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
 
-        <div>
-          <div className="ai-row">
-            <p className="fieldset-label" style={{ margin: 0 }}>Labels</p>
+        <section className="sub-section" aria-labelledby="sec-price">
+          <div className="sub-section-head"><b id="sec-price">Pricing</b><span>Optional. Leave it empty if your menu is only a catalogue.</span></div>
+          <label className="field" htmlFor="d-price">Price
+            <span className="money-input"><i>{venue.currency}</i><input id="d-price" type="number" min="0" step="0.5" inputMode="decimal" value={d.price} placeholder="No price" onChange={(e) => set({ price: e.target.value })} /></span>
+          </label>
+          <div className="variations">
+            <div className="variations-head"><b>Variations</b><span>Sizes or versions guests choose from, like Short and Long for a coffee. An empty price uses the dish price.</span></div>
+            {d.options.map((o, i) => (
+              <div className="variation" key={i}>
+                <input value={o.name} placeholder={i === 0 ? "e.g. Short" : i === 1 ? "e.g. Long" : "Name"} aria-label={`Variation ${i + 1} name`} maxLength={40}
+                  onChange={(e) => set({ options: d.options.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })} />
+                <span className="money-input"><i>{venue.currency}</i><input type="number" min="0" step="0.5" inputMode="decimal" value={o.price} placeholder={d.price || "–"} aria-label={`Variation ${i + 1} price`}
+                  onChange={(e) => set({ options: d.options.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)) })} /></span>
+                <button type="button" className="variation-x" aria-label={`Remove variation ${i + 1}`} onClick={() => set({ options: d.options.filter((_, j) => j !== i) })}>×</button>
+              </div>
+            ))}
+            <button type="button" className="add-variation" onClick={() => set({ options: [...d.options, { name: "", price: "" }] })} disabled={d.options.length >= 12}>+ Add variation</button>
+          </div>
+        </section>
+
+        <section className="sub-section" aria-labelledby="sec-labels">
+          <div className="sub-section-head row">
+            <div><b id="sec-labels">Labels</b><span>Shown on the dish so guests can spot dietary needs.</span></div>
             <button type="button" className="link-btn" onClick={() => setEditLabels((v) => !v)}>{editLabels ? "Done" : "Manage labels"}</button>
           </div>
-          <div className="chips" style={{ marginTop: 8 }}>
+          <div className="chips">
             {[...labels, ...d.tags.filter((t) => !labels.includes(t))].map((t) => editLabels ? (
               <span key={t} className="chip-edit">{t}<button type="button" aria-label={`Delete label ${t}`} onClick={() => { saveLabels(labels.filter((x) => x !== t), `Label “${t}” removed`); set({ tags: d.tags.filter((x) => x !== t) }); }}>×</button></span>
             ) : (
@@ -178,7 +201,7 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
             <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLabel(); } }} placeholder="New label, e.g. Chef’s pick" aria-label="New label" maxLength={30} />
             <button type="button" className="btn ghost sm" onClick={addLabel} disabled={!newLabel.trim()}>Add</button>
           </div>
-        </div>
+        </section>
         <div className="inline">Available on the menu <button className="switch" type="button" role="switch" aria-checked={d.available} aria-label="Available" onClick={() => set({ available: !d.available })} /></div>
         {err && <p className="note" style={{ color: "var(--coral)" }}>{err}</p>}
         {d.id && <div className="editor-danger"><button className="btn danger sm" type="button" onClick={remove} disabled={busy}>Delete dish</button></div>}

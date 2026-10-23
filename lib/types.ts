@@ -33,7 +33,9 @@ export type Dish = {
   category_id: string | null;
   name: string;
   description: string;
-  price: number;
+  price: number | null;
+  // Variations, e.g. coffee sizes. A null price uses the dish price.
+  options?: DishOption[];
   image_path: string | null;
   image_ai?: boolean;
   available: boolean;
@@ -68,3 +70,5 @@ export type Subscription = {
 
 // How the logo sits inside its frame: zoom factor, and x/y offsets in percent of the frame.
 export type LogoLayout = { zoom: number; x: number; y: number };
+
+export type DishOption = { name: string; price: number | null };

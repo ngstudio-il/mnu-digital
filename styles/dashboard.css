@@ -590,3 +590,25 @@ button.me div { flex: 1; }
   .editor-main { padding: 18px; }
   .photo-view, .photo-empty { aspect-ratio: 4 / 3; }
 }
+
+/* Sections inside the dish editor (pricing, labels) */
+.sub-section { display: grid; gap: 14px; padding: 16px; border-radius: 16px; background: #faf9f6; border: 1px solid var(--line); }
+.sub-section-head { display: grid; gap: 2px; }
+.sub-section-head.row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sub-section-head.row > div { display: grid; gap: 2px; }
+.sub-section-head b { font-size: 15px; font-weight: 600; color: var(--paper); }
+.sub-section-head span { font-size: 12.5px; color: var(--dim); }
+.sub-section .add-label { margin-top: 0; }
+.money-input { position: relative; display: block; }
+.money-input i { position: absolute; inset-inline-start: 12px; top: 50%; translate: 0 -50%; font-style: normal; color: var(--dim); font-size: 14px; pointer-events: none; }
+.money-input input { width: 100%; padding-inline-start: 30px !important; }
+.variations { display: grid; gap: 8px; padding-top: 12px; border-top: 1px dashed rgba(31,40,41,.14); }
+.variations-head { display: grid; gap: 2px; margin-bottom: 2px; }
+.variations-head b { font-size: 13.5px; font-weight: 600; color: var(--paper); }
+.variations-head span { font-size: 12.5px; color: var(--dim); }
+.variation { display: grid; grid-template-columns: minmax(0, 1fr) 130px 36px; gap: 8px; align-items: center; }
+.variation > input, .variation .money-input input { font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(31,40,41,.14); background: #fff; }
+.variation-x { width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(31,40,41,.12); background: #fff; color: var(--dim); cursor: pointer; font-size: 18px; }
+.variation-x:hover { color: var(--coral); border-color: var(--coral); }
+.add-variation { justify-self: start; border: 1px dashed rgba(31,40,41,.25); background: #fff; border-radius: 10px; padding: 9px 14px; font: 500 13.5px var(--font); color: var(--paper); cursor: pointer; }
+.add-variation:hover:not(:disabled) { border-color: var(--paper); }

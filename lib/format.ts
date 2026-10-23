@@ -1,5 +1,12 @@
 import { SUPABASE_URL } from "./supabase/env";
 
+// The price to show for a dish: its own, or "from" the cheapest variation. Null when it has none.
+export function dishPrice(d: { price: number | null; options?: { price: number | null }[] }): { amount: number; from: boolean } | null {
+  const opts = (d.options ?? []).map((o) => o.price ?? d.price).filter((p): p is number => p !== null && p !== undefined);
+  if (opts.length) { const min = Math.min(...opts.map(Number)); return { amount: min, from: opts.some((p) => Number(p) !== min) }; }
+  return d.price === null || d.price === undefined ? null : { amount: Number(d.price), from: false };
+}
+
 export function money(n: number | string, currency = "$") {
   const v = Number(n) || 0;
   return currency + v.toLocaleString("en-US", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });

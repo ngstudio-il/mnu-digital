@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
-import { LABELS, money, photoUrl } from "@/lib/format";
+import { dishPrice, money, photoUrl } from "@/lib/format";
 import type { Category, Dish } from "@/lib/types";
 import ImportMenu from "@/components/dashboard/ImportMenu";
 import ImagePacks from "@/components/dashboard/ImagePacks";
@@ -14,6 +14,7 @@ import DishEditor, { type Draft } from "@/components/dashboard/DishEditor";
 
 
 export default function MenuPage() {
+  const priceText = (d: Dish) => { const p = dishPrice(d); return p ? `${p.from ? "from " : ""}${money(p.amount, venue.currency)}` : "No price"; };
   const { venue, toast } = useDash();
   const [cats, setCats] = useState<Category[]>([]);
   const [dishes, setDishes] = useState<Dish[] | null>(null);
@@ -103,10 +104,10 @@ export default function MenuPage() {
   }
 
   function openNew() {
-    setDraft({ name: "", description: "", price: "", category_id: active !== "all" ? active : cats[0]?.id ?? null, image_path: null, available: true, tags: [] });
+    setDraft({ name: "", description: "", price: "", category_id: active !== "all" ? active : cats[0]?.id ?? null, image_path: null, available: true, tags: [], options: [] });
   }
   function openEdit(d: Dish) {
-    setDraft({ id: d.id, name: d.name, description: d.description, price: String(d.price), category_id: d.category_id, image_path: d.image_path, image_ai: d.image_ai ?? false, available: d.available, tags: d.tags ?? [] });
+    setDraft({ id: d.id, name: d.name, description: d.description, price: d.price === null ? "" : String(d.price), options: (d.options ?? []).map((o) => ({ name: o.name, price: o.price === null ? "" : String(o.price) })), category_id: d.category_id, image_path: d.image_path, image_ai: d.image_ai ?? false, available: d.available, tags: d.tags ?? [] });
   }
 
   return (
@@ -148,7 +149,7 @@ export default function MenuPage() {
                       <b>{d.name}</b><p>{d.description || "No description"}</p>
                       {d.tags?.length > 0 && <div className="tags">{d.tags.map((t) => <span key={t}>{t}</span>)}</div>}
                     </div>
-                    <span className="price">{money(d.price, venue.currency)}</span>
+                    <span className="price">{priceText(d)}</span>
                     <button className="switch" type="button" role="switch" aria-checked={d.available} aria-label={`${d.name} available`} onClick={() => toggle(d)} />
                     <button className="btn ghost sm" type="button" onClick={() => openEdit(d)}>Edit</button>
                   </div>
@@ -172,7 +173,7 @@ export default function MenuPage() {
                   <div key={c.id}>
                     <div className="pv-cat" style={{ color: venue.brand }}>{c.name}</div>
                     {ds.map((d) => { const src = photoUrl(d.image_path); return (
-                      <div className="pv-item" key={d.id}>{src ? <img src={src} alt="" /> : <span className="thumb-empty" />}<div><b>{d.name}</b><span>{d.description}</span></div><em>{money(d.price, venue.currency)}</em></div>
+                      <div className="pv-item" key={d.id}>{src ? <img src={src} alt="" /> : <span className="thumb-empty" />}<div><b>{d.name}</b><span>{d.description}</span></div><em>{priceText(d)}</em></div>
                     ); })}
                   </div>
                 );

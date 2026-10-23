@@ -73,7 +73,7 @@ export default function ImportMenu({ cats, onClose, onDone }: { cats: Category[]
         catId = data.id as string;
         known.set(s.name.trim().toLowerCase(), catId);
       }
-      keep.forEach((r, i) => rows.push({ venue_id: venue.id, category_id: catId, name: r.name.trim(), description: r.description.trim(), price: Math.max(0, parseFloat(r.price) || 0), available: true, position: i }));
+      keep.forEach((r, i) => rows.push({ venue_id: venue.id, category_id: catId, name: r.name.trim(), description: r.description.trim(), price: r.price.trim() ? Math.max(0, parseFloat(r.price) || 0) : null, available: true, position: i }));
     }
     const { error } = await sb.from("dishes").insert(rows);
     if (error) { setErr("Couldn’t save the dishes: " + error.message); setStep("review"); return; }

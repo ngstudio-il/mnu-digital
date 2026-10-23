@@ -69,7 +69,7 @@ export async function POST() {
 
   const [cats, dishes, existing] = await Promise.all([
     supabase.from("categories").select("id, name").eq("venue_id", venue.id),
-    supabase.from("dishes").select("id, name, description, tags").eq("venue_id", venue.id),
+    supabase.from("dishes").select("*").eq("venue_id", venue.id),
     supabase.from("menu_translations").select("lang, key, src").eq("venue_id", venue.id),
   ]);
   if (existing.error) {
@@ -80,7 +80,11 @@ export async function POST() {
   const add = (key: string, name: string, description = "") => { if (name.trim()) sources.push({ key, name, description, src: `${name}\n${description}` }); };
   for (const c of cats.data ?? []) add(tkey.cat(c.id), c.name);
   const labels = new Set<string>();
-  for (const d of dishes.data ?? []) { add(tkey.dish(d.id), d.name, d.description ?? ""); for (const t of (d.tags as string[] | null) ?? []) labels.add(t); }
+  for (const d of dishes.data ?? []) {
+    add(tkey.dish(d.id), d.name, d.description ?? "");
+    for (const t of (d.tags as string[] | null) ?? []) labels.add(t);
+    for (const o of (d.options as { name: string }[] | null) ?? []) add(tkey.variant(d.id, o.name), o.name);
+  }
   for (const l of labels) add(tkey.label(l), l);
 
   // Clean up rows for languages that were removed and dishes that were deleted.
@@ -130,7 +134,7 @@ Return every key with its translation.`,
       const batch = next.items.slice(0, Math.min(BATCH, left * PER_CREDIT));
       const out = await ask(
         `You translate restaurant menus from ${language(primary).name} into ${language(next.lang).name}.
-Each item is a menu section, a dish (name and description) or a dietary label. Write the way a good restaurant menu in ${language(next.lang).name} would.
+Each item is a menu section, a dish (name and description), a dish variation (like a size: Short, Long, Large) or a dietary label. Write the way a good restaurant menu in ${language(next.lang).name} would.
 Dish names that are known around the world (Margherita, Tiramisu, Carpaccio, Sushi, Shakshuka) may stay as they are or be written in the target script, whichever local menus usually do.
 Keep descriptions faithful: do not add or drop ingredients. Keep an empty description empty. Return every key exactly as given.`,
         JSON.stringify(batch.map(({ key, name, description }) => ({ key, name, description }))),

@@ -6,7 +6,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import Sheet from "./Sheet";
 import TableScanner from "./TableScanner";
 import LogoMark from "@/components/LogoMark";
-import { money, photoUrl } from "@/lib/format";
+import { dishPrice, money, photoUrl } from "@/lib/format";
 import { fill, tkey, type ContentMap, type UiKey, type UiStrings } from "@/lib/i18n";
 import { isRtl, language } from "@/lib/languages";
 import { look } from "@/lib/themes";
@@ -82,6 +82,11 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
     flushSync(() => setType("takeaway"));
     nameInput.current?.focus();
   }
+  function openDish(d: Dish) {
+    const first = (d.options ?? []).find((o) => (o.price ?? d.price) !== null);
+    setVariant(first?.name ?? null);
+    setOpen(d);
+  }
   function chooseLang(l: string) {
     setLang(l); setPickLang(false);
     try { localStorage.setItem(langKey, l); } catch { /* storage unavailable */ }
@@ -109,7 +114,7 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
     try {
       const d = JSON.parse(localStorage.getItem(draftKey) ?? "null") as { cart: Record<string, number>; name?: string; note?: string; at: number } | null;
       if (d && Date.now() - d.at < 12 * 3600000) {
-        const kept = Object.fromEntries(Object.entries(d.cart).filter(([id, q]) => q > 0 && dishes.some((x) => x.id === id)));
+        const kept = Object.fromEntries(Object.entries(d.cart).filter(([key, q]) => q > 0 && dishes.some((x) => x.id === key.split("::")[0])));
         if (Object.keys(kept).length) { setCart(kept); if (d.name) setName(d.name); if (d.note) setNote(d.note); }
       }
     } catch { /* storage unavailable */ }
@@ -200,9 +205,20 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
     } catch { /* storage unavailable */ }
   }, [cart, name, note, draftKey]);
 
-  const lines = Object.entries(cart).filter(([, q]) => q > 0).map(([id, q]) => ({ dish: dishes.find((d) => d.id === id)!, q })).filter((l) => l.dish);
+  // Cart keys are a dish id, or "dishId::variation" for a dish ordered as one of its variations.
+  const opts = (d: Dish) => d.options ?? [];
+  const unitPrice = (d: Dish, v: string | null) => (v ? opts(d).find((o) => o.name === v)?.price ?? d.price : d.price);
+  const variantName = (d: Dish, v: string) => tr(tkey.variant(d.id, v))?.name || v;
+  const lineName = (d: Dish, v: string | null) => (v ? `${dishName(d)} · ${variantName(d, v)}` : dishName(d));
+  const lines = Object.entries(cart).filter(([, q]) => q > 0).map(([key, q]) => {
+    const [id, v = null] = key.split("::");
+    const dish = dishes.find((d) => d.id === id)!;
+    return { key, dish, variant: v, q, price: dish ? unitPrice(dish, v) : null };
+  }).filter((l): l is typeof l & { price: number } => !!l.dish && l.price !== null && l.price !== undefined && (l.variant ? opts(l.dish).some((o) => o.name === l.variant) : !opts(l.dish).length));
   const count = lines.reduce((t, l) => t + l.q, 0);
-  const total = lines.reduce((t, l) => t + l.q * Number(l.dish.price), 0);
+  const total = lines.reduce((t, l) => t + l.q * Number(l.price), 0);
+  const priceText = (d: Dish) => { const p = dishPrice(d); return p ? (p.from ? t("fromPrice", { p: money(p.amount, venue.currency) }) : money(p.amount, venue.currency)) : null; };
+  const [variant, setVariant] = useState<string | null>(null);
   const canOrder = venue.ordering_on && (venue.dinein || venue.takeaway);
   const add = (id: string, n = 1) => setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) + n) }));
 
@@ -214,7 +230,7 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
     const label = type === "dinein" ? table! : "Takeaway";
     const args = {
       p_slug: venue.slug, p_table: label, p_type: type, p_name: name.trim() || null, p_note: note.trim() || null,
-      p_items: lines.map((l) => ({ dish_id: l.dish.id, qty: l.q })),
+      p_items: lines.map((l) => ({ dish_id: l.dish.id, qty: l.q, ...(l.variant ? { variant: l.variant } : {}) })),
     };
     const sb = supabaseBrowser();
     let number: number | null = null;
@@ -228,7 +244,7 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
       number = v1.data as number;
     } else { setBusy(false); return setErr(v2.error.message.replace(/^.*?: /, "")); }
     setBusy(false);
-    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Takeaway · ${name.trim()}`, items: lines.map((l) => ({ name: l.dish.name, qty: l.q, price: Number(l.dish.price) })) };
+    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Takeaway · ${name.trim()}`, items: lines.map((l) => ({ name: l.variant ? `${l.dish.name} (${l.variant})` : l.dish.name, qty: l.q, price: Number(l.price) })) };
     const next = [saved, ...mine].slice(0, 20);
     setMine(next);
     try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* storage unavailable */ }
@@ -265,11 +281,13 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
           <section key={g.id} id={`c-${g.id}`}>
             <h2>{g.name}</h2>
             {g.items.map((d) => { const src = photoUrl(d.image_path); return (
-              <article className={`g-item${src ? "" : " noimg"}`} key={d.id} onClick={() => setOpen(d)}>
+              <article className={`g-item${src ? "" : " noimg"}`} key={d.id} onClick={() => openDish(d)}>
                 {src && <span className="g-img">{<img src={src} alt="" />}{d.image_ai && <i>{t("illustration")}</i>}</span>}
                 <div className="g-info"><b>{dishName(d)}</b><p>{dishDesc(d)}</p>{d.tags?.length > 0 && <div className="g-tags">{d.tags.map((x) => <span key={x}>{label(x)}</span>)}</div>}</div>
-                <div className="g-side"><em>{money(d.price, venue.currency)}</em>
-                  {canOrder && (cart[d.id] ? (
+                <div className="g-side">{priceText(d) && <em>{priceText(d)}</em>}
+                  {canOrder && dishPrice(d) && (opts(d).length ? (
+                    <button className="g-add" type="button" onClick={(e) => { e.stopPropagation(); openDish(d); }} aria-label={`${t("add")}: ${dishName(d)}`}>+</button>
+                  ) : cart[d.id] ? (
                     <div className="g-qty" onClick={(e) => e.stopPropagation()}><button type="button" onClick={() => add(d.id, -1)} aria-label={`${t("removeOne")}: ${dishName(d)}`}>−</button><span>{cart[d.id]}</span><button type="button" onClick={() => add(d.id)} aria-label={`${t("addOne")}: ${dishName(d)}`}>+</button></div>
                   ) : <button className="g-add" type="button" onClick={(e) => { e.stopPropagation(); add(d.id); }} aria-label={`${t("add")}: ${dishName(d)}`}>+</button>)}
                 </div>
@@ -290,8 +308,22 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
             <div className="g-sheet-body">
               <h3>{dishName(open)}</h3><p>{dishDesc(open)}</p>
               {open.tags?.length > 0 && <div className="g-tags">{open.tags.map((x) => <span key={x}>{label(x)}</span>)}</div>}
-              {canOrder ? <button className="g-cta" type="button" onClick={() => { add(open.id); setOpen(null); }}>{t("addToOrder")} · {money(open.price, venue.currency)}</button>
-                : <button className="g-cta ghost" type="button" onClick={() => setOpen(null)}>{t("close")}</button>}
+              {opts(open).length > 0 && (
+                <div className="g-variants" role="radiogroup" aria-label={t("chooseOption")}>
+                  <b>{t("chooseOption")}</b>
+                  {opts(open).map((o) => { const p = unitPrice(open, o.name); return (
+                    <button key={o.name} type="button" role="radio" aria-checked={variant === o.name} disabled={p === null} onClick={() => setVariant(o.name)}>
+                      <i aria-hidden="true" /><span>{variantName(open, o.name)}</span>{p !== null && <em>{money(p, venue.currency)}</em>}
+                    </button>
+                  ); })}
+                </div>
+              )}
+              {(() => {
+                const v = opts(open).length ? variant : null;
+                const p = opts(open).length && !v ? null : unitPrice(open, v);
+                if (!canOrder || !dishPrice(open)) return <button className="g-cta ghost" type="button" onClick={() => setOpen(null)}>{t("close")}</button>;
+                return <button className="g-cta" type="button" disabled={p === null} onClick={() => { add(v ? `${open.id}::${v}` : open.id); setOpen(null); }}>{t("addToOrder")}{p !== null ? ` · ${money(p, venue.currency)}` : ""}</button>;
+              })()}
             </div>
         </Sheet>
       )}
@@ -301,7 +333,7 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
             <div className="g-sheet-body">
               <h3>{t("yourOrder")}</h3>
               <ul className="g-lines">{lines.map((l) => (
-                <li key={l.dish.id}><span>{dishName(l.dish)}</span><div className="g-qty"><button type="button" onClick={() => add(l.dish.id, -1)} aria-label={t("removeOne")}>−</button><span>{l.q}</span><button type="button" onClick={() => add(l.dish.id)} aria-label={t("addOne")}>+</button></div><em>{money(l.q * Number(l.dish.price), venue.currency)}</em></li>
+                <li key={l.key}><span>{lineName(l.dish, l.variant)}</span><div className="g-qty"><button type="button" onClick={() => add(l.key, -1)} aria-label={t("removeOne")}>−</button><span>{l.q}</span><button type="button" onClick={() => add(l.key)} aria-label={t("addOne")}>+</button></div><em>{money(l.q * l.price, venue.currency)}</em></li>
               ))}</ul>
               {venue.dinein && venue.takeaway && (
                 <div className="g-seg">
@@ -336,7 +368,7 @@ export default function GuestMenu({ venue: savedVenue, categories, dishes, table
                 <div className="g-order g-draft">
                   <div className="g-order-top"><b>{t("draft")}</b><span className="g-pill st-draft">{t("notSent")}</span></div>
                   <small>{t("draftIntro")}</small>
-                  <ul>{lines.map((l) => <li key={l.dish.id}><span>{l.q}× {dishName(l.dish)}</span><em>{money(l.q * Number(l.dish.price), venue.currency)}</em></li>)}</ul>
+                  <ul>{lines.map((l) => <li key={l.key}><span>{l.q}× {lineName(l.dish, l.variant)}</span><em>{money(l.q * l.price, venue.currency)}</em></li>)}</ul>
                   <div className="g-order-total"><span>{t("total")}</span><b>{money(total, venue.currency)}</b></div>
                   <div className="g-draft-actions">
                     <button type="button" className="g-cta" onClick={() => { setShowMine(false); setCheckout(true); }}>{t("finishOrder")}</button>

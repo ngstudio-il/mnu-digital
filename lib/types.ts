@@ -11,6 +11,7 @@ export type Venue = {
   is_public?: boolean;
   timezone?: string | null;
   marketing?: Marketing;
+  setup_done?: boolean;
   tables: number;
   ordering_on: boolean;
   dinein: boolean;

@@ -643,3 +643,10 @@ button.me div { flex: 1; }
 .mk-pop-btn { display: block; margin-top: 4px; padding: 11px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; }
 @media (max-width: 900px) { .mk-popup { grid-template-columns: 1fr; } .mk-preview { position: static; } }
 .field > .mk-sub { margin: -4px 0 0; }
+
+/* First-time business name step */
+.setup-overlay { z-index: 90; background: rgba(20,26,27,.55); backdrop-filter: blur(4px); }
+.setup-modal { max-width: 480px; gap: 14px; padding: 32px; }
+.setup-modal h3 { font-size: 24px; margin: 0; }
+.setup-badge { justify-self: start; padding: 5px 12px; border-radius: 99px; background: #e4f1e5; color: #3f8a4a; font-size: 13px; font-weight: 600; }
+.btn.block { width: 100%; }

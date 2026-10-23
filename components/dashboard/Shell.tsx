@@ -10,6 +10,7 @@ import { planSummary } from "@/lib/format";
 import { VenueContext } from "./VenueContext";
 import SupportChat from "@/components/SupportChat";
 import ProfileDialog from "./ProfileDialog";
+import SetupVenue from "./SetupVenue";
 import DashTranslator from "./DashTranslator";
 
 const NAV = [
@@ -151,6 +152,7 @@ export default function Shell({ initialVenue, support = false, subscription, use
           <iframe src={`/m/${venue.slug}`} title={`${venue.name} menu`} />
         </div>
       )}
+      {!support && venue.setup_done === false && <SetupVenue venue={venue} onDone={(v) => { setVenue(v); toast("Welcome to mnu.digital"); }} />}
       {profile && <ProfileDialog user={user} toast={toast} onClose={() => setProfile(false)} onSaved={setUser} onLogout={logout} />}
       <DashTranslator lang={user.lang} />
       {!support && <SupportChat venueId={venue.id} />}

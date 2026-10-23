@@ -1,0 +1,62 @@
+/* Hero mockup (tablet dashboard + guest phone + QR), shared by the sign-up page. Copied from the landing hero. */
+.hm { --mint: #4f9a5a; --sage: #6f9393; position: relative; width: 640px; max-width: 100%; aspect-ratio: 640 / 540; font-family: "Outfit", "Heebo", sans-serif; }
+.hm .halo { position: absolute; width: 520px; height: 520px; right: 40px; top: -20px; border-radius: 50%; border: 1px solid rgba(31,40,41,.1); animation: hm-spin 40s linear infinite; }
+.hm .halo::before { content: ""; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 16px var(--mint); }
+@keyframes hm-spin { to { transform: rotate(360deg); } }
+.hm .tab { position: absolute; right: 0; top: 30px; width: 580px; max-width: 100%; aspect-ratio: 4 / 3; background: #0b0f10; border-radius: 30px; padding: 12px; box-shadow: 0 50px 90px rgba(31,40,41,.22); animation: hm-bob 8s ease-in-out infinite; z-index: 1; }
+.hm .tab-screen { height: 100%; border-radius: 19px; overflow: hidden; background: #f7f7f5; color: #1f2829; display: grid; grid-template-columns: 128px 1fr; font-size: 11px; }
+.hm .tab-side { background: #fff; border-right: 1px solid #eceeed; padding: 14px 10px; display: flex; flex-direction: column; gap: 3px; color: #7c8789; }
+.hm .tab-side img { width: 78px; margin: 0 0 14px 4px; }
+.hm .tab-side span { padding: 6px 9px; border-radius: 8px; display: flex; align-items: center; gap: 7px; }
+.hm .tab-side span::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: currentColor; opacity: .5; }
+.hm .tab-side span.on { background: #e6efee; color: #3f5a5b; font-weight: 600; }
+.hm .tab-main { padding: 14px 16px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.hm .tab-top { display: flex; justify-content: space-between; align-items: center; }
+.hm .tab-top b { font-size: 15px; font-weight: 600; }
+.hm .tab-top i { font-style: normal; font-size: 9.5px; background: #6f9393; color: #fff; padding: 5px 10px; border-radius: 99px; }
+.hm .tab-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.hm .tab-kpis div { background: #fff; border-radius: 10px; padding: 8px 10px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.hm .tab-kpis small { display: block; font-size: 8.5px; color: #7c8789; }
+.hm .tab-kpis strong { font-size: 15px; font-weight: 600; }
+.hm .tab-kpis em { font-style: normal; font-size: 8.5px; color: #4f9a5a; margin-left: 4px; }
+.hm .tab-rows { display: grid; gap: 6px; }
+.hm .tab-row { display: grid; grid-template-columns: 34px 1fr auto auto; gap: 10px; align-items: center; background: #fff; border-radius: 10px; padding: 6px 10px 6px 6px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.hm .tab-row img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; }
+.hm .tab-row b { display: block; font-weight: 600; font-size: 10.5px; }
+.hm .tab-row small { font-size: 8.5px; color: #7c8789; }
+.hm .tab-row em { font-style: normal; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hm .tab-row s { text-decoration: none; width: 26px; height: 15px; border-radius: 99px; background: #4f9a5a; position: relative; }
+.hm .tab-row s::after { content: ""; position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; border-radius: 50%; background: #fff; }
+.hm .tab-row.off s { background: #cfd4d3; }
+.hm .tab-row.off s::after { right: auto; left: 2px; }
+.hm .tab-row.off img { filter: grayscale(1); opacity: .6; }
+@keyframes hm-bob { 50% { translate: 0 -10px; } }
+.hm .leaf { position: absolute; width: 56px; fill: #6aa35a; filter: drop-shadow(0 10px 12px rgba(31,40,41,.18)); animation: hm-float 6s ease-in-out infinite; }
+.hm .leaf .vein { stroke: #4c7f3f; stroke-width: 1.2; fill: none; }
+.hm .leaf.l1 { top: -30px; right: 46%; rotate: -30deg; }
+.hm .leaf.l2 { top: 50%; right: -30px; width: 78px; rotate: 40deg; animation-delay: -2s; fill: #7cb466; }
+.hm .leaf.l3 { bottom: 120px; right: 44%; width: 36px; rotate: 160deg; animation-delay: -4s; }
+@keyframes hm-float { 50% { translate: 0 -12px; } }
+.hm .qr-badge { position: absolute; right: -14px; bottom: -6px; z-index: 3; width: 96px; background: #fff; border-radius: 14px; padding: 10px; color: #1a2526; text-align: center; font-size: 9px; font-weight: 600; letter-spacing: .1em; box-shadow: 0 20px 40px rgba(31,40,41,.15); rotate: 5deg; overflow: hidden; }
+.hm .qr-badge canvas { width: 76px; height: 76px; display: block; margin: 0 auto 6px; image-rendering: pixelated; }
+.hm .qr-badge::after { content: ""; position: absolute; left: 10px; right: 10px; top: 10px; height: 2px; background: var(--mint); box-shadow: 0 0 12px var(--mint); animation: hm-scan 2.6s ease-in-out infinite; }
+@keyframes hm-scan { 50% { top: 84px; } }
+.hm .phone { background: #0b0f10; border-radius: 34px; padding: 8px; box-shadow: 0 40px 70px rgba(31,40,41,.25); }
+.hm .screen { background: #f7f6f2; color: #1f2829; border-radius: 27px; overflow: hidden; height: 100%; display: flex; flex-direction: column; }
+.hm .phone { position: absolute; left: 0; bottom: 0; width: 200px; aspect-ratio: 9 / 19; rotate: -6deg; z-index: 3; }
+.hm .ph-photo { height: 42%; flex: none; overflow: hidden; }
+.hm .ph-photo img { width: 100%; height: 100%; object-fit: cover; }
+.hm .ph-body { padding: 12px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.hm .ph-body b { font-size: 13px; font-weight: 600; }
+.hm .ph-body p { font-size: 9px; color: #6c7476; line-height: 1.4; }
+.hm .ph-lbl { font-size: 8.5px; font-weight: 600; margin-top: 4px; }
+.hm .ph-dots { display: flex; gap: 4px; }
+.hm .ph-dots i { font-style: normal; width: 18px; height: 18px; border-radius: 50%; background: #1f2829; color: #fff; font-size: 7.5px; display: grid; place-items: center; }
+.hm .ph-btn { margin-top: auto; background: var(--sage); color: #fff; font-size: 9px; font-weight: 600; text-align: center; padding: 8px; border-radius: 8px; }
+@keyframes hm-scan2 { 50% { top: 134px; } }
+
+/* Fit the container */
+.hm .tab { width: 88%; }
+.hm .halo { width: 80%; height: auto; aspect-ratio: 1; right: 6%; }
+.hm .phone { width: 28%; }
+.hm .qr-badge img { width: 76px; height: 76px; display: block; margin: 0 auto 6px; image-rendering: pixelated; }

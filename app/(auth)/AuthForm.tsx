@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import SetupNotice from "@/components/SetupNotice";
+import HeroMockup from "@/components/marketing/HeroMockup";
 
 type Mode = "signup" | "login";
 
@@ -19,7 +20,6 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const c = COPY[mode];
   const [name, setName] = useState("");
-  const [venue, setVenue] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState("");
@@ -41,7 +41,6 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     e.preventDefault();
     setErr(""); setInfo("");
     if (mode === "signup" && !name.trim()) return setErr("Enter your name.");
-    if (mode === "signup" && !venue.trim()) return setErr("Enter your venue name.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setErr("Enter a valid email address.");
     if (pass.length < 8) return setErr("Password needs at least 8 characters.");
     if (!isSupabaseConfigured) return setErr("Sign-in isn’t connected yet.");
@@ -51,7 +50,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       const { data, error } = await sb.auth.signUp({
         email: email.trim(),
         password: pass,
-        options: { data: { full_name: name.trim(), venue_name: venue.trim() }, emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { data: { full_name: name.trim() }, emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       setBusy(false);
       if (error) return setErr(error.message);
@@ -87,10 +86,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
           <form onSubmit={submit} noValidate>
             {mode === "signup" && (
-              <div className="row2">
-                <label className="field" htmlFor="name">Your name<input id="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} /></label>
-                <label className="field" htmlFor="venue">Venue name<input id="venue" autoComplete="organization" value={venue} onChange={(e) => setVenue(e.target.value)} /></label>
-              </div>
+              <label className="field" htmlFor="name">Your name<input id="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} /></label>
             )}
             <label className="field" htmlFor="email">Email<input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
             <label className="field" htmlFor="pass">Password {mode === "signup" && <small>At least 8 characters</small>}
@@ -108,19 +104,14 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         </div>
       </section>
 
-      <aside className="auth-side" aria-hidden="true">
+      <aside className="auth-side light" aria-hidden="true">
         <h2>Your menu, live tonight.</h2>
         <ul className="perks">
           <li>7 days free, cancel anytime</li>
           <li>Menu, photos and prices in one place</li>
           <li>Take orders straight from the table</li>
         </ul>
-        <div className="side-phone"><div className="scr">
-          <div className="hd"><small>RESTAURANT · BAR</small><b>Olive &amp; Salt</b></div>
-          {[["bread", "Sourdough & dips", "Tahini, tomato salsa", "$12"], ["salad", "Goat cheese salad", "Frisée, walnuts", "$16"], ["salmon", "Grilled salmon", "Lemon, dill", "$29"], ["espresso", "Espresso", "Double shot", "$4"]].map(([img, n, d, p]) => (
-            <div className="it" key={n}><img src={`/assets/food/${img}-sq.jpg`} alt="" /><div><b>{n}</b><span>{d}</span></div><em>{p}</em></div>
-          ))}
-        </div></div>
+        <div className="auth-mockup"><HeroMockup /></div>
       </aside>
     </div>
   );

@@ -103,21 +103,33 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!d.name.trim()) return setErr("Give the dish a name.");
+    const fail = (msg: string) => { toast(msg); setErr(msg); };
+    if (!d.name.trim()) return fail("Give the dish a name.");
     // Price is optional: leave it empty for a menu that's only a catalogue.
     const num = (v: string) => (v.trim() === "" ? null : parseFloat(v));
     const price = num(d.price);
-    if (price !== null && (isNaN(price) || price < 0)) return setErr("Enter a price like 18, or leave it empty.");
+    if (price !== null && (isNaN(price) || price < 0)) return fail("Enter a price like 18, or leave it empty.");
     const options = d.options.filter((o) => o.name.trim() || o.price.trim()).map((o) => ({ name: o.name.trim().slice(0, 40), price: num(o.price) }));
-    if (options.some((o) => !o.name)) return setErr("Give every variation a name, or remove it.");
-    if (options.some((o) => o.price !== null && (isNaN(o.price) || o.price < 0))) return setErr("Variation prices must be numbers like 14, or empty to use the dish price.");
-    if (new Set(options.map((o) => o.name.toLowerCase())).size !== options.length) return setErr("Two variations have the same name.");
+    if (options.some((o) => !o.name)) return fail("Give every variation a name, or remove it.");
+    if (options.some((o) => o.price !== null && (isNaN(o.price) || o.price < 0))) return fail("Variation prices must be numbers like 14, or empty to use the dish price.");
+    if (new Set(options.map((o) => o.name.toLowerCase())).size !== options.length) return fail("Two variations have the same name.");
     setBusy(true);
     const row = { venue_id: venue.id, name: d.name.trim(), description: d.description.trim(), price, options, category_id: d.category_id, image_path: d.image_path, image_ai: Boolean(d.image_path && d.image_ai), available: d.available, tags: d.tags };
     const sb = supabaseBrowser();
-    const { error } = d.id ? await sb.from("dishes").update(row).eq("id", d.id) : await sb.from("dishes").insert(row);
+    const write = (r: Record<string, unknown>) => (d.id ? sb.from("dishes").update(r).eq("id", d.id) : sb.from("dishes").insert(r));
+    let { error } = await write(row);
+    // Before the variations update (0015) the database has no options column: save everything else.
+    if (error && /options/.test(error.message) && !options.length) {
+      const { options: _skip, ...rest } = row;
+      ({ error } = await write({ ...rest, price: price ?? 0 }));
+    }
     setBusy(false);
-    if (error) return setErr(/options|null value in column "price"/.test(error.message) ? "Optional prices and variations need a database update first (0015_variations_optional_price.sql)." : error.message);
+    if (error) {
+      const msg = /options|null value in column "price"/.test(error.message) ? "Optional prices and variations need a database update first (0015_variations_optional_price.sql)." : `Couldn’t save: ${error.message}`;
+      // The error also goes in a toast, since the editor's message can be out of view.
+      toast(msg);
+      return setErr(msg);
+    }
     toast(d.id ? "Saved. Your menu is updated." : `${row.name} added to the menu`);
     onSaved();
   }
@@ -251,7 +263,12 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
               <span>{img.busy ? "This takes about 10–20 seconds." : img.msg ? <span style={{ color: "var(--coral)" }}>{img.msg}</span> : imgLeft !== null ? `${imgLeft} AI image${imgLeft === 1 ? "" : "s"} left${img.extra ? ` (incl. ${img.extra} from packs)` : ""}` : ""}</span>
               <button type="button" className="link-btn" onClick={() => setImg((a) => ({ ...a, packs: true }))}>{img.out ? "Buy more images" : "Buy more"}</button>
             </div>
-            {d.image_ai && src && <p className="note">Your menu shows a small “Illustration” tag on AI photos.</p>}
+            {src && (
+              <label className="photo-check">
+                <input type="checkbox" checked={!!d.image_ai} onChange={(e) => set({ image_ai: e.target.checked })} />
+                <span><b>Show an “Illustration” tag</b><small>A small tag on the photo in your menu, so guests know it isn’t a real photo of the dish. On by default for AI photos.</small></span>
+              </label>
+            )}
           </section>
           {img.packs && <ImagePacks onClose={() => setImg((a) => ({ ...a, packs: false }))} />}
         </aside>

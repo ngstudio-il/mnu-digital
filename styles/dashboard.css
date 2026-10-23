@@ -612,3 +612,7 @@ button.me div { flex: 1; }
 .variation-x:hover { color: var(--coral); border-color: var(--coral); }
 .add-variation { justify-self: start; border: 1px dashed rgba(31,40,41,.25); background: #fff; border-radius: 10px; padding: 9px 14px; font: 500 13.5px var(--font); color: var(--paper); cursor: pointer; }
 .add-variation:hover:not(:disabled) { border-color: var(--paper); }
+.photo-check { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 12px; background: var(--ink); cursor: pointer; }
+.photo-check input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--paper); }
+.photo-check b { display: block; font-size: 13.5px; font-weight: 500; color: var(--paper); }
+.photo-check small { display: block; font-size: 12px; color: var(--dim); line-height: 1.4; margin-top: 2px; }

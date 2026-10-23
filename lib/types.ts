@@ -10,6 +10,7 @@ export type Venue = {
   primary_lang?: string;
   is_public?: boolean;
   timezone?: string | null;
+  marketing?: Marketing;
   tables: number;
   ordering_on: boolean;
   dinein: boolean;
@@ -72,3 +73,11 @@ export type Subscription = {
 export type LogoLayout = { zoom: number; x: number; y: number };
 
 export type DishOption = { name: string; price: number | null };
+
+// Settings → Marketing. Only IDs are stored (never raw code), and the menu builds the official snippets from them.
+export type Marketing = {
+  meta_pixel?: string;
+  google_tags?: string[];
+  tiktok_pixel?: string;
+  popup?: { enabled: boolean; title: string; body: string; cta_label?: string; cta_url?: string; delay: number; frequency: "once" | "every"; version: number };
+};

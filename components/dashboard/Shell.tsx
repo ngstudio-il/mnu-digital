@@ -17,6 +17,7 @@ const NAV = [
   { href: "/dashboard/orders", label: "Orders", icon: <><path d="M6 3h12l1 18H5z"/><path d="M9 7a3 3 0 0 0 6 0"/></> },
   { href: "/dashboard/menu", label: "Menu", icon: <path d="M4 5h16M4 12h16M4 19h10"/> },
   { href: "/dashboard/qr", label: "QR codes", icon: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></> },
+  { href: "/dashboard/marketing", label: "Marketing", icon: <><path d="M4 10v4a1 1 0 0 0 1 1h2l5 4V5L7 9H5a1 1 0 0 0-1 1z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></> },
   { href: "/dashboard/settings", label: "Settings", icon: <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></> },
 ];
 

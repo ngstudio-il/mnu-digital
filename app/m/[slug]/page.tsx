@@ -4,13 +4,14 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import GuestMenu from "./GuestMenu";
 import OfflineMenu from "./OfflineMenu";
+import Tracking from "./Tracking";
 import { billingConfigured } from "@/lib/stripe";
 import { BUILT_IN_UI, UI_EN, type ContentMap, type UiStrings } from "@/lib/i18n";
 import type { Category, Dish, Venue } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ t?: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ t?: string; preview?: string }> };
 type Sb = Awaited<ReturnType<typeof supabaseServer>>;
 
 // Words for the guest menu in each language it offers; English fills any gap.
@@ -68,10 +69,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { t } = await searchParams;
+  const { t, preview } = await searchParams;
   const data = await load(slug);
   if (!data) notFound();
   if (data.offline) return <OfflineMenu name={data.venue.name} lang={data.primary} ui={data.ui[data.primary]} message={data.private ? data.ui[data.primary].privateMenu : undefined} />;
   const table = t && /^\d{1,3}$/.test(t) ? `Table ${t}` : null;
-  return <GuestMenu ownerView={data.ownerView} venue={data.venue} categories={data.categories} dishes={data.dishes} table={table} i18n={{ primary: data.primary, langs: data.langs, content: data.content, ui: data.ui }} />;
+  // The dashboard's preview frame doesn't count as a visit, so it gets no tracking.
+  const inPreview = preview === "1";
+  return <>{!inPreview && data.venue.marketing && <Tracking m={data.venue.marketing} />}<GuestMenu preview={inPreview} ownerView={data.ownerView} venue={data.venue} categories={data.categories} dishes={data.dishes} table={table} i18n={{ primary: data.primary, langs: data.langs, content: data.content, ui: data.ui }} /></>;
 }

@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { cookies } from "next/headers";
 import OnboardingForm from "./OnboardingForm";
+import { notifySignup } from "@/lib/email/admin-alerts";
 import { DRAFT_COOKIE, DRAFT_NAME_COOKIE } from "@/lib/lp";
 
 export const metadata = { title: "Set up your venue · mnu.digital" };
@@ -13,6 +14,9 @@ export default async function Onboarding() {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const { headers } = await import("next/headers");
+  const h = await headers();
+  await notifySignup(user, `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`);
   const { data: venue } = await supabase.from("venues").select("id").eq("owner_id", user.id).maybeSingle();
   if (venue) redirect("/dashboard");
   const meta = user.user_metadata ?? {};

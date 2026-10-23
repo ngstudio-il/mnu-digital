@@ -7,13 +7,14 @@ import Sheet from "./Sheet";
 import TableScanner from "./TableScanner";
 import LogoMark from "@/components/LogoMark";
 import { dishPrice, money, photoUrl } from "@/lib/format";
+import { CURRENCY_CODE, track } from "@/lib/marketing";
 import { fill, tkey, type ContentMap, type UiKey, type UiStrings } from "@/lib/i18n";
 import { isRtl, language } from "@/lib/languages";
 import { look } from "@/lib/themes";
 import type { Category, Dish, Venue } from "@/lib/types";
 
 type I18n = { primary: string; langs: string[]; content: ContentMap; ui: Record<string, UiStrings> };
-type Props = { venue: Venue; categories: Category[]; dishes: Dish[]; table: string | null; i18n: I18n; ownerView?: boolean };
+type Props = { venue: Venue; categories: Category[]; dishes: Dish[]; table: string | null; i18n: I18n; ownerView?: boolean; preview?: boolean };
 type Saved = { token: string | null; number: number; at: string; total: number; label: string; items: { name: string; qty: number; price: number }[] };
 type Live = { token: string; status: string; total: number; items: { name: string; qty: number; price: number }[] };
 
@@ -28,7 +29,7 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
 // Design fields the dashboard's live preview may change while the owner edits them.
 const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path"] as const;
 
-export default function GuestMenu({ venue: savedVenue, categories: savedCats, dishes: savedDishes, table: initialTable, i18n, ownerView = false }: Props) {
+export default function GuestMenu({ venue: savedVenue, categories: savedCats, dishes: savedDishes, table: initialTable, i18n, ownerView = false, preview = false }: Props) {
   const [venue, setVenue] = useState(savedVenue);
   // In the dashboard preview, dragging categories or dishes reorders this copy straight away.
   const [categories, setCategories] = useState(savedCats);
@@ -93,7 +94,25 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
     flushSync(() => setType("takeaway"));
     nameInput.current?.focus();
   }
+  // Popup message from Settings → Marketing: after a short delay, once per guest or every visit.
+  const popup = venue.marketing?.popup;
+  const [showPopup, setShowPopup] = useState(false);
+  const popupKey = `mnu.popup.${venue.slug}.${popup?.version ?? 0}`;
+  useEffect(() => {
+    if (!popup?.enabled || !(popup.title || popup.body) || preview) return;
+    try { if (popup.frequency === "once" && localStorage.getItem(popupKey)) return; } catch { /* storage unavailable */ }
+    const t = setTimeout(() => setShowPopup(true), Math.min(30, Math.max(0, popup.delay ?? 2)) * 1000);
+    return () => clearTimeout(t);
+  }, [popup, popupKey, preview]);
+  function closePopup() {
+    setShowPopup(false);
+    try { localStorage.setItem(popupKey, "1"); } catch { /* storage unavailable */ }
+  }
+  const currencyCode = CURRENCY_CODE[venue.currency] ?? "USD";
+  const popupText = { title: tr("p:title")?.name || popup?.title || "", body: tr("p:body")?.name || popup?.body || "", cta: tr("p:cta")?.name || popup?.cta_label || "" };
+
   function openDish(d: Dish) {
+    track("ViewContent", { name: d.name, value: dishPrice(d)?.amount, currency: currencyCode });
     const first = (d.options ?? []).find((o) => (o.price ?? d.price) !== null);
     setVariant(first?.name ?? null);
     setOpen(d);
@@ -231,7 +250,10 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const priceText = (d: Dish) => { const p = dishPrice(d); return p ? (p.from ? t("fromPrice", { p: money(p.amount, venue.currency) }) : money(p.amount, venue.currency)) : null; };
   const [variant, setVariant] = useState<string | null>(null);
   const canOrder = venue.ordering_on && (venue.dinein || venue.takeaway);
-  const add = (id: string, n = 1) => setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) + n) }));
+  const add = (id: string, n = 1) => {
+    if (n > 0) { const d = dishes.find((x) => x.id === id.split("::")[0]); if (d) track("AddToCart", { name: d.name, value: Number(unitPrice(d, id.split("::")[1] ?? null) ?? 0) * n, currency: currencyCode }); }
+    setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) + n) }));
+  };
 
   async function place() {
     setErr("");
@@ -259,6 +281,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
     const next = [saved, ...mine].slice(0, 20);
     setMine(next);
     try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* storage unavailable */ }
+    track("Purchase", { value: total, currency: currencyCode });
     setPlaced(number); setCart({}); setCheckout(false);
   }
 
@@ -408,6 +431,18 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
       )}
       {scanning && (
         <TableScanner slug={venue.slug} labels={scanLabels} onClose={() => setScanning(false)} onFound={onTableScanned} />
+      )}
+      {showPopup && popup && (
+        <div className="g-popup-wrap" role="dialog" aria-modal="true" aria-label={popupText.title || popupText.body} onClick={closePopup}>
+          <div className="g-popup" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="g-popup-x" onClick={closePopup} aria-label={t("close")}>×</button>
+            {popupText.title && <h3>{popupText.title}</h3>}
+            {popupText.body && <p>{popupText.body}</p>}
+            {popup.cta_label && popup.cta_url
+              ? <a className="g-cta" href={popup.cta_url} target="_blank" rel="noopener noreferrer" onClick={closePopup}>{popupText.cta}</a>
+              : <button type="button" className="g-cta" onClick={closePopup}>{t("close")}</button>}
+          </div>
+        </div>
       )}
       {pickLang && (
         <Sheet closeLabel={t("close")} onClose={() => setPickLang(false)} label={t("language")}>

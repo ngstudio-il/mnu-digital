@@ -67,10 +67,11 @@ export async function POST() {
   const primary = venue.primary_lang || "en";
   const targets = ((venue.langs as unknown as string[]) ?? []).filter((l) => l !== primary).slice(0, MAX_TRANSLATIONS);
 
-  const [cats, dishes, existing] = await Promise.all([
+  const [cats, dishes, existing, venueRow] = await Promise.all([
     supabase.from("categories").select("id, name").eq("venue_id", venue.id),
     supabase.from("dishes").select("*").eq("venue_id", venue.id),
     supabase.from("menu_translations").select("lang, key, src").eq("venue_id", venue.id),
+    supabase.from("venues").select("*").eq("id", venue.id).single(),
   ]);
   if (existing.error) {
     return NextResponse.json({ error: existing.error.code === "42P01" || existing.error.code === "PGRST205" ? "Database update missing: run 0009_translations.sql in Supabase." : existing.error.message }, { status: 500 });
@@ -86,6 +87,8 @@ export async function POST() {
     for (const o of (d.options as { name: string }[] | null) ?? []) add(tkey.variant(d.id, o.name), o.name);
   }
   for (const l of labels) add(tkey.label(l), l);
+  const pop = (venueRow.data?.marketing as { popup?: { enabled?: boolean; title?: string; body?: string; cta_label?: string } } | null)?.popup;
+  if (pop?.enabled) { if (pop.title) add("p:title", pop.title); if (pop.body) add("p:body", pop.body); if (pop.cta_label) add("p:cta", pop.cta_label); }
 
   // Clean up rows for languages that were removed and dishes that were deleted.
   const keys = new Set(sources.map((s) => s.key));
@@ -144,7 +147,7 @@ Keep descriptions faithful: do not add or drop ingredients. Keep an empty descri
       const now = new Date().toISOString();
       const upserts = ((out.items as { key: string; name: string; description: string }[]) ?? [])
         .filter((i) => byKey.has(i.key) && i.name.trim())
-        .map((i) => ({ venue_id: venue.id, lang: next.lang, key: i.key, name: i.name.trim().slice(0, 200), description: byKey.get(i.key)!.description ? i.description.trim().slice(0, 1000) : "", src: byKey.get(i.key)!.src, updated_at: now }));
+        .map((i) => ({ venue_id: venue.id, lang: next.lang, key: i.key, name: i.name.trim().slice(0, i.key.startsWith("p:") ? 1000 : 200), description: byKey.get(i.key)!.description ? i.description.trim().slice(0, 1000) : "", src: byKey.get(i.key)!.src, updated_at: now }));
       if (upserts.length) {
         const { error } = await supabase.from("menu_translations").upsert(upserts);
         if (error) return NextResponse.json({ error: `Couldn’t save translations: ${error.message}` }, { status: 500 });

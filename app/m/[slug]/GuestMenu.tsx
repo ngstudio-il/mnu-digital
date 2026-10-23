@@ -108,7 +108,8 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
     let frame = 0;
     const check = () => {
       frame = 0;
-      if (jumping.current) return;
+      // While a sheet is open the page is pinned in place (see Sheet), which makes it look scrolled to the end.
+      if (jumping.current || document.body.style.position === "fixed") return;
       const line = (catsNav.current?.getBoundingClientRect().bottom ?? 0) + 24;
       let current: string | null = groups[0]?.id ?? null;
       for (const g of groups) {

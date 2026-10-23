@@ -3,6 +3,7 @@ import "@/styles/guest.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Sheet from "./Sheet";
+import LogoMark from "@/components/LogoMark";
 import { money, photoUrl } from "@/lib/format";
 import { fill, tkey, type ContentMap, type UiKey, type UiStrings } from "@/lib/i18n";
 import { isRtl, language } from "@/lib/languages";
@@ -29,12 +30,6 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
   const ui = i18n.ui[lang] ?? i18n.ui[i18n.primary];
   const design = useMemo(() => look(venue), [venue]);
   const cover = photoUrl(venue.cover_path);
-  const ll = venue.logo_layout;
-  const freeLogo = !!photoUrl(venue.logo_path) && ll?.x != null && ll?.y != null;
-  const logoStyle: React.CSSProperties | undefined = ll ? {
-    width: ll.size, height: ll.size,
-    ...(freeLogo ? { left: `${ll.x}%`, top: `${ll.y}%`, transform: `translate(-${ll.x}%, -${ll.y}%)` } : {}),
-  } : undefined;
   const t = (k: UiKey, vars?: Record<string, string | number>) => fill(ui[k], vars);
   const tr = (key: string) => (lang === i18n.primary ? undefined : i18n.content[lang]?.[key]);
   const dishName = (d: Dish) => tr(tkey.dish(d.id))?.name || d.name;
@@ -143,8 +138,8 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
     <div className={`g ${design.className}`} lang={lang} dir={isRtl(lang) ? "rtl" : "ltr"}>
       <style>{design.css}</style>
       {design.fonts && <link rel="stylesheet" href={design.fonts} precedence="default" />}
-      <header className={`g-head${cover ? " has-cover" : ""}${freeLogo ? " free-logo" : ""}`} style={cover ? { ["--cover" as string]: `url("${cover}")` } : undefined}>
-        {photoUrl(venue.logo_path) && <img className={`g-logo${freeLogo ? " free" : ""}`} src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} style={logoStyle} />}
+      <header className={`g-head${cover ? " has-cover" : ""}`} style={cover ? { ["--cover" as string]: `url("${cover}")` } : undefined}>
+        {photoUrl(venue.logo_path) && <LogoMark className="g-logo" src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} layout={venue.logo_layout} />}
         <small>{(ui[`type_${venue.type}` as UiKey] ?? venue.type).toUpperCase()}</small>
         <h1>{venue.name}</h1>
         {table && <span className="g-table">{tableText(table)}</span>}

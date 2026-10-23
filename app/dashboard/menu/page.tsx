@@ -9,6 +9,7 @@ import ImagePacks from "@/components/dashboard/ImagePacks";
 import BulkPhotos from "@/components/dashboard/BulkPhotos";
 import { Grip, SortableList } from "@/components/dashboard/Sortable";
 import { syncTranslations } from "@/lib/translate-client";
+import LogoMark from "@/components/LogoMark";
 
 type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; image_ai?: boolean; available: boolean; tags: string[] };
 
@@ -154,7 +155,7 @@ export default function MenuPage() {
         <div className="preview">
           <small>Guest view</small>
           <div className="pv-phone"><div className="pv-screen">
-            <div className="pv-head" style={{ background: photoUrl(venue.cover_path) ? `linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.6)), url("${photoUrl(venue.cover_path)}") center / cover` : venue.brand }}>{photoUrl(venue.logo_path) && <img className="pv-logo" src={photoUrl(venue.logo_path)!} alt="" />}<small>{venue.type.toUpperCase()}</small><b>{venue.name}</b></div>
+            <div className="pv-head" style={{ background: photoUrl(venue.cover_path) ? `linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.6)), url("${photoUrl(venue.cover_path)}") center / cover` : venue.brand }}>{photoUrl(venue.logo_path) && <LogoMark className="pv-logo" src={photoUrl(venue.logo_path)!} layout={venue.logo_layout} />}<small>{venue.type.toUpperCase()}</small><b>{venue.name}</b></div>
             <div className="pv-list">
               {cats.map((c) => {
                 const ds = (dishes ?? []).filter((d) => d.category_id === c.id && d.available).sort((a, b) => a.position - b.position);

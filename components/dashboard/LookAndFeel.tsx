@@ -5,6 +5,7 @@ import { useDash } from "./VenueContext";
 import { BRANDS, photoUrl } from "@/lib/format";
 import { FONTS, THEMES, font, fontHref, isHex, look, theme } from "@/lib/themes";
 import HeaderEditor from "./HeaderEditor";
+import { logoFit } from "@/components/LogoMark";
 import { shrink } from "@/lib/shrink";
 import type { LogoLayout, Venue } from "@/lib/types";
 
@@ -19,8 +20,8 @@ export default function LookAndFeel() {
   const t = theme(venue.theme);
   const f = font(venue.font) ?? font(t.font)!;
   const design = look({ ...venue, brand });
-  const [layout, setLayout] = useState<LogoLayout>(venue.logo_layout ?? { x: null, y: null, size: 64 });
-  useEffect(() => { setLayout(venue.logo_layout ?? { x: null, y: null, size: 64 }); }, [venue.logo_layout]);
+  const [layout, setLayout] = useState<LogoLayout>(logoFit(venue.logo_layout));
+  useEffect(() => { setLayout(logoFit(venue.logo_layout)); }, [venue.logo_layout]);
 
   useEffect(() => { setBrand(venue.brand); setBg(venue.bg_color ?? ""); }, [venue.brand, venue.bg_color]);
 
@@ -71,9 +72,8 @@ export default function LookAndFeel() {
         <HeaderEditor
           name={venue.name} typeLabel={venue.type} brand={design.brand} onBrand={design.onBrand} cover={cover} logo={logo}
           fontFamily={`"${f.family}", "Heebo", sans-serif`} center={!!t.center} layout={layout}
-          onChange={(l) => patch({ logo_layout: l }, "Logo position saved")}
+          onLive={setLayout} onCommit={(l) => saveSoon({ logo_layout: l }, "Logo saved")}
         />
-        <p className="note" style={{ marginTop: 8 }}>{logo ? "Drag the logo to place it anywhere on the header. It sits in the same spot on every phone." : "Upload a logo to place it on the header."}</p>
         <div className="hdr-tools">
           <div>
             <b>Cover photo</b>
@@ -87,10 +87,10 @@ export default function LookAndFeel() {
           </div>
           {logo && (
             <div>
-              <b>Logo size</b>
-              <input type="range" min={40} max={160} step={2} value={layout.size} aria-label="Logo size"
-                onChange={(e) => { const l = { ...layout, size: Number(e.target.value) }; setLayout(l); saveSoon({ logo_layout: l }, "Logo size saved"); }} />
-              {layout.x !== null && <button className="btn ghost sm" type="button" onClick={() => { const l = { ...layout, x: null, y: null }; setLayout(l); patch({ logo_layout: l }, "Logo back in its usual spot"); }}>Reset position</button>}
+              <b>Logo zoom</b>
+              <input type="range" min={0.5} max={3} step={0.05} value={layout.zoom} aria-label="Logo zoom"
+                onChange={(e) => { const l = { ...layout, zoom: Number(e.target.value) }; setLayout(l); saveSoon({ logo_layout: l }, "Logo saved"); }} />
+              {(layout.zoom !== 1 || layout.x !== 0 || layout.y !== 0) && <button className="btn ghost sm" type="button" onClick={() => { const l = { zoom: 1, x: 0, y: 0 }; setLayout(l); patch({ logo_layout: l }, "Logo reset"); }}>Reset</button>}
             </div>
           )}
         </div>

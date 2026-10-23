@@ -64,5 +64,5 @@ export type Subscription = {
   cancel_at_period_end: boolean;
 };
 
-// Logo position on the menu header: x and y in percent of the header, size in px.
-export type LogoLayout = { x: number | null; y: number | null; size: number };
+// How the logo sits inside its frame: zoom factor, and x/y offsets in percent of the frame.
+export type LogoLayout = { zoom: number; x: number; y: number };

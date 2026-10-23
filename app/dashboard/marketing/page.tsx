@@ -5,6 +5,8 @@ import { useDash } from "@/components/dashboard/VenueContext";
 import { syncTranslations } from "@/lib/translate-client";
 import { ID_RULES } from "@/lib/marketing";
 import type { Marketing } from "@/lib/types";
+import { photoUrl } from "@/lib/format";
+import { shrink } from "@/lib/shrink";
 
 type Popup = NonNullable<Marketing["popup"]>;
 const EMPTY_POPUP: Popup = { enabled: false, title: "", body: "", cta_label: "", cta_url: "", delay: 3, frequency: "once", version: 1 };
@@ -18,6 +20,21 @@ export default function MarketingPage() {
   const [popup, setPopup] = useState<Popup>({ ...EMPTY_POPUP, ...(m.popup ?? {}) });
   const [busy, setBusy] = useState<"" | "tags" | "popup">("");
   const set = (p: Partial<Popup>) => setPopup((x) => ({ ...x, ...p }));
+  const [uploading, setUploading] = useState(false);
+
+  async function uploadImage(raw: File) {
+    if (!["image/png", "image/jpeg", "image/webp"].includes(raw.type)) return toast("Use a PNG, JPG or WebP image.");
+    const file = await shrink(raw, 1400);
+    if (file.size > 5 * 1024 * 1024) return toast("That image is too large. Try one under 5 MB.");
+    setUploading(true);
+    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const path = `${venue.id}/popup-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabaseBrowser().storage.from("dish-photos").upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+    setUploading(false);
+    if (error) return toast("Upload failed: " + error.message);
+    set({ image_path: path });
+    toast("Image added. Save the popup to publish it.");
+  }
 
   async function save(next: Marketing, kind: "tags" | "popup", msg: string) {
     setBusy(kind);
@@ -43,9 +60,9 @@ export default function MarketingPage() {
 
   function savePopup(e: React.FormEvent) {
     e.preventDefault();
-    if (popup.enabled && !popup.title.trim() && !popup.body.trim()) return toast("Write a title or a message for the popup.");
+    if (popup.enabled && !popup.title.trim() && !popup.body.trim() && !popup.image_path) return toast("Add an image, a title or a message for the popup.");
     if (popup.cta_label?.trim() && !/^https?:\/\/\S+$/i.test(popup.cta_url?.trim() ?? "")) return toast("The button link should start with https://");
-    const changed = popup.title !== m.popup?.title || popup.body !== m.popup?.body || popup.cta_label !== m.popup?.cta_label;
+    const changed = popup.title !== m.popup?.title || popup.body !== m.popup?.body || popup.cta_label !== m.popup?.cta_label || popup.image_path !== m.popup?.image_path;
     // A new message counts as unseen again for guests who closed the old one.
     save({ ...m, popup: { ...popup, title: popup.title.trim(), body: popup.body.trim(), cta_label: popup.cta_label?.trim(), cta_url: popup.cta_url?.trim(), version: (m.popup?.version ?? 0) + (changed ? 1 : 0) } }, "popup", popup.enabled ? "Popup saved. Guests will see it." : "Popup saved (off).");
   }
@@ -83,6 +100,18 @@ export default function MarketingPage() {
         </div>
         <div className="mk-popup">
           <div className="mk-fields">
+            <div className="field">Image <span className="mk-sub">optional</span>
+              <div className="mk-img">
+                {popup.image_path ? <img src={photoUrl(popup.image_path)!} alt="" /> : <span className="mk-img-empty"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" /><circle cx="9" cy="10" r="1.8" /><path d="M21 16l-5-5-8 8" /></svg></span>}
+                <div className="mk-img-actions">
+                  <label className="btn ghost sm" style={{ cursor: "pointer" }}>{uploading ? "Uploading…" : popup.image_path ? "Replace image" : "Upload image"}
+                    <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ""; }} />
+                  </label>
+                  {popup.image_path && <button type="button" className="btn ghost sm" onClick={() => set({ image_path: null })}>Remove</button>}
+                  <small>A dish, a flyer or your event. Shown at the top of the popup.</small>
+                </div>
+              </div>
+            </div>
             <label className="field" htmlFor="mk-title">Title<input id="mk-title" value={popup.title} maxLength={80} onChange={(e) => set({ title: e.target.value })} placeholder="e.g. Happy hour 5–7 pm" /></label>
             <label className="field" htmlFor="mk-body">Message<textarea id="mk-body" value={popup.body} maxLength={400} onChange={(e) => set({ body: e.target.value })} placeholder="e.g. Every cocktail is half price. Just ask your waiter." /></label>
             <div className="row2">
@@ -103,7 +132,8 @@ export default function MarketingPage() {
             <span className="mk-preview-label">Preview</span>
             <div className="mk-pop" translate="no">
               <i>×</i>
-              {popup.title ? <b>{popup.title}</b> : !popup.body && <b className="ph">Your title</b>}
+              {popup.image_path && <img className="mk-pop-img" src={photoUrl(popup.image_path)!} alt="" />}
+              {popup.title ? <b>{popup.title}</b> : !popup.body && !popup.image_path && <b className="ph">Your title</b>}
               {popup.body && <p>{popup.body}</p>}
               <span className="mk-pop-btn" style={{ background: venue.brand }}>{popup.cta_label || "Close"}</span>
             </div>

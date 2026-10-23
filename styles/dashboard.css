@@ -704,3 +704,11 @@ button.me div { flex: 1; }
   .nav a { font-size: 11px; }
 }
 @media (max-width: 900px) { .set-hub-card { padding-inline-end: 44px; } }
+.mk-img { display: flex; gap: 14px; align-items: center; margin-top: 6px; font-weight: 400; }
+.mk-img > img, .mk-img-empty { width: 96px; height: 72px; border-radius: 12px; object-fit: cover; flex: none; }
+.mk-img-empty { display: grid; place-items: center; background: var(--ink); border: 1.5px dashed rgba(31,40,41,.18); color: var(--dim); }
+.mk-img-empty svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.mk-img-actions { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.mk-img-actions small { width: 100%; font-size: 12px; color: var(--dim); }
+.mk-pop { overflow: hidden; }
+.mk-pop-img { display: block; width: calc(100% + 36px); margin: -22px -18px 4px; max-height: 180px; object-fit: cover; }

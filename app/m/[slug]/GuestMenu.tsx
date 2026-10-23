@@ -99,7 +99,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const [showPopup, setShowPopup] = useState(false);
   const popupKey = `mnu.popup.${venue.slug}.${popup?.version ?? 0}`;
   useEffect(() => {
-    if (!popup?.enabled || !(popup.title || popup.body) || preview) return;
+    if (!popup?.enabled || !(popup.title || popup.body || popup.image_path) || preview) return;
     try { if (popup.frequency === "once" && localStorage.getItem(popupKey)) return; } catch { /* storage unavailable */ }
     const t = setTimeout(() => setShowPopup(true), Math.min(30, Math.max(0, popup.delay ?? 2)) * 1000);
     return () => clearTimeout(t);
@@ -463,9 +463,10 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
         <TableScanner slug={venue.slug} labels={scanLabels} onClose={() => setScanning(false)} onFound={onTableScanned} />
       )}
       {showPopup && popup && (
-        <div className="g-popup-wrap" role="dialog" aria-modal="true" aria-label={popupText.title || popupText.body} onClick={closePopup}>
-          <div className="g-popup" onClick={(e) => e.stopPropagation()}>
+        <div className="g-popup-wrap" role="dialog" aria-modal="true" aria-label={popupText.title || popupText.body || venue.name} onClick={closePopup}>
+          <div className={`g-popup${popup.image_path ? " has-img" : ""}`} onClick={(e) => e.stopPropagation()}>
             <button type="button" className="g-popup-x" onClick={closePopup} aria-label={t("close")}>×</button>
+            {popup.image_path && <img className="g-popup-img" src={photoUrl(popup.image_path)!} alt="" />}
             {popupText.title && <h3>{popupText.title}</h3>}
             {popupText.body && <p>{popupText.body}</p>}
             {popup.cta_label && popup.cta_url

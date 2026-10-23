@@ -80,5 +80,5 @@ export type Marketing = {
   meta_pixel?: string;
   google_tags?: string[];
   tiktok_pixel?: string;
-  popup?: { enabled: boolean; title: string; body: string; cta_label?: string; cta_url?: string; delay: number; frequency: "once" | "every"; version: number };
+  popup?: { enabled: boolean; title: string; body: string; image_path?: string | null; cta_label?: string; cta_url?: string; delay: number; frequency: "once" | "every"; version: number };
 };

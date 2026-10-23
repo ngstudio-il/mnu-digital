@@ -1,4 +1,5 @@
 "use client";
+import DeleteUser from "./DeleteUser";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { VenueRow } from "@/lib/admin-data";
@@ -8,7 +9,7 @@ const STATUS: [string, string][] = [["all", "All"], ["trialing", "Trial"], ["act
 const label = (s: string) => ({ trialing: "Trial", active: "Paying", past_due: "Payment failed", canceled: "Cancelled", none: "No card" } as Record<string, string>)[s] ?? s;
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 
-export default function VenueTable({ rows, noVenue, initialStatus }: { rows: VenueRow[]; noVenue: { id: string; email: string; created_at: string; provider: string }[]; initialStatus: string }) {
+export default function VenueTable({ rows, noVenue, initialStatus }: { rows: VenueRow[]; noVenue: { id: string; email: string; created_at: string; provider: string; admin?: boolean }[]; initialStatus: string }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState(initialStatus);
@@ -49,7 +50,7 @@ export default function VenueTable({ rows, noVenue, initialStatus }: { rows: Ven
       {noVenue.length > 0 && (status === "all" || status === "none") && (
         <div className="card" style={{ marginTop: 16 }}>
           <div className="card-head"><h3>Signed up, no venue yet ({noVenue.length})</h3></div>
-          {noVenue.map((u) => <div className="mini-order" key={u.id} style={{ gridTemplateColumns: "1fr auto" }}><div className="what"><b>{u.email}</b><span>{u.provider}</span></div><em style={{ fontWeight: 400, color: "var(--dim)" }}>{ago(u.created_at)}</em></div>)}
+          {noVenue.map((u) => <div className="mini-order" key={u.id} style={{ gridTemplateColumns: "1fr auto auto", gap: 16 }}><div className="what"><b>{u.email}</b><span>{u.provider}</span></div><em style={{ fontWeight: 400, color: "var(--dim)" }}>{ago(u.created_at)}</em>{!u.admin && <DeleteUser userId={u.id} email={u.email} label="Delete" onDeleted={() => router.refresh()} />}</div>)}
         </div>
       )}
     </>

@@ -62,7 +62,9 @@ export async function loadAdminData() {
   });
 
   const owners = new Set(rows.map((r) => r.owner_id));
-  const noVenue = userList.filter((u) => !owners.has(u.id)).map((u) => ({ id: u.id, email: u.email ?? "—", created_at: u.created_at, provider: (u.app_metadata?.provider as string) ?? "email" }));
+  const { data: adminRows } = await db.from("admins").select("email");
+  const admins = new Set((adminRows ?? []).map((r) => String(r.email).toLowerCase()));
+  const noVenue = userList.filter((u) => !owners.has(u.id)).map((u) => ({ id: u.id, email: u.email ?? "—", created_at: u.created_at, provider: (u.app_metadata?.provider as string) ?? "email", admin: admins.has((u.email ?? "").toLowerCase()) }));
   return { rows, noVenue, totalUsers: userList.length };
 }
 

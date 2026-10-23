@@ -3,6 +3,7 @@ import { loadAdminData } from "@/lib/admin-data";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { STATUS_LABEL, ago, money } from "@/lib/format";
 import VenueActions from "@/components/admin/VenueActions";
+import DeleteUser from "@/components/admin/DeleteUser";
 import type { OrderStatus } from "@/lib/types";
 
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -27,6 +28,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
           <div className="card-head"><h3 style={{ fontSize: 22 }}>{v.name}</h3><span className={`pill st-${v.status}`}>{v.status.replace("_", " ")}</span></div>
           <p className="note" style={{ marginBottom: 16 }}>{v.type} · /m/{v.slug} · joined {day(v.created_at)}</p>
           <VenueActions venueId={v.id} slug={v.slug} stripeCustomer={v.stripe_customer_id} />
+          <div className="adm-danger"><div><b>Danger zone</b><span>Delete {v.owner_email} and everything in this account.</span></div><DeleteUser userId={v.owner_id} email={v.owner_email} /></div>
         </div>
         <div className="card">
           <div className="card-head"><h3>Activity</h3></div>

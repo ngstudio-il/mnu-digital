@@ -252,7 +252,7 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
       )}
 
       {checkout && (
-        <Sheet closeLabel={t("close")} onClose={() => setCheckout(false)} label={t("yourOrder")}>
+        <Sheet closeLabel={t("close")} onClose={() => setCheckout(false)} label={t("yourOrder")} className="g-light">
             <div className="g-sheet-body">
               <h3>{t("yourOrder")}</h3>
               <ul className="g-lines">{lines.map((l) => (
@@ -279,12 +279,12 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
       )}
 
       {placed !== null && (
-        <Sheet closeLabel={t("close")} onClose={() => setPlaced(null)} label={t("orderSent")} className="g-done">
+        <Sheet closeLabel={t("close")} onClose={() => setPlaced(null)} label={t("orderSent")} className="g-done g-light">
             <div className="g-sheet-body"><span className="g-check">✓</span><h3>{t("orderNSent", { n: placed })}</h3><p>{t("sentBody")}</p><button className="g-cta" type="button" onClick={() => { setPlaced(null); setShowMine(true); }}>{t("trackOrder")}</button><button className="g-cta ghost" type="button" onClick={() => setPlaced(null)}>{t("backToMenu")}</button></div>
         </Sheet>
       )}
       {showMine && (
-        <Sheet closeLabel={t("close")} onClose={() => setShowMine(false)} label={t("myOrders")}>
+        <Sheet closeLabel={t("close")} onClose={() => setShowMine(false)} label={t("myOrders")} className="g-light">
             <div className="g-sheet-body">
               <h3>{t("myOrders")}</h3>
               <p>{t("mineIntro")}</p>

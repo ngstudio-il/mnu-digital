@@ -154,3 +154,6 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-scan-bar { position: relative; margin-top: auto; padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; color: #fff; text-align: center; background: linear-gradient(transparent, rgba(0,0,0,.75) 30%); }
 .g-scan-bar b { font-size: 18px; }
 .g-scan-bar p { margin: 0 0 8px; color: rgba(255,255,255,.85); font-size: 14px; }
+
+/* Ordering sheets are always light and easy to read, whatever the menu's style */
+.g-sheet.g-light { --sheet: #fff; --card: #fff; --chip: #f1efe9; --paper: #1f2829; --text: #4d5759; --dim: #7c8789; --line: rgba(31,40,41,.08); --line-strong: rgba(31,40,41,.16); --hfont: var(--font); --hscale: 1; color: var(--text); }

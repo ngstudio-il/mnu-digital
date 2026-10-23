@@ -129,7 +129,11 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
     const chip = nav?.querySelector<HTMLElement>(`[data-cat="${activeCat}"]`);
     if (!nav || !chip) return;
     const n = nav.getBoundingClientRect(), c = chip.getBoundingClientRect();
-    nav.scrollBy({ left: c.left + c.width / 2 - (n.left + n.width / 2), behavior: "smooth" });
+    // Clamp to the real scroll range (negative in right-to-left), or iOS can stop part-way past the edge.
+    const room = nav.scrollWidth - nav.clientWidth;
+    const [min, max] = getComputedStyle(nav).direction === "rtl" ? [-room, 0] : [0, room];
+    const left = Math.min(max, Math.max(min, nav.scrollLeft + c.left + c.width / 2 - (n.left + n.width / 2)));
+    if (Math.abs(left - nav.scrollLeft) > 1) nav.scrollTo({ left, behavior: "smooth" });
   }, [activeCat]);
   function jumpTo(id: string) {
     const el = document.getElementById(`c-${id}`);
@@ -186,11 +190,10 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
         <h1>{venue.name}</h1>
         {table && <span className="g-table">{tableText(table)}</span>}
         <div className="g-top">
-          {mine.length > 0 && <button type="button" className="g-mine" onClick={() => setShowMine(true)}>{t("myOrders")} · {mine.length}</button>}
+          {mine.length > 0 && <button type="button" className="g-mine" onClick={() => setShowMine(true)}>{t("myOrders")}<b>{mine.length}</b></button>}
           {i18n.langs.length > 1 && (
-            <button type="button" className="g-lang" onClick={() => setPickLang(true)} aria-label={t("language")}>
+            <button type="button" className="g-lang" onClick={() => setPickLang(true)} aria-label={`${t("language")}: ${language(lang).native}`} title={language(lang).native}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>
-              {language(lang).native}
             </button>
           )}
         </div>

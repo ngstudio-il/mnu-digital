@@ -33,7 +33,7 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-bar { position: fixed; left: 50%; translate: -50% 0; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(608px, calc(100% - 32px)); display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 22px; border: 0; border-radius: 18px; background: var(--paper); color: var(--ink); font: 500 15px var(--font); cursor: pointer; box-shadow: 0 16px 40px rgba(0,0,0,.25); z-index: 10; }
 .g-bar b { font-weight: 600; }
 .g-sheet-wrap { position: fixed; inset: 0; z-index: 20; background: rgba(20,26,27,.45); display: flex; align-items: flex-end; justify-content: center; }
-.g-sheet { width: 100%; max-width: 640px; max-height: 90vh; overflow: auto; background: var(--sheet); border-radius: 24px 24px 0 0; animation: up .25s ease-out; }
+.g-sheet { width: 100%; max-width: 640px; max-height: 85vh; max-height: 85dvh; overflow: auto; background: var(--sheet); border-radius: 24px 24px 0 0; animation: up .25s ease-out; }
 @keyframes up { from { transform: translateY(40px); opacity: .6; } }
 .g-hero { width: 100%; height: 260px; object-fit: cover; display: block; }
 .g-sheet-body { padding: 22px 20px calc(22px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px; }

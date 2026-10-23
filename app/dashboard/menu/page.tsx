@@ -7,6 +7,7 @@ import type { Category, Dish } from "@/lib/types";
 import ImportMenu from "@/components/dashboard/ImportMenu";
 import ImagePacks from "@/components/dashboard/ImagePacks";
 import BulkPhotos from "@/components/dashboard/BulkPhotos";
+import { Grip, SortableList } from "@/components/dashboard/Sortable";
 
 type Draft = { id?: string; name: string; description: string; price: string; category_id: string | null; image_path: string | null; image_ai?: boolean; available: boolean; tags: string[] };
 
@@ -38,7 +39,24 @@ export default function MenuPage() {
     }
   }, [toast]);
 
-  const list = (dishes ?? []).filter((d) => active === "all" || d.category_id === active);
+  const catOrder = new Map(cats.map((c, i) => [c.id, i]));
+  const list = (dishes ?? [])
+    .filter((d) => active === "all" || d.category_id === active)
+    .sort((a, b) => (catOrder.get(a.category_id ?? "") ?? 999) - (catOrder.get(b.category_id ?? "") ?? 999) || a.position - b.position);
+
+  async function reorderCats(next: Category[]) {
+    setCats(next.map((c, i) => ({ ...c, position: i })));
+    const sb = supabaseBrowser();
+    const results = await Promise.all(next.map((c, i) => sb.from("categories").update({ position: i }).eq("id", c.id)));
+    if (results.some((r) => r.error)) { toast("Couldn’t save the new order."); load(); } else toast("Category order saved");
+  }
+  async function reorderDishes(next: Dish[]) {
+    const pos = new Map(next.map((d, i) => [d.id, i]));
+    setDishes((all) => all?.map((d) => (pos.has(d.id) ? { ...d, position: pos.get(d.id)! } : d)) ?? null);
+    const sb = supabaseBrowser();
+    const results = await Promise.all(next.map((d, i) => sb.from("dishes").update({ position: i }).eq("id", d.id)));
+    if (results.some((r) => r.error)) { toast("Couldn’t save the new order."); load(); } else toast("Dish order saved");
+  }
   const activeName = active === "all" ? "All dishes" : cats.find((c) => c.id === active)?.name ?? "Dishes";
 
   async function addCategory(e: React.FormEvent) {
@@ -78,11 +96,14 @@ export default function MenuPage() {
         <div>
           <div className="cats">
             <button type="button" aria-pressed={active === "all"} onClick={() => setActive("all")}>All<span>{dishes?.length ?? 0}</span></button>
-            {cats.map((c) => (
-              <button key={c.id} type="button" aria-pressed={active === c.id} onClick={() => setActive(c.id)}>
-                {c.name}<span>{(dishes ?? []).filter((d) => d.category_id === c.id).length}</span>
-              </button>
-            ))}
+            <SortableList items={cats} onReorder={reorderCats} render={(c, h, dragging) => (
+              <div className={`cat-row${dragging ? " dragging" : ""}`}>
+                <Grip handle={h} label={c.name} />
+                <button type="button" aria-pressed={active === c.id} onClick={() => setActive(c.id)}>
+                  {c.name}<span>{(dishes ?? []).filter((d) => d.category_id === c.id).length}</span>
+                </button>
+              </div>
+            )} />
           </div>
           <form className="add-cat" onSubmit={addCategory}>
             <input value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="New category" aria-label="New category name" />
@@ -97,10 +118,12 @@ export default function MenuPage() {
           <div className="card-head" style={{ marginBottom: 12 }}><h3 style={{ fontSize: 18 }}>{activeName}</h3><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{missingPhotos > 0 && <button className="ai-btn" type="button" onClick={() => setBulk(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6zM15.5 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></svg>Photos for {missingPhotos} dish{missingPhotos === 1 ? "" : "es"}</button>}<button className="btn ghost sm" type="button" onClick={() => setImporting(true)}>Import menu</button><button className="btn sm" type="button" onClick={openNew}>+ Add dish</button></div></div>
           {dishes === null ? <p className="note">Loading your menu…</p> : list.length ? (
             <div className="dish-list">
-              {list.map((d) => {
+              {active === "all" && list.length > 1 && <p className="note reorder-hint">To change the order of dishes, open a category and drag them.</p>}
+              <SortableList items={list} onReorder={reorderDishes} disabled={active === "all"} render={(d, h, dragging) => {
                 const src = photoUrl(d.image_path);
                 return (
-                  <div className={`dish-row${d.available ? "" : " off"}`} key={d.id}>
+                  <div className={`dish-row${d.available ? "" : " off"}${h ? " sortable" : ""}${dragging ? " dragging" : ""}`}>
+                    <Grip handle={h} label={d.name} />
                     {src ? <img src={src} alt="" /> : <span className="thumb-empty" />}
                     <div>
                       <b>{d.name}</b><p>{d.description || "No description"}</p>
@@ -111,7 +134,7 @@ export default function MenuPage() {
                     <button className="btn ghost sm" type="button" onClick={() => openEdit(d)}>Edit</button>
                   </div>
                 );
-              })}
+              }} />
             </div>
           ) : (
             <div className="empty"><b>No dishes here yet</b>Upload a photo or PDF of your current menu and we’ll fill it in for you, or add dishes one by one.<br /><br /><div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}><button className="btn sm" type="button" onClick={() => setImporting(true)}>Import from photo or PDF</button><button className="btn ghost sm" type="button" onClick={openNew}>+ Add dish</button></div></div>

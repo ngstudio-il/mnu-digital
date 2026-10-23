@@ -2,6 +2,7 @@
 import "@/styles/guest.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import Sheet from "./Sheet";
 import { money, photoUrl } from "@/lib/format";
 import type { Category, Dish, Venue } from "@/lib/types";
 
@@ -134,8 +135,7 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
       )}
 
       {open && (
-        <div className="g-sheet-wrap" onClick={() => setOpen(null)}>
-          <div className="g-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={open.name}>
+        <Sheet onClose={() => setOpen(null)} label={open.name}>
             {photoUrl(open.image_path) && <div className="g-hero-wrap"><img className="g-hero" src={photoUrl(open.image_path)!} alt="" />{open.image_ai && <i>Illustration · actual dish may look different</i>}</div>}
             <div className="g-sheet-body">
               <h3>{open.name}</h3><p>{open.description}</p>
@@ -143,13 +143,11 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
               {canOrder ? <button className="g-cta" type="button" onClick={() => { add(open.id); setOpen(null); }}>Add to order · {money(open.price, venue.currency)}</button>
                 : <button className="g-cta ghost" type="button" onClick={() => setOpen(null)}>Close</button>}
             </div>
-          </div>
-        </div>
+        </Sheet>
       )}
 
       {checkout && (
-        <div className="g-sheet-wrap" onClick={() => setCheckout(false)}>
-          <div className="g-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Your order">
+        <Sheet onClose={() => setCheckout(false)} label="Your order">
             <div className="g-sheet-body">
               <h3>Your order</h3>
               <ul className="g-lines">{lines.map((l) => (
@@ -167,20 +165,16 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
               {err && <p className="g-err">{err}</p>}
               <button className="g-cta" type="button" disabled={busy || !lines.length} onClick={place}>{busy ? "Sending…" : `Place order · ${money(total, venue.currency)}`}</button>
             </div>
-          </div>
-        </div>
+        </Sheet>
       )}
 
       {placed !== null && (
-        <div className="g-sheet-wrap" onClick={() => setPlaced(null)}>
-          <div className="g-sheet g-done" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Order sent">
+        <Sheet onClose={() => setPlaced(null)} label="Order sent" className="g-done">
             <div className="g-sheet-body"><span className="g-check">✓</span><h3>Order #{placed} sent</h3><p>The kitchen has your order. We’ll bring it over as soon as it’s ready.</p><button className="g-cta" type="button" onClick={() => { setPlaced(null); setShowMine(true); }}>Track my order</button><button className="g-cta ghost" type="button" onClick={() => setPlaced(null)}>Back to the menu</button></div>
-          </div>
-        </div>
+        </Sheet>
       )}
       {showMine && (
-        <div className="g-sheet-wrap" onClick={() => setShowMine(false)}>
-          <div className="g-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="My orders">
+        <Sheet onClose={() => setShowMine(false)} label="My orders">
             <div className="g-sheet-body">
               <h3>My orders</h3>
               <p>Orders from this phone in the last 24 hours. Status updates automatically.</p>
@@ -199,8 +193,7 @@ export default function GuestMenu({ venue, categories, dishes, table }: Props) {
               })}
               <button className="g-cta ghost" type="button" onClick={() => setShowMine(false)}>Back to the menu</button>
             </div>
-          </div>
-        </div>
+        </Sheet>
       )}
     </div>
   );

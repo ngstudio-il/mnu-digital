@@ -1,7 +1,8 @@
 import "server-only";
 
 // Google Gemini image model ("Nano Banana"). Override the model with GEMINI_IMAGE_MODEL.
-const MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-2.5-flash-image";
+export const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-2.5-flash-image";
+const MODEL = GEMINI_IMAGE_MODEL;
 
 type Part = { text?: string; inlineData?: { mimeType: string; data: string }; inline_data?: { mime_type: string; data: string } };
 
@@ -25,8 +26,12 @@ export async function generateImage(prompt: string, source?: { mimeType: string;
     error?: { message?: string; status?: string };
   };
   if (!res.ok) {
+    const detail = json.error?.message ?? "";
+    // Image models have no free quota: a Google project without billing gets 429 with "limit: 0".
+    if (res.status === 429 && /limit: ?0|free_tier|billing/i.test(detail)) throw new GeminiError("billing", "AI images need billing turned on for the Google AI project (Google AI Studio → Billing).");
     if (res.status === 429) throw new GeminiError("busy", "The image service is busy. Try again in a minute.");
-    if (res.status === 401 || res.status === 403) throw new GeminiError("auth", "AI images aren’t set up correctly.");
+    if (res.status === 401 || res.status === 403) throw new GeminiError("auth", `AI images aren’t set up correctly: ${detail || res.status}`);
+    if (res.status === 404) throw new GeminiError("model", `The image model “${MODEL}” isn’t available for this key. Set GEMINI_IMAGE_MODEL in Vercel.`);
     throw new GeminiError("api", json.error?.message ?? `Image service error ${res.status}`);
   }
   if (json.promptFeedback?.blockReason) throw new GeminiError("blocked", "That image couldn’t be created. Try a different description.");

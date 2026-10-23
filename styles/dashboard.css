@@ -524,7 +524,7 @@ button.me:hover { border-color: var(--paper); background: var(--ink); }
 button.me div { flex: 1; }
 .me-chev { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--dim); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 [dir="rtl"] .me-chev { transform: scaleX(-1); }
-.top-me { display: none; width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--sage); color: #fff; font: 600 15px var(--font, inherit); cursor: pointer; box-shadow: 0 0 0 3px #fff, 0 0 0 4px var(--line); }
+.top-me { display: none; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--sage); color: #fff; font: 600 14px var(--font, inherit); cursor: pointer; margin-inline-start: 4px; }
 @media (max-width: 820px) { .top-me { display: inline-grid; place-items: center; } }
 .profile-modal { display: grid; gap: 14px; max-width: 460px; }
 .pf-top { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: var(--ink); }
@@ -532,3 +532,10 @@ button.me div { flex: 1; }
 .pf-top span:not(.avatar) { font-size: 13px; color: var(--dim); }
 .avatar.lg { width: 48px; height: 48px; font-size: 20px; }
 .dash-i18n-busy { position: fixed; z-index: 150; left: 50%; translate: -50% 0; top: 14px; padding: 8px 14px; border-radius: 99px; background: var(--paper); color: #fff; font-size: 13px; box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+
+/* Header spacing on phones */
+@media (max-width: 820px) { .top-actions { gap: 10px; } }
+
+/* Chat sits at the end side: right in left-to-right, left in right-to-left */
+[dir="rtl"] .chat-fab, [dir="rtl"] .chat-pop { right: auto; left: max(24px, env(safe-area-inset-left, 0px)); }
+[dir="rtl"] .chat-fab em { right: auto; left: -2px; }

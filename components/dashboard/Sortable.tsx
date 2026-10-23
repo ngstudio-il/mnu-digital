@@ -1,16 +1,18 @@
 "use client";
 import { DndContext, KeyboardSensor, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
-import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, arrayMove, horizontalListSortingStrategy, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 export type Handle = { ref: (el: HTMLElement | null) => void; props: Record<string, unknown> };
 
-// A vertical list the owner can reorder by dragging the grip handle (mouse, touch or keyboard).
-export function SortableList<T extends { id: string }>({ items, onReorder, render, disabled = false }: {
+// A list the owner can reorder by dragging the grip handle (mouse, touch or keyboard).
+// `horizontal` is for lists laid out in a row, like the category chips on a phone.
+export function SortableList<T extends { id: string }>({ items, onReorder, render, disabled = false, horizontal = false }: {
   items: T[];
   onReorder: (next: T[]) => void;
   render: (item: T, handle: Handle | null, dragging: boolean) => React.ReactNode;
   disabled?: boolean;
+  horizontal?: boolean;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -27,7 +29,7 @@ export function SortableList<T extends { id: string }>({ items, onReorder, rende
   if (disabled) return <>{items.map((i) => <div key={i.id}>{render(i, null, false)}</div>)}</>;
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={end}>
-      <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={items.map((i) => i.id)} strategy={horizontal ? horizontalListSortingStrategy : verticalListSortingStrategy}>
         {items.map((i) => <Row key={i.id} id={i.id}>{(h, dragging) => render(i, h, dragging)}</Row>)}
       </SortableContext>
     </DndContext>

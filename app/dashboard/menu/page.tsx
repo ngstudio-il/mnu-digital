@@ -22,6 +22,14 @@ export default function MenuPage() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [importing, setImporting] = useState(false);
   const [bulk, setBulk] = useState(false);
+  // On phones the categories sit in one scrolling row, so they reorder sideways.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 820px)");
+    const on = () => setNarrow(mq.matches);
+    on(); mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
   const missingPhotos = (dishes ?? []).filter((d) => !d.image_path).length;
 
   const load = useCallback(async () => {
@@ -107,7 +115,7 @@ export default function MenuPage() {
         <div>
           <div className="cats">
             <button type="button" aria-pressed={active === "all"} onClick={() => setActive("all")}>All<span>{dishes?.length ?? 0}</span></button>
-            <SortableList items={cats} onReorder={reorderCats} render={(c, h, dragging) => (
+            <SortableList items={cats} onReorder={reorderCats} horizontal={narrow} render={(c, h, dragging) => (
               <div className={`cat-row${dragging ? " dragging" : ""}`}>
                 <Grip handle={h} label={c.name} />
                 <button type="button" aria-pressed={active === c.id} onClick={() => setActive(c.id)}>

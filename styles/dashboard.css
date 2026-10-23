@@ -369,7 +369,8 @@
 .dish-list > div + div { margin-top: 0; }
 .reorder-hint { margin: 0 0 4px; }
 @media (max-width: 820px) {
-  .cats .cat-row .grip { display: none; }
+  .cats .cat-row { gap: 0; border-radius: 12px; }
+  .cats .cat-row .grip { width: 20px; height: 36px; margin-inline-end: -6px; }
   .dish-row.sortable { grid-template-columns: 22px 48px minmax(0, 1fr) auto; }
   .dish-row.sortable .grip { grid-row: 1 / span 2; }
   .dish-row.sortable .switch { grid-column: 4; }

@@ -77,7 +77,7 @@ export default function MarketingPage() {
 
       <form className="card" onSubmit={savePopup}>
         <div className="mk-head">
-          <span className="mk-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4a1 1 0 0 0 1 1h2l5 4V5L7 9H5a1 1 0 0 0-1 1zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12" /></svg></span>
+          <span className="mk-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="3" /><path d="M8 21l4-3 4 3M8 9h8M8 13h5" /></svg></span>
           <div><h3>Popup message</h3><p className="note">Show guests a message when they open your menu: a deal of the day, happy hour, an event or a new dish.</p></div>
           <button className="switch" type="button" role="switch" aria-checked={popup.enabled} aria-label="Show the popup" onClick={() => set({ enabled: !popup.enabled })} />
         </div>

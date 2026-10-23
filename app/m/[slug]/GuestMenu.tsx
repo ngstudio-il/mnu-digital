@@ -111,7 +111,37 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const currencyCode = CURRENCY_CODE[venue.currency] ?? "USD";
   const popupText = { title: tr("p:title")?.name || popup?.title || "", body: tr("p:body")?.name || popup?.body || "", cta: tr("p:cta")?.name || popup?.cta_label || "" };
 
+  // Anonymous analytics for the owner: a menu view (once per 30 minutes per phone), dishes opened,
+  // and a ping while the menu is open (for "viewing now"). Not in the dashboard preview.
+  const counted = !preview && /^[0-9a-f-]{36}$/.test(venue.id);
+  const visitor = useRef("");
+  const seenDishes = useRef(new Set<string>());
+  useEffect(() => {
+    if (!counted) return;
+    try {
+      visitor.current = localStorage.getItem("mnu.vid") ?? "";
+      if (!visitor.current) { visitor.current = crypto.randomUUID(); localStorage.setItem("mnu.vid", visitor.current); }
+    } catch { visitor.current = crypto.randomUUID(); }
+    const sb = supabaseBrowser();
+    const lastKey = `mnu.viewed.${venue.id}`;
+    let last = 0;
+    try { last = Number(localStorage.getItem(lastKey) ?? 0); } catch { /* storage unavailable */ }
+    if (Date.now() - last > 30 * 60000) {
+      sb.rpc("log_menu_event", { p_venue: venue.id, p_kind: "view", p_dish: null, p_visitor: visitor.current, p_lang: lang }).then(() => {}, () => {});
+      try { localStorage.setItem(lastKey, String(Date.now())); } catch { /* storage unavailable */ }
+    }
+    const ping = () => { if (!document.hidden) sb.rpc("menu_ping", { p_venue: venue.id, p_visitor: visitor.current }).then(() => {}, () => {}); };
+    ping();
+    const t = setInterval(ping, 25000);
+    document.addEventListener("visibilitychange", ping);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", ping); };
+  }, [counted, venue.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function openDish(d: Dish) {
+    if (counted && visitor.current && !seenDishes.current.has(d.id)) {
+      seenDishes.current.add(d.id);
+      supabaseBrowser().rpc("log_menu_event", { p_venue: venue.id, p_kind: "dish", p_dish: d.id, p_visitor: visitor.current, p_lang: lang }).then(() => {}, () => {});
+    }
     track("ViewContent", { name: d.name, value: dishPrice(d)?.amount, currency: currencyCode });
     const first = (d.options ?? []).find((o) => (o.price ?? d.price) !== null);
     setVariant(first?.name ?? null);

@@ -85,8 +85,7 @@ body { margin: 0; background: radial-gradient(1200px 600px at 0% 0%, #e7ece6 0%,
 .lp-chips button:disabled { opacity: .4; cursor: default; }
 @media (max-width: 900px) { .lp-qr { display: none; } .lp-stage { order: 2; } .lp-lang-btn span { display: none; } .lp-lang-btn { padding: 9px; } }
 @media (max-width: 900px) { .lp-qr-card { display: grid; top: -62px; inset-inline-start: -2px; padding: 7px 9px; gap: 2px; } .lp-qr-card img { width: 40px; height: 40px; } .lp-qr-card small { font-size: 8px; } .lp-qr-card::after { left: 8px; right: 8px; top: 8px; } .lp-logo img { height: 38px; } }
-/* Mobile result: the menu itself comes right after the headline, so it's on screen at once;
-   the language chips scroll sideways in one row. */
+/* Mobile result: the menu itself, full width, right after the headline; no translate box. */
 @media (max-width: 900px) {
   .lp-result { display: flex; flex-direction: column; gap: 0; padding-top: 0; }
   .lp-copy { display: contents; }
@@ -94,12 +93,11 @@ body { margin: 0; background: radial-gradient(1200px 600px at 0% 0%, #e7ece6 0%,
   .lp-result h1 { font-size: 30px; }
   .lp-result .lp-sub { display: none; }
   .lp-result .lp-stage { order: 2; padding: 14px 0 6px; }
-  .lp-result .lp-phone { height: min(560px, 68vh); }
+  .lp-result .lp-stage { width: 100%; }
+  .lp-result .lp-phone { width: 100%; height: min(680px, 78vh); padding: 8px; border-radius: 38px; }
+  .lp-result .lp-phone iframe { border-radius: 30px; }
+  .lp-result .lp-translate { display: none; }
   .lp-result .lp-translate, .lp-result .lp-field, .lp-result .lp-btn.big, .lp-result .lp-note, .lp-result .lp-again { order: 3; }
-  .lp-result .lp-translate { margin-top: 12px; width: 100%; padding-block: 10px; padding-inline: 12px 0; }
-  .lp-result .lp-translate-head { padding-inline-end: 12px; }
-  .lp-result .lp-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-inline-end: 12px; }
-  .lp-result .lp-chips::-webkit-scrollbar { display: none; }
   .lp-result .lp-field { margin: 18px 0 14px; width: 100%; }
   .lp-result .lp-btn.big { align-self: stretch; text-align: center; }
   .lp-result .lp-again { align-self: flex-start; }

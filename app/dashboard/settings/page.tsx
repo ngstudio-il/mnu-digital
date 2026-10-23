@@ -78,7 +78,7 @@ export default function Settings() {
         <h3>Ordering</h3>
         {sw("ordering_on", "Accept orders", "Guests can order from the menu")}
         {sw("dinein", "Dine-in", "Orders come in with a table number")}
-        {sw("takeaway", "Takeaway", "Guests can order to pick up")}
+        {sw("takeaway", "Pickup", "Guests can order and collect it themselves")}
         {sw("notes", "Order notes", "Let guests add a note to their order")}
       </div>
 

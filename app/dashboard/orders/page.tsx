@@ -76,7 +76,7 @@ export default function Orders() {
     <>
       <div className="orders-bar">
         <div className="seg" role="group" aria-label="Filter orders">
-          {([["all", "All"], ["dinein", "Dine-in"], ["takeaway", "Takeaway"]] as const).map(([k, l]) => (
+          {([["all", "All"], ["dinein", "Dine-in"], ["takeaway", "Pickup"]] as const).map(([k, l]) => (
             <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>{l}</button>
           ))}
         </div>
@@ -94,7 +94,7 @@ export default function Orders() {
               {orders === null ? <p className="col-empty">Loading…</p> : items.length ? items.map((o) => (
                 <Ticket id={o.id} key={o.id}>
                   <div className="t-top"><b>#{o.number}</b><span>{ago(o.created_at)}</span></div>
-                  <div className="t-where"><span>{o.table_label || (o.type === "takeaway" ? "Takeaway" : "Dine-in")}</span>{o.customer_name && <span>{o.customer_name}</span>}</div>
+                  <div className="t-where"><span>{o.type === "takeaway" ? "Pickup" : o.table_label || "Dine-in"}</span>{o.customer_name && <span>{o.customer_name}</span>}</div>
                   <ul className="t-items">{o.order_items?.map((it) => <li key={it.id}><b>{it.qty}×</b>{it.name}</li>)}</ul>
                   {o.note && <p className="t-note">{o.note}</p>}
                   <div className="t-foot"><em>{money(o.total, venue.currency)}</em>

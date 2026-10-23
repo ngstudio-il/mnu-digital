@@ -46,7 +46,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
           {orders?.length ? orders.map((o) => (
             <div className="mini-order" key={o.number}>
               <span className="num">#{o.number}</span>
-              <div className="what"><b>{o.table_label || (o.type === "takeaway" ? "Takeaway" : "Dine-in")}</b><span>{ago(o.created_at)}</span></div>
+              <div className="what"><b>{o.type === "takeaway" ? "Pickup" : o.table_label || "Dine-in"}</b><span>{ago(o.created_at)}</span></div>
               <span className={`pill st-${o.status}`}>{STATUS_LABEL[o.status as OrderStatus]}</span>
               <em>{money(o.total, cur)}</em>
             </div>

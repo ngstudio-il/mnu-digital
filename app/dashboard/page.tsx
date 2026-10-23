@@ -59,7 +59,7 @@ export default function Overview() {
             {open.length ? open.slice(0, 5).map((o) => (
               <div className="mini-order" key={o.id}>
                 <span className="num">#{o.number}</span>
-                <div className="what"><b>{o.table_label || (o.type === "takeaway" ? "Takeaway" : "Dine-in")}</b><span>{o.order_items?.map((it) => `${it.qty}× ${it.name}`).join(", ")}</span></div>
+                <div className="what"><b>{o.type === "takeaway" ? "Pickup" : o.table_label || "Dine-in"}</b><span>{o.order_items?.map((it) => `${it.qty}× ${it.name}`).join(", ")}</span></div>
                 <span className={`pill st-${o.status}`}>{STATUS_LABEL[o.status]}</span>
                 <em>{money(o.total, venue.currency)}</em>
               </div>

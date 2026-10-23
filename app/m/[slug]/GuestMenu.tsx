@@ -58,8 +58,9 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
   const [cart, setCart] = useState<Record<string, number>>({});
   const [open, setOpen] = useState<Dish | null>(null);
   const [checkout, setCheckout] = useState(false);
-  const [type, setType] = useState<"dinein" | "takeaway">(table && venue.dinein ? "dinein" : venue.takeaway ? "takeaway" : "dinein");
-  const [tableNo, setTableNo] = useState(table ?? "");
+  // The table only comes from the QR code on it. Without one, pickup is the natural choice.
+  const [type, setType] = useState<"dinein" | "takeaway">(venue.dinein && (table || !venue.takeaway) ? "dinein" : "takeaway");
+  const [noteOpen, setNoteOpen] = useState(false);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [err, setErr] = useState("");
@@ -153,10 +154,10 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
 
   async function place() {
     setErr("");
-    if (type === "dinein" && !tableNo.trim()) return setErr(t("errTable"));
+    if (type === "dinein" && !table) return setErr(t("scanTable"));
     if (type === "takeaway" && !name.trim()) return setErr(t("errName"));
     setBusy(true);
-    const label = type === "dinein" ? (table ?? (/^\d+$/.test(tableNo.trim()) ? `Table ${tableNo.trim()}` : tableNo.trim())) : "Takeaway";
+    const label = type === "dinein" ? table! : "Pickup";
     const args = {
       p_slug: venue.slug, p_table: label, p_type: type, p_name: name.trim() || null, p_note: note.trim() || null,
       p_items: lines.map((l) => ({ dish_id: l.dish.id, qty: l.q })),
@@ -173,7 +174,7 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
       number = v1.data as number;
     } else { setBusy(false); return setErr(v2.error.message.replace(/^.*?: /, "")); }
     setBusy(false);
-    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Takeaway · ${name.trim()}`, items: lines.map((l) => ({ name: l.dish.name, qty: l.q, price: Number(l.dish.price) })) };
+    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Pickup · ${name.trim()}`, items: lines.map((l) => ({ name: l.dish.name, qty: l.q, price: Number(l.dish.price) })) };
     const next = [saved, ...mine].slice(0, 20);
     setMine(next);
     try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* storage unavailable */ }
@@ -253,11 +254,13 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
               {type === "dinein"
                 ? (table
                   ? <div className="g-fixed"><span>{t("yourTable")}</span><b>{tableText(table)}</b></div>
-                  : <label className="g-field">{t("tableNumber")}<input value={tableNo.replace(/^Table /, "")} onChange={(e) => setTableNo(e.target.value)} inputMode="numeric" placeholder={t("tableExample")} /></label>)
+                  : <p className="g-hint">{t("scanTable")}</p>)
                 : <label className="g-field">{t("nameForOrder")}<input value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>}
-              {venue.notes && <label className="g-field">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} /></label>}
+              {venue.notes && (noteOpen || note
+                ? <label className="g-field g-note">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} autoFocus={!note} /></label>
+                : <button type="button" className="g-note-add" onClick={() => setNoteOpen(true)}>+ {t("addNote")}</button>)}
               {err && <p className="g-err">{err}</p>}
-              <button className="g-cta" type="button" disabled={busy || !lines.length} onClick={place}>{busy ? t("sending") : `${t("placeOrder")} · ${money(total, venue.currency)}`}</button>
+              <button className="g-cta" type="button" disabled={busy || !lines.length || (type === "dinein" && !table)} onClick={place}>{busy ? t("sending") : `${t("placeOrder")} · ${money(total, venue.currency)}`}</button>
             </div>
         </Sheet>
       )}
@@ -280,7 +283,7 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
                 return (
                   <div className="g-order" key={`${o.number}-${o.at}`}>
                     <div className="g-order-top"><b>{t("orderN", { n: o.number })}</b>{st ? <span className={`g-pill ${st[1]}`}>{st[0]}</span> : <span className="g-pill st-new">{o.token ? t("checking") : t("sent")}</span>}</div>
-                    <small>{tableText(o.label).replace(/^Takeaway/, t("takeaway"))} · {new Date(o.at).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}</small>
+                    <small>{tableText(o.label).replace(/^(Takeaway|Pickup)/, t("takeaway"))} · {new Date(o.at).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}</small>
                     <ul>{items.map((it, i) => <li key={i}><span>{it.qty}× {it.name}</span><em>{money(it.qty * Number(it.price), venue.currency)}</em></li>)}</ul>
                     <div className="g-order-total"><span>{t("total")}</span><b>{money(l?.total ?? o.total, venue.currency)}</b></div>
                   </div>

@@ -17,3 +17,5 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 16px/1.7
 .legal-foot a { color: var(--dim); text-decoration: none; }
 .legal-foot a:hover { color: var(--paper); }
 @media (max-width: 640px) { .legal-main { margin: 20px 16px 0; width: auto; padding: 30px 22px 36px; border-radius: 22px; } .legal-head, .legal-foot { padding-inline: 16px; } }
+.legal-main ul { margin: 0 0 14px; padding-inline-start: 22px; }
+.legal-main li { margin: 4px 0; }

@@ -40,5 +40,6 @@ export async function POST(request: Request) {
       <p style="margin:20px 0 0"><a href="${link}" style="background:#363d41;color:#fff;text-decoration:none;padding:11px 20px;border-radius:99px;display:inline-block">Reply in admin</a></p>
     </div>`,
   });
-  return NextResponse.json({ ok: result.ok });
+  if (!result.ok) console.error("support email failed", result);
+  return NextResponse.json({ ok: result.ok, ...(result.ok ? {} : { reason: result.reason }) });
 }

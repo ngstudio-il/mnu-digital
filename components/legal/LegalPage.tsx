@@ -1,7 +1,7 @@
 import "@/styles/legal.css";
 import Link from "next/link";
 
-export type LegalSection = { title?: string; body: (string | React.ReactNode)[] };
+export type LegalSection = { title?: string; body: (string | React.ReactNode | { list: string[] })[] };
 
 // A plain, readable page for legal texts (privacy, accessibility).
 export default function LegalPage({ title, updated, intro, sections }: { title: string; updated: string; intro: React.ReactNode[]; sections: LegalSection[] }) {
@@ -18,13 +18,13 @@ export default function LegalPage({ title, updated, intro, sections }: { title: 
         {sections.map((s, i) => (
           <section key={i}>
             {s.title && <h2>{s.title}</h2>}
-            {s.body.map((p, j) => <p key={j}>{p}</p>)}
+            {s.body.map((p, j) => (p && typeof p === "object" && "list" in p ? <ul key={j}>{p.list.map((li, k) => <li key={k}>{li}</li>)}</ul> : <p key={j}>{p as React.ReactNode}</p>))}
           </section>
         ))}
       </main>
       <footer className="legal-foot">
         <span>© 2026 MNU Digital LLC</span>
-        <nav><Link href="/privacy">Privacy Policy</Link><Link href="/accessibility">Accessibility</Link><Link href="/">mnu.digital</Link></nav>
+        <nav><Link href="/terms">Terms of Service</Link><Link href="/privacy">Privacy Policy</Link><Link href="/accessibility">Accessibility</Link><Link href="/">mnu.digital</Link></nav>
       </footer>
     </div>
   );

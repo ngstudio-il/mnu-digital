@@ -104,7 +104,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           <p className="switch-mode">
             {mode === "signup" ? <>Already have an account? <Link href="/login">Log in</Link></> : <>New to mnu.digital? <Link href="/signup">Create an account</Link></>}
           </p>
-          {mode === "signup" && <p className="legal">By signing up you agree to the Terms and Privacy Policy.</p>}
+          {mode === "signup" && <p className="legal">By signing up you agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</p>}
         </div>
       </section>
 

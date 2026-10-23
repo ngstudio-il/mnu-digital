@@ -278,7 +278,7 @@ export const LANDING_HTML = String.raw`<header>
     </div>
     <div><b>Product</b><a href="#live">Live demo</a><a href="#features">Features</a><a href="#pricing">Pricing</a></div>
     <div><b>Company</b><a href="#how">How it works</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></div>
-    <div><b>Legal</b><a href="/privacy">Privacy Policy</a><a href="/accessibility">Accessibility</a></div>
+    <div><b>Legal</b><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/accessibility">Accessibility</a></div>
   </div>
   <div class="wrap foot-base"><span>© 2026 mnu.digital. All rights reserved.</span><a class="to-top" href="#top">Scroll to top <i>↑</i></a></div>
 </footer>`;

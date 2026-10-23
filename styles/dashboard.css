@@ -450,6 +450,7 @@
   .top-btn { width: 38px; height: 38px; padding: 0; justify-content: center; }
   .top-btn span { display: none; }
   .top-btn svg { width: 18px; height: 18px; }
+  .top-ext { display: none; }
 }
 
 /* Full-screen guest menu preview */

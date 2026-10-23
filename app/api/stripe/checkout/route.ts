@@ -21,6 +21,11 @@ export async function POST(request: Request) {
   }
 
   let customerId = existing?.stripe_customer_id ?? null;
+  // A customer saved while Stripe was in test mode doesn't exist in live mode (and the reverse): start fresh.
+  if (customerId) {
+    const c = await s.customers.retrieve(customerId).catch(() => null);
+    if (!c || ("deleted" in c && c.deleted)) customerId = null;
+  }
   if (!customerId) {
     const customer = await s.customers.create({ email: user.email, name: venue.name, metadata: { venue_id: venue.id, user_id: user.id } });
     customerId = customer.id;
@@ -28,7 +33,7 @@ export async function POST(request: Request) {
   }
 
   // A venue that already used its trial (e.g. cancelled and came back) pays from day one.
-  const hadTrial = existing && existing.status !== "none";
+  const hadTrial = existing && existing.status !== "none" && !!existing.stripe_customer_id && customerId === existing.stripe_customer_id;
   const session = await s.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,

@@ -58,8 +58,8 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
   const [cart, setCart] = useState<Record<string, number>>({});
   const [open, setOpen] = useState<Dish | null>(null);
   const [checkout, setCheckout] = useState(false);
-  // The table only comes from the QR code on it. Without one, pickup is the natural choice.
-  const [type, setType] = useState<"dinein" | "takeaway">(venue.dinein && (table || !venue.takeaway) ? "dinein" : "takeaway");
+  // At the table comes first. The table number itself only comes from the QR code on it.
+  const [type, setType] = useState<"dinein" | "takeaway">(venue.dinein ? "dinein" : "takeaway");
   const [noteOpen, setNoteOpen] = useState(false);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
@@ -158,7 +158,7 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
     if (type === "dinein" && !table) return setErr(t("scanTable"));
     if (type === "takeaway" && !name.trim()) return setErr(t("errName"));
     setBusy(true);
-    const label = type === "dinein" ? table! : "Pickup";
+    const label = type === "dinein" ? table! : "Takeaway";
     const args = {
       p_slug: venue.slug, p_table: label, p_type: type, p_name: name.trim() || null, p_note: note.trim() || null,
       p_items: lines.map((l) => ({ dish_id: l.dish.id, qty: l.q })),
@@ -175,7 +175,7 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
       number = v1.data as number;
     } else { setBusy(false); return setErr(v2.error.message.replace(/^.*?: /, "")); }
     setBusy(false);
-    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Pickup · ${name.trim()}`, items: lines.map((l) => ({ name: l.dish.name, qty: l.q, price: Number(l.dish.price) })) };
+    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Takeaway · ${name.trim()}`, items: lines.map((l) => ({ name: l.dish.name, qty: l.q, price: Number(l.dish.price) })) };
     const next = [saved, ...mine].slice(0, 20);
     setMine(next);
     try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* storage unavailable */ }

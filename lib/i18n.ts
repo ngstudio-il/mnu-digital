@@ -1,6 +1,6 @@
 // Words on the guest menu. English and Hebrew are written by hand; every other
 // language is translated once by AI and cached in the ui_translations table.
-export const UI_VERSION = 2;
+export const UI_VERSION = 3;
 
 export const UI_EN = {
   type_Restaurant: "Restaurant",
@@ -27,8 +27,8 @@ export const UI_EN = {
   close: "Close",
   yourOrder: "Your order",
   atTable: "At the table",
-  takeaway: "Pickup",
-  scanTable: "To order to your table, scan the QR code on it. Or choose pickup.",
+  takeaway: "Takeaway",
+  scanTable: "To order to your table, scan the QR code on it. Or choose takeaway.",
   addNote: "Add a note for the kitchen",
   yourTable: "Your table",
   tableNumber: "Table number",
@@ -86,8 +86,8 @@ export const UI_HE: UiStrings = {
   close: "סגירה",
   yourOrder: "ההזמנה שלך",
   atTable: "בשולחן",
-  takeaway: "איסוף עצמי",
-  scanTable: "כדי להזמין לשולחן, יש לסרוק את הקוד שעליו. אפשר גם לבחור איסוף עצמי.",
+  takeaway: "טייק אוויי",
+  scanTable: "כדי להזמין לשולחן, יש לסרוק את הקוד שעליו. אפשר גם לבחור טייק אוויי.",
   addNote: "הוספת הערה למטבח",
   yourTable: "השולחן שלך",
   tableNumber: "מספר שולחן",

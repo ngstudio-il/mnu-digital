@@ -84,6 +84,7 @@ export function look(v: Look) {
     css: `:root{${Object.entries(vars).map(([k, val]) => `${k}:${val}`).join(";")}}`,
     className: `th-${t.id} cards-${t.cards}${t.center ? " head-center" : ""}`,
     fonts: fontHref([chosen.id, body.id].filter((i) => !["outfit", "heebo"].includes(i))),
+    brand, onBrand,
     dark: luminance(p.ink.startsWith("#") ? p.ink : "#ffffff") < 0.18,
   };
 }

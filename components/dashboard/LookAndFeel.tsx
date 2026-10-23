@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "./VenueContext";
 import { BRANDS, photoUrl } from "@/lib/format";
-import { FONTS, THEMES, font, fontHref, isHex, theme } from "@/lib/themes";
+import { FONTS, THEMES, font, fontHref, isHex, look, theme } from "@/lib/themes";
+import HeaderEditor from "./HeaderEditor";
 import { shrink } from "@/lib/shrink";
-import type { Venue } from "@/lib/types";
+import type { LogoLayout, Venue } from "@/lib/types";
 
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
@@ -17,13 +18,16 @@ export default function LookAndFeel() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const t = theme(venue.theme);
   const f = font(venue.font) ?? font(t.font)!;
+  const design = look({ ...venue, brand });
+  const [layout, setLayout] = useState<LogoLayout>(venue.logo_layout ?? { x: null, y: null, size: 64 });
+  useEffect(() => { setLayout(venue.logo_layout ?? { x: null, y: null, size: 64 }); }, [venue.logo_layout]);
 
   useEffect(() => { setBrand(venue.brand); setBg(venue.bg_color ?? ""); }, [venue.brand, venue.bg_color]);
 
   async function patch(p: Partial<Venue>, msg?: string) {
     const { data, error } = await supabaseBrowser().from("venues").update(p).eq("id", venue.id).select().single();
     if (error || !data) {
-      toast(/cover_path|theme|font|bg_color/.test(error?.message ?? "") ? "Design options need a database update first (0011_menu_design.sql)." : "Couldn’t save. Check your connection.");
+      toast(/cover_path|theme|font|bg_color|logo_layout/.test(error?.message ?? "") ? "Design options need a database update first (run the latest SQL files in Supabase)." : "Couldn’t save. Check your connection.");
       return false;
     }
     setVenue(data);
@@ -63,27 +67,32 @@ export default function LookAndFeel() {
       {previewFonts && <link rel="stylesheet" href={previewFonts} precedence="default" />}
       <h3>Look &amp; feel</h3>
 
-      <div><p className="fieldset-label">Cover photo</p>
-        <div className="cover-box" style={{ background: cover ? `linear-gradient(180deg, transparent 40%, rgba(0,0,0,.55)), url("${cover}") center / cover` : venue.brand }}>
-          {logo && <img src={logo} alt="" />}<b style={{ fontFamily: `"${f.family}"` }}>{venue.name}</b>
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
-          {picker("cover", cover ? "Replace photo" : "Upload cover photo")}
-          {cover && <button className="btn ghost sm" type="button" onClick={() => patch({ cover_path: null }, "Cover photo removed")}>Remove</button>}
-          <span className="note">A wide photo of your place or a signature dish, shown at the top of your menu.</span>
-        </div>
-      </div>
-
-      <div><p className="fieldset-label">Logo</p>
-        <div className="logo-row">
-          <div className="logo-box" style={{ background: venue.brand }}>{logo ? <img src={logo} alt={`${venue.name} logo`} /> : <span>{venue.name.charAt(0)}</span>}</div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {picker("logo", venue.logo_path ? "Replace logo" : "Upload logo")}
-              {venue.logo_path && <button className="btn ghost sm" type="button" onClick={() => patch({ logo_path: null }, "Logo removed")}>Remove</button>}
-            </div>
-            <span className="note">A square PNG with a transparent background looks best.</span>
+      <div><p className="fieldset-label">Menu header</p>
+        <HeaderEditor
+          name={venue.name} typeLabel={venue.type} brand={design.brand} onBrand={design.onBrand} cover={cover} logo={logo}
+          fontFamily={`"${f.family}", "Heebo", sans-serif`} center={!!t.center} layout={layout}
+          onChange={(l) => patch({ logo_layout: l }, "Logo position saved")}
+        />
+        <p className="note" style={{ marginTop: 8 }}>{logo ? "Drag the logo to place it anywhere on the header. It sits in the same spot on every phone." : "Upload a logo to place it on the header."}</p>
+        <div className="hdr-tools">
+          <div>
+            <b>Cover photo</b>
+            <div>{picker("cover", cover ? "Replace" : "Upload")}{cover && <button className="btn ghost sm" type="button" onClick={() => patch({ cover_path: null }, "Cover photo removed")}>Remove</button>}</div>
+            <span className="note">A wide photo of your place or a signature dish.</span>
           </div>
+          <div>
+            <b>Logo</b>
+            <div>{picker("logo", logo ? "Replace" : "Upload")}{logo && <button className="btn ghost sm" type="button" onClick={() => patch({ logo_path: null }, "Logo removed")}>Remove</button>}</div>
+            <span className="note">A PNG with a transparent background looks best.</span>
+          </div>
+          {logo && (
+            <div>
+              <b>Logo size</b>
+              <input type="range" min={40} max={160} step={2} value={layout.size} aria-label="Logo size"
+                onChange={(e) => { const l = { ...layout, size: Number(e.target.value) }; setLayout(l); saveSoon({ logo_layout: l }, "Logo size saved"); }} />
+              {layout.x !== null && <button className="btn ghost sm" type="button" onClick={() => { const l = { ...layout, x: null, y: null }; setLayout(l); patch({ logo_layout: l }, "Logo back in its usual spot"); }}>Reset position</button>}
+            </div>
+          )}
         </div>
       </div>
 

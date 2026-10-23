@@ -415,3 +415,22 @@
 .color-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
 .hex { width: 96px; font: 13px ui-monospace, Menlo, monospace; padding: 9px 10px; border-radius: 10px; border: 1px solid rgba(31,40,41,.14); }
 @media (max-width: 700px) { .colors { grid-template-columns: 1fr; } }
+
+/* Menu header editor: a scaled copy of the guest header */
+.hdr-edit { position: relative; width: 100%; max-width: 440px; aspect-ratio: 390 / 260; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: calc(20px * var(--s)); touch-action: none; user-select: none; }
+.hdr-edit.center { align-items: center; text-align: center; }
+.hdr-edit small { font-size: calc(11px * var(--s)); letter-spacing: .26em; opacity: .75; }
+.hdr-edit b { font-size: calc(30px * var(--s)); font-weight: 700; line-height: 1.2; text-shadow: 0 2px 12px rgba(0,0,0,.25); }
+.hdr-pills { position: absolute; top: calc(20px * var(--s)); right: calc(20px * var(--s)); display: flex; gap: calc(8px * var(--s)); opacity: .55; pointer-events: none; }
+.hdr-pills span { font-size: calc(13px * var(--s)); padding: calc(6px * var(--s)) calc(12px * var(--s)); border-radius: 99px; border: 1px solid currentColor; }
+.hdr-logo { display: block; object-fit: contain; border-radius: calc(16px * var(--s)); background: rgba(255,255,255,.12); padding: calc(6px * var(--s)); margin-bottom: calc(12px * var(--s)); cursor: grab; outline: 2px dashed rgba(255,255,255,.7); outline-offset: 2px; }
+.hdr-logo.on-cover { background: rgba(255,255,255,.9); }
+.hdr-logo.free { position: absolute; margin: 0; z-index: 1; }
+.hdr-logo:active { cursor: grabbing; }
+.hdr-logo:focus-visible { outline: 2px solid #fff; }
+.hdr-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.hdr-tools > div { display: grid; gap: 6px; align-content: start; }
+.hdr-tools > div > div { display: flex; gap: 6px; flex-wrap: wrap; }
+.hdr-tools b { font-size: 13px; font-weight: 500; color: var(--paper); }
+.hdr-tools input[type="range"] { width: 100%; accent-color: var(--paper); }
+@media (max-width: 700px) { .hdr-tools { grid-template-columns: 1fr; } }

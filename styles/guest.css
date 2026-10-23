@@ -116,3 +116,8 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-head.has-cover h1 { text-shadow: 0 2px 14px rgba(0,0,0,.35); font-size: calc(32px * var(--hscale, 1)); }
 .g-head.has-cover .g-logo { background: rgba(255,255,255,.9); }
 .head-center .g-head.has-cover { align-items: center; }
+
+/* Logo placed freely by the owner */
+.g-head.free-logo { min-height: 260px; display: flex; flex-direction: column; justify-content: flex-end; }
+.g-logo.free { position: absolute; margin: 0; z-index: 1; }
+.g-top { z-index: 2; }

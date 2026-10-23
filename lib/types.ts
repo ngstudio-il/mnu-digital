@@ -16,6 +16,7 @@ export type Venue = {
   plan: string;
   logo_path?: string | null;
   cover_path?: string | null;
+  logo_layout?: LogoLayout | null;
   theme?: string;
   font?: string | null;
   bg_color?: string | null;
@@ -62,3 +63,6 @@ export type Subscription = {
   current_period_end: string | null;
   cancel_at_period_end: boolean;
 };
+
+// Logo position on the menu header: x and y in percent of the header, size in px.
+export type LogoLayout = { x: number | null; y: number | null; size: number };

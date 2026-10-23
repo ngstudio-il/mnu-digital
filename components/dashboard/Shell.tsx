@@ -116,9 +116,6 @@ export default function Shell({ initialVenue, support = false, subscription, use
               <button className="top-btn" type="button" onClick={() => setPreview(true)} aria-label="Preview your menu">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Preview</span>
               </button>
-              <a className="top-btn top-ext" href={`/m/${venue.slug}`} target="_blank" rel="noreferrer" aria-label="Open your menu in a new tab">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span>View menu</span>
-              </a>
               <button className="btn ghost sm" type="button" onClick={logout}>Log out</button>
             </div>
           </header>

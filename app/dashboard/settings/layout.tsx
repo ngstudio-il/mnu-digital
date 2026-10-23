@@ -1,20 +1,24 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const TABS = [
-  { href: "/dashboard/settings", label: "General" },
-  { href: "/dashboard/settings/design", label: "Design" },
-  { href: "/dashboard/settings/languages", label: "Languages" },
-];
+import { SETTINGS_SECTIONS } from "./sections";
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const section = SETTINGS_SECTIONS.find((s) => s.href === path);
+  if (!section) return <>{children}</>;
   return (
     <>
-      <nav className="sub-tabs" aria-label="Settings">
-        {TABS.map((t) => <Link key={t.href} href={t.href} aria-current={path === t.href ? "page" : undefined}>{t.label}</Link>)}
-      </nav>
+      <div className="sub-head">
+        <Link href="/dashboard/settings" className="sub-back">← All settings</Link>
+        <nav className="sub-tabs" aria-label="Settings">
+          {SETTINGS_SECTIONS.map((s) => (
+            <Link key={s.href} href={s.href} aria-current={path === s.href ? "page" : undefined}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">{s.icon}</svg>{s.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
       {children}
     </>
   );

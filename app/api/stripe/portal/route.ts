@@ -12,6 +12,6 @@ export async function POST(request: Request) {
   const { data: venue } = await supabase.from("venues").select("id").eq("owner_id", user.id).order("created_at").limit(1).maybeSingle();
   const { data: sub } = venue ? await supabase.from("subscriptions").select("stripe_customer_id").eq("venue_id", venue.id).maybeSingle() : { data: null };
   if (!sub?.stripe_customer_id) return NextResponse.json({ error: "No billing account yet." }, { status: 400 });
-  const portal = await stripe().billingPortal.sessions.create({ customer: sub.stripe_customer_id, return_url: `${origin}/dashboard/settings` });
+  const portal = await stripe().billingPortal.sessions.create({ customer: sub.stripe_customer_id, return_url: `${origin}/dashboard/settings/general` });
   return NextResponse.json({ url: portal.url });
 }

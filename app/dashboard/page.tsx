@@ -32,9 +32,9 @@ export default function Overview() {
   const steps = [
     { done: dishes.length > 0, label: "Add your dishes", href: "/dashboard/menu" },
     { done: dishes.some((d) => d.image_path), label: "Add dish photos", href: "/dashboard/menu" },
-    { done: venue.brand !== "#1f2829", label: "Pick your brand colour", href: "/dashboard/settings" },
+    { done: venue.brand !== "#1f2829", label: "Pick your brand colour", href: "/dashboard/settings/design" },
     { done: false, label: "Print your QR codes", href: "/dashboard/qr" },
-    { done: venue.ordering_on, label: "Turn on ordering", href: "/dashboard/settings" },
+    { done: venue.ordering_on, label: "Turn on ordering", href: "/dashboard/settings/general" },
   ];
   const link = typeof window !== "undefined" ? `${window.location.origin}/m/${venue.slug}` : `/m/${venue.slug}`;
   const firstName = (user.name || user.email).split(/[ @]/)[0];

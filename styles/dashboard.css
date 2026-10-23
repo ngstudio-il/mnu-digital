@@ -216,7 +216,7 @@
 
 /* Settings */
 .set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-.set-grid .card { display: grid; gap: 14px; }
+.set-grid .card, .design-grid .card { display: grid; gap: 14px; }
 .set-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
 .set-row:first-of-type { border-top: 0; }
 .set-row b { color: var(--paper); font-weight: 500; display: block; }
@@ -462,4 +462,25 @@
   .menu-preview { background: rgba(20,26,27,.55); align-items: center; justify-content: center; padding: 24px; }
   .menu-preview-bar { width: 430px; border-radius: 22px 22px 0 0; padding: 12px 14px; }
   .menu-preview iframe { flex: 0 1 860px; width: 430px; max-height: calc(100vh - 110px); border-radius: 0 0 22px 22px; }
+}
+
+/* Settings sub-pages */
+.sub-tabs { display: flex; gap: 4px; padding: 4px; margin-bottom: 18px; background: #fff; border: 1px solid var(--line); border-radius: 14px; width: fit-content; max-width: 100%; overflow-x: auto; }
+.sub-tabs a { padding: 8px 16px; border-radius: 10px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 14px; white-space: nowrap; }
+.sub-tabs a:hover { background: var(--ink); }
+.sub-tabs a[aria-current="page"] { background: var(--paper); color: #fff; }
+
+/* Design page with a live guest view */
+.design-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
+.guest-view { position: sticky; top: 90px; display: grid; gap: 10px; justify-items: center; }
+.guest-view-head { width: 100%; max-width: 360px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.guest-view-head b { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+.guest-view-head a { color: var(--paper); font-weight: 500; text-decoration: none; }
+.guest-phone { width: 360px; height: min(740px, calc(100vh - 170px)); border-radius: 44px; padding: 10px; background: #1f2829; box-shadow: 0 24px 60px rgba(31,40,41,.22); }
+.guest-phone iframe { width: 100%; height: 100%; border: 0; border-radius: 34px; background: #f7f6f2; display: block; }
+.guest-view .note { max-width: 340px; text-align: center; }
+@media (max-width: 1180px) {
+  .design-grid { grid-template-columns: 1fr; }
+  .guest-view { position: static; }
+  .guest-phone { width: min(360px, 100%); height: 640px; }
 }

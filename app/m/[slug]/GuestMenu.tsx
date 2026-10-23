@@ -25,7 +25,21 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
   cancelled: ["st_cancelled", "st-cancelled"],
 };
 
-export default function GuestMenu({ venue, categories, dishes, table: initialTable, i18n }: Props) {
+// Design fields the dashboard's live preview may change while the owner edits them.
+const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path"] as const;
+
+export default function GuestMenu({ venue: savedVenue, categories, dishes, table: initialTable, i18n }: Props) {
+  const [venue, setVenue] = useState(savedVenue);
+  useEffect(() => {
+    if (window.parent === window) return;
+    const on = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.data?.type !== "mnu:design") return;
+      const d = e.data.design as Partial<Venue>;
+      setVenue((v) => ({ ...v, ...Object.fromEntries(PREVIEW_FIELDS.filter((k) => k in d).map((k) => [k, d[k]])) }));
+    };
+    window.addEventListener("message", on);
+    return () => window.removeEventListener("message", on);
+  }, []);
   const [table, setTable] = useState(initialTable);
   const [scanning, setScanning] = useState(false);
   const [lang, setLang] = useState(i18n.primary);

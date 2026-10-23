@@ -11,7 +11,8 @@ import type { LogoLayout, Venue } from "@/lib/types";
 
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
-export default function LookAndFeel() {
+// `onPreview` receives the design as it is being edited (before it is saved), for a live preview.
+export default function LookAndFeel({ onPreview }: { onPreview?: (p: Partial<Venue>) => void } = {}) {
   const { venue, setVenue, toast } = useDash();
   const [busy, setBusy] = useState<"" | "logo" | "cover">("");
   const [brand, setBrand] = useState(venue.brand);
@@ -22,6 +23,9 @@ export default function LookAndFeel() {
   const design = look({ ...venue, brand });
   const [layout, setLayout] = useState<LogoLayout>(logoFit(venue.logo_layout));
   useEffect(() => { setLayout(logoFit(venue.logo_layout)); }, [venue.logo_layout]);
+  useEffect(() => {
+    onPreview?.({ brand: isHex(brand) ? brand : venue.brand, bg_color: isHex(bg) ? bg : null, logo_layout: layout, theme: venue.theme, font: venue.font, cover_path: venue.cover_path, logo_path: venue.logo_path });
+  }, [onPreview, brand, bg, layout, venue.brand, venue.theme, venue.font, venue.cover_path, venue.logo_path]);
 
   useEffect(() => { setBrand(venue.brand); setBg(venue.bg_color ?? ""); }, [venue.brand, venue.bg_color]);
 

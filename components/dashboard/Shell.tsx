@@ -69,7 +69,9 @@ export default function Shell({ initialVenue, support = false, subscription, use
     else toast(json.error ?? "Couldn’t open billing. Try again.");
   }
 
-  const title = NAV.find((n) => n.href === path)?.label ?? "Dashboard";
+  // Sub-pages (like Settings → Design) belong to their section.
+  const current = NAV.find((n) => n.href === path) ?? NAV.find((n) => n.href !== "/dashboard" && path.startsWith(n.href + "/"));
+  const title = current?.label ?? "Dashboard";
 
   async function logout() {
     await supabaseBrowser().auth.signOut();
@@ -84,7 +86,7 @@ export default function Shell({ initialVenue, support = false, subscription, use
           <a className="logo" href="/"><img src="/assets/mnu-logo.png" alt="mnu.digital" /></a>
           <nav className="nav" aria-label="Dashboard">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} aria-current={path === n.href ? "page" : undefined}>
+              <Link key={n.href} href={n.href} aria-current={current?.href === n.href ? "page" : undefined}>
                 <svg viewBox="0 0 24 24">{n.icon}</svg>{n.label}
                 {n.label === "Orders" && newOrders > 0 && <span className="badge">{newOrders}</span>}
               </Link>

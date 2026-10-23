@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
-import MenuLanguages from "@/components/dashboard/MenuLanguages";
-import LookAndFeel from "@/components/dashboard/LookAndFeel";
 import { planSummary, slugify } from "@/lib/format";
 import type { Venue } from "@/lib/types";
 
@@ -81,10 +79,6 @@ export default function Settings() {
         {sw("takeaway", "Takeaway", "Guests can order to take away")}
         {sw("notes", "Order notes", "Let guests add a note to their order")}
       </div>
-
-      <LookAndFeel />
-
-      <MenuLanguages />
 
       <div className="card">
         <h3>Plan &amp; account</h3>

@@ -27,7 +27,7 @@ const en = {
   again: "Try a different menu",
   tTitle: "Translate it with AI", tSub: "Pick up to 3 languages. Guests switch with the globe button on the menu.",
   translating: "Translating…",
-  errType: "Choose photos (JPG, PNG) or a PDF of your menu.", errPdf: "That PDF is over 4 MB. Try photos of the menu instead.", errPaste: "Paste your menu text first.", errGeneric: "Couldn’t read the menu. Try again.",
+  errType: "Choose photos (JPG, PNG) or a PDF of your menu.", errPdf: "That PDF is over 12 MB. Try photos of the menu instead.", errPaste: "Paste your menu text first.", errGeneric: "Couldn’t read the menu. Try again.",
   language: "Language",
 };
 export type LpStrings = typeof en;
@@ -52,7 +52,7 @@ export const LP_STRINGS: Record<LpLang, LpStrings> = {
     again: "לנסות תפריט אחר",
     tTitle: "תרגום עם AI", tSub: "בחרו עד 3 שפות. האורחים מחליפים שפה בכפתור הגלובוס שבתפריט.",
     translating: "מתרגם…",
-    errType: "בחרו תמונות (JPG, PNG) או PDF של התפריט.", errPdf: "קובץ ה-PDF גדול מ-4MB. נסו תמונות של התפריט.", errPaste: "הדביקו קודם את טקסט התפריט.", errGeneric: "לא הצלחנו לקרוא את התפריט. נסו שוב.",
+    errType: "בחרו תמונות (JPG, PNG) או PDF של התפריט.", errPdf: "קובץ ה-PDF גדול מ-12MB. נסו תמונות של התפריט.", errPaste: "הדביקו קודם את טקסט התפריט.", errGeneric: "לא הצלחנו לקרוא את התפריט. נסו שוב.",
     language: "שפה",
   },
   ar: {
@@ -73,7 +73,7 @@ export const LP_STRINGS: Record<LpLang, LpStrings> = {
     again: "جرّب قائمة أخرى",
     tTitle: "ترجمها بالذكاء الاصطناعي", tSub: "اختر حتى 3 لغات. يبدّل الضيوف اللغة بزر الكرة الأرضية في القائمة.",
     translating: "جارٍ الترجمة…",
-    errType: "اختر صورًا (JPG أو PNG) أو ملف PDF لقائمتك.", errPdf: "ملف PDF أكبر من 4 ميغابايت. جرّب صور القائمة بدلًا منه.", errPaste: "الصق نص القائمة أولًا.", errGeneric: "تعذّرت قراءة القائمة. حاول مرة أخرى.",
+    errType: "اختر صورًا (JPG أو PNG) أو ملف PDF لقائمتك.", errPdf: "ملف PDF أكبر من 12 ميغابايت. جرّب صور القائمة بدلًا منه.", errPaste: "الصق نص القائمة أولًا.", errGeneric: "تعذّرت قراءة القائمة. حاول مرة أخرى.",
     language: "اللغة",
   },
   es: {
@@ -94,7 +94,7 @@ export const LP_STRINGS: Record<LpLang, LpStrings> = {
     again: "Probar otra carta",
     tTitle: "Tradúcelo con IA", tSub: "Elige hasta 3 idiomas. Tus clientes cambian de idioma con el botón del globo.",
     translating: "Traduciendo…",
-    errType: "Elige fotos (JPG, PNG) o un PDF de tu carta.", errPdf: "Ese PDF supera los 4 MB. Prueba con fotos de la carta.", errPaste: "Primero pega el texto de tu carta.", errGeneric: "No pudimos leer la carta. Inténtalo de nuevo.",
+    errType: "Elige fotos (JPG, PNG) o un PDF de tu carta.", errPdf: "Ese PDF supera los 12 MB. Prueba con fotos de la carta.", errPaste: "Primero pega el texto de tu carta.", errGeneric: "No pudimos leer la carta. Inténtalo de nuevo.",
     language: "Idioma",
   },
   fr: {
@@ -115,7 +115,7 @@ export const LP_STRINGS: Record<LpLang, LpStrings> = {
     again: "Essayer une autre carte",
     tTitle: "Traduisez-le avec l’IA", tSub: "Choisissez jusqu’à 3 langues. Vos clients changent de langue avec le bouton globe.",
     translating: "Traduction…",
-    errType: "Choisissez des photos (JPG, PNG) ou un PDF de votre carte.", errPdf: "Ce PDF dépasse 4 Mo. Essayez plutôt des photos de la carte.", errPaste: "Collez d’abord le texte de votre carte.", errGeneric: "Impossible de lire la carte. Réessayez.",
+    errType: "Choisissez des photos (JPG, PNG) ou un PDF de votre carte.", errPdf: "Ce PDF dépasse 12 Mo. Essayez plutôt des photos de la carte.", errPaste: "Collez d’abord le texte de votre carte.", errGeneric: "Impossible de lire la carte. Réessayez.",
     language: "Langue",
   },
   ru: {
@@ -136,7 +136,7 @@ export const LP_STRINGS: Record<LpLang, LpStrings> = {
     again: "Попробовать другое меню",
     tTitle: "Перевод с помощью ИИ", tSub: "Выберите до 3 языков. Гости переключают язык кнопкой с глобусом.",
     translating: "Переводим…",
-    errType: "Выберите фото (JPG, PNG) или PDF вашего меню.", errPdf: "PDF больше 4 МБ. Попробуйте фото меню.", errPaste: "Сначала вставьте текст меню.", errGeneric: "Не удалось прочитать меню. Попробуйте ещё раз.",
+    errType: "Выберите фото (JPG, PNG) или PDF вашего меню.", errPdf: "PDF больше 12 МБ. Попробуйте фото меню.", errPaste: "Сначала вставьте текст меню.", errGeneric: "Не удалось прочитать меню. Попробуйте ещё раз.",
     language: "Язык",
   },
 };

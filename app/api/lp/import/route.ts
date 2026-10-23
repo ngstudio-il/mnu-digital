@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ImportError, buildMenuContent, readMenu } from "@/lib/ai/menu-import";
-import { LP_DAILY_LIMIT, ipHash } from "@/lib/lp";
+import { LP_DAILY_LIMIT, LP_PDF_MAX, ipHash } from "@/lib/lp";
 
 // Public: reads a visitor's menu on the try-it page and keeps it as a draft for after sign-up.
 // No account needed, so each visitor (by hashed IP) gets a few reads a day.
@@ -12,7 +12,10 @@ export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   const files = (form?.getAll("files") ?? []).filter((f): f is File => f instanceof File);
   const pasted = String(form?.get("text") ?? "").trim();
-  if (files.reduce((t, f) => t + f.size, 0) > 12 * 1024 * 1024) return NextResponse.json({ error: "Those files are too large. Try fewer or smaller photos." }, { status: 400 });
+  // A large PDF arrives as a path in storage, uploaded there directly by the browser.
+  const pdfPath = String(form?.get("pdf") ?? "");
+  if (pdfPath && !/^lp-src\/[0-9a-f-]{36}\.pdf$/.test(pdfPath)) return NextResponse.json({ error: "Unknown file." }, { status: 400 });
+  if (files.reduce((t, f) => t + f.size, 0) > LP_PDF_MAX) return NextResponse.json({ error: "Those files are too large. Try fewer or smaller photos." }, { status: 400 });
 
   const db = supabaseAdmin();
   const hash = ipHash(request);
@@ -22,6 +25,13 @@ export async function POST(request: Request) {
   if ((count ?? 0) >= LP_DAILY_LIMIT) return NextResponse.json({ error: "You’ve tried a few menus today. Sign up free to keep going.", limit: true }, { status: 429 });
 
   try {
+    if (pdfPath) {
+      const { data: blob, error: dlError } = await db.storage.from("dish-photos").download(pdfPath);
+      await db.storage.from("dish-photos").remove([pdfPath]);
+      if (dlError || !blob) return NextResponse.json({ error: "Couldn’t read the uploaded file. Try again." }, { status: 400 });
+      if (blob.size > LP_PDF_MAX) return NextResponse.json({ error: "That PDF is too large." }, { status: 400 });
+      files.push(new File([blob], "menu.pdf", { type: "application/pdf" }));
+    }
     const content = await buildMenuContent(files, pasted);
     const menu = await readMenu(content);
     const { data, error } = await db.from("lp_drafts").insert({ ip_hash: hash, currency: menu.currency, sections: menu.sections }).select("id").single();

@@ -2,6 +2,8 @@
 import "@/styles/lp.css";
 import { useEffect, useRef, useState } from "react";
 import { shrink } from "@/lib/shrink";
+import { LP_PDF_MAX } from "@/lib/lp-limits";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import QRCode from "qrcode";
 import { LP_LANGS, LP_STRINGS, MENU_LANGS, type LpLang } from "./strings";
 
@@ -9,6 +11,15 @@ type Step = "pick" | "reading" | "done";
 
 // The simplest possible start: drop or paste your menu, see it as a digital menu, then sign up
 // to edit it and get your QR code. The menu is kept and added to the account after sign-up.
+async function uploadPdf(file: File) {
+  const res = await fetch("/api/lp/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ size: file.size, type: file.type }) });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error ?? "");
+  const { error } = await supabaseBrowser().storage.from("dish-photos").uploadToSignedUrl(json.path, json.token, file, { contentType: "application/pdf" });
+  if (error) throw new Error("");
+  return json.path as string;
+}
+
 export default function TryIt() {
   const [ui, setUi] = useState<LpLang>("en");
   const [langOpen, setLangOpen] = useState(false);
@@ -56,8 +67,14 @@ export default function TryIt() {
       const ok = files.filter((f) => f.type.startsWith("image/") || f.type === "application/pdf");
       if (!ok.length) return setErr(t.errType);
       const pdf = ok.find((f) => f.type === "application/pdf");
-      if (pdf && pdf.size > 4 * 1024 * 1024) return setErr(t.errPdf);
-      for (const f of pdf ? [pdf] : ok.slice(0, 6)) fd.append("files", await shrink(f));
+      if (pdf && pdf.size > LP_PDF_MAX) return setErr(t.errPdf);
+      if (pdf && pdf.size > 3.5 * 1024 * 1024) {
+        // Too big to post to our server, so it goes straight to storage first.
+        setStep("reading");
+        const path = await uploadPdf(pdf).catch((e: Error) => { setStep("pick"); setErr(e.message || t.errGeneric); return null; });
+        if (!path) return;
+        fd.append("pdf", path);
+      } else for (const f of pdf ? [pdf] : ok.slice(0, 6)) fd.append("files", await shrink(f));
     } else {
       if (text.trim().length < 10) return setErr(t.errPaste);
       fd.append("text", text);

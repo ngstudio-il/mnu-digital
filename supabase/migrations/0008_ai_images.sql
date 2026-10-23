@@ -10,6 +10,7 @@ create table if not exists public.image_credits (
   updated_at timestamptz not null default now()
 );
 alter table public.image_credits enable row level security;
+drop policy if exists "venue reads image credits" on public.image_credits;
 create policy "venue reads image credits" on public.image_credits for select using (public.owns_venue(venue_id));
 
 create table if not exists public.image_purchases (
@@ -20,6 +21,7 @@ create table if not exists public.image_purchases (
   created_at timestamptz not null default now()
 );
 alter table public.image_purchases enable row level security;
+drop policy if exists "venue reads image purchases" on public.image_purchases;
 create policy "venue reads image purchases" on public.image_purchases for select using (public.owns_venue(venue_id));
 
 create or replace function public.venue_image_limit(p_venue uuid) returns int

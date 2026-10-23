@@ -1,6 +1,6 @@
 "use client";
 import "@/styles/guest.css";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Sheet from "./Sheet";
 import LogoMark from "@/components/LogoMark";
@@ -99,6 +99,48 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
     return g;
   }, [categories, dishes, lang, i18n, ui]);
 
+  // The category bar follows the scroll: the section in view is highlighted and kept visible in the bar.
+  const catsNav = useRef<HTMLElement>(null);
+  const [activeCat, setActiveCat] = useState<string | null>(null);
+  const jumping = useRef(false);
+  useEffect(() => {
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      if (jumping.current) return;
+      const line = (catsNav.current?.getBoundingClientRect().bottom ?? 0) + 24;
+      let current: string | null = groups[0]?.id ?? null;
+      for (const g of groups) {
+        const el = document.getElementById(`c-${g.id}`);
+        if (el && el.getBoundingClientRect().top <= line) current = g.id;
+      }
+      // At the very bottom the last section counts as current even if it is short.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = groups[groups.length - 1]?.id ?? current;
+      setActiveCat(current);
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(check); };
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (frame) cancelAnimationFrame(frame); };
+  }, [groups]);
+  useEffect(() => {
+    const nav = catsNav.current;
+    const chip = nav?.querySelector<HTMLElement>(`[data-cat="${activeCat}"]`);
+    if (!nav || !chip) return;
+    const n = nav.getBoundingClientRect(), c = chip.getBoundingClientRect();
+    nav.scrollBy({ left: c.left + c.width / 2 - (n.left + n.width / 2), behavior: "smooth" });
+  }, [activeCat]);
+  function jumpTo(id: string) {
+    const el = document.getElementById(`c-${id}`);
+    if (!el) return;
+    setActiveCat(id);
+    jumping.current = true;
+    const top = el.getBoundingClientRect().top + window.scrollY - (catsNav.current?.offsetHeight ?? 0) - 8;
+    window.scrollTo({ top, behavior: "smooth" });
+    setTimeout(() => { jumping.current = false; }, 700);
+  }
+
   const lines = Object.entries(cart).filter(([, q]) => q > 0).map(([id, q]) => ({ dish: dishes.find((d) => d.id === id)!, q })).filter((l) => l.dish);
   const count = lines.reduce((t, l) => t + l.q, 0);
   const total = lines.reduce((t, l) => t + l.q * Number(l.dish.price), 0);
@@ -153,7 +195,10 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
           )}
         </div>
       </header>
-      <nav className="g-cats" aria-label={t("menu")}>{groups.map((g) => <a key={g.id} href={`#c-${g.id}`}>{g.name}</a>)}</nav>
+      <nav className="g-cats" ref={catsNav} aria-label={t("menu")}>{groups.map((g) => (
+        <a key={g.id} href={`#c-${g.id}`} data-cat={g.id} className={activeCat === g.id ? "on" : undefined} aria-current={activeCat === g.id ? "true" : undefined}
+          onClick={(e) => { e.preventDefault(); jumpTo(g.id); }}>{g.name}</a>
+      ))}</nav>
 
       <main className="g-list">
         {groups.length === 0 && <p className="g-empty">{t("empty")}</p>}

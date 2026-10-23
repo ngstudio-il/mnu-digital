@@ -117,3 +117,9 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-head.has-cover h1 { text-shadow: 0 2px 14px rgba(0,0,0,.35); font-size: calc(32px * var(--hscale, 1)); }
 .g-head.has-cover .g-logo { background: rgba(255,255,255,.9); }
 .head-center .g-head.has-cover { align-items: center; }
+
+/* Category bar follows the scroll */
+.g-cats { scroll-behavior: smooth; scrollbar-width: none; }
+.g-cats::-webkit-scrollbar { display: none; }
+.g-cats a { transition: background .2s, color .2s, border-color .2s; }
+.g-cats a.on { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }

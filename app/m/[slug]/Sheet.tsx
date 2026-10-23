@@ -1,11 +1,27 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// The menu behind an open sheet stays put. iOS ignores overflow: hidden on the body,
+// so the page is pinned in place and put back where it was when the last sheet closes.
+let open = 0;
+let savedY = 0;
+function lockPage() {
+  if (open++ > 0) return;
+  savedY = window.scrollY;
+  Object.assign(document.body.style, { position: "fixed", top: `-${savedY}px`, left: "0", right: "0", overflow: "hidden" });
+}
+function unlockPage() {
+  if (--open > 0) return;
+  Object.assign(document.body.style, { position: "", top: "", left: "", right: "", overflow: "" });
+  window.scrollTo(0, savedY);
+}
 
 // Bottom sheet that closes on a tap outside or a swipe down.
 export default function Sheet({ onClose, label, className = "", closeLabel = "Close", children }: { onClose: () => void; label: string; className?: string; closeLabel?: string; children: React.ReactNode }) {
   const sheet = useRef<HTMLDivElement>(null);
   const start = useRef<number | null>(null);
   const [dy, setDy] = useState(0);
+  useEffect(() => { lockPage(); return unlockPage; }, []);
 
   function down(e: React.TouchEvent) {
     // Only start a swipe when the sheet is scrolled to the top, so normal scrolling still works.

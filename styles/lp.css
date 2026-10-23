@@ -2,6 +2,8 @@
 :root { --ink: #f2f1eb; --paper: #1f2829; --text: #4d5759; --dim: #7c8789; --line: rgba(31,40,41,.1); --sage: #6f9393; }
 body { margin: 0; background: radial-gradient(1200px 600px at 0% 0%, #e7ece6 0%, transparent 60%), var(--ink); color: var(--text); font: 400 16px/1.55 "Outfit", "Heebo", system-ui, sans-serif; min-height: 100vh; }
 * { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+.lp-sticky { display: none; }
 .lp { max-width: 1120px; margin: 0 auto; padding: 0 24px 48px; }
 .lp-head { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
 .lp-logo img { height: 44px; display: block; }
@@ -91,10 +93,16 @@ body { margin: 0; background: radial-gradient(1200px 600px at 0% 0%, #e7ece6 0%,
   .lp-copy { display: contents; }
   .lp-result .lp-pill { align-self: center; margin-bottom: 10px; }
   .lp-result h1 { font-size: 30px; }
-  .lp-result .lp-sub { display: none; }
+  .lp-result .lp-sub { order: 3; margin: 18px 0 0; font-size: 15px; text-align: center; align-self: center; }
   .lp-result .lp-stage { order: 2; padding: 14px 0 6px; }
-  .lp-result .lp-stage { width: calc(100% + 16px); margin-inline: -8px; }
-  .lp-result .lp-phone { width: 100%; height: min(780px, 86vh); }
+  .lp-result .lp-stage { width: 100%; }
+  /* Shorter than the screen, so the page itself can still be scrolled past the menu. */
+  .lp-result .lp-phone { width: 100%; height: min(660px, 68vh); }
+  .lp-result .lp-glow { max-width: 100%; }
+  .lp-result { padding-bottom: 96px; }
+  .lp-sticky { display: block; position: fixed; inset-inline: 0; bottom: 0; z-index: 20; padding: 18px 16px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--ink) 62%, rgba(242,241,235,0)); }
+  .lp-sticky .lp-btn { width: 100%; }
+  .lp-result .lp-copy > .lp-btn.big { display: none; }
   .lp-result .lp-translate { display: none; }
   .lp-result .lp-translate, .lp-result .lp-field, .lp-result .lp-btn.big, .lp-result .lp-note, .lp-result .lp-again { order: 3; }
   .lp-result .lp-field { margin: 18px 0 14px; width: 100%; }

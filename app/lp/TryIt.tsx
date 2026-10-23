@@ -201,6 +201,8 @@ export default function TryIt() {
             <div className="lp-phone"><iframe key={previewSrc} src={previewSrc} title="Your digital menu" /></div>
             <div className="lp-qr" aria-hidden="true">{qr && <img src={qr} alt="" />}<small>Scan me</small></div>
           </div>
+          {/* Mobile: the next step stays in reach while they scroll the menu. */}
+          <div className="lp-sticky"><a className="lp-btn big" href={startUrl(true)}>{t.cta}</a></div>
         </main>
       )}
     </div>

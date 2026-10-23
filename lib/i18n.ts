@@ -1,6 +1,6 @@
 // Words on the guest menu. English and Hebrew are written by hand; every other
 // language is translated once by AI and cached in the ui_translations table.
-export const UI_VERSION = 3;
+export const UI_VERSION = 4;
 
 export const UI_EN = {
   type_Restaurant: "Restaurant",
@@ -27,8 +27,12 @@ export const UI_EN = {
   close: "Close",
   yourOrder: "Your order",
   atTable: "At the table",
-  takeaway: "Takeaway",
-  scanTable: "To order to your table, scan the QR code on it. Or choose takeaway.",
+  takeaway: "Take Away",
+  scanTable: "To order to your table, scan the QR code on it.",
+  scanTableBtn: "Scan table QR code",
+  scanHelp: "Point the camera at the QR code on your table.",
+  cameraError: "Couldn’t open the camera. Allow camera access in your browser, or choose Take Away.",
+  scanWrong: "This QR code isn’t for this menu. Try the code on your table.",
   addNote: "Add a note for the kitchen",
   yourTable: "Your table",
   tableNumber: "Table number",
@@ -86,8 +90,12 @@ export const UI_HE: UiStrings = {
   close: "סגירה",
   yourOrder: "ההזמנה שלך",
   atTable: "בשולחן",
-  takeaway: "טייק אוויי",
-  scanTable: "כדי להזמין לשולחן, יש לסרוק את הקוד שעליו. אפשר גם לבחור טייק אוויי.",
+  takeaway: "Take Away",
+  scanTable: "כדי להזמין לשולחן, יש לסרוק את קוד ה-QR שעליו.",
+  scanTableBtn: "סריקת קוד השולחן",
+  scanHelp: "יש לכוון את המצלמה לקוד ה-QR שעל השולחן.",
+  cameraError: "לא הצלחנו לפתוח את המצלמה. יש לאשר גישה למצלמה בדפדפן, או לבחור Take Away.",
+  scanWrong: "הקוד הזה לא שייך לתפריט הזה. נסו את הקוד שעל השולחן.",
   addNote: "הוספת הערה למטבח",
   yourTable: "השולחן שלך",
   tableNumber: "מספר שולחן",

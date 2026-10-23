@@ -3,6 +3,7 @@ import "@/styles/guest.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Sheet from "./Sheet";
+import TableScanner from "./TableScanner";
 import LogoMark from "@/components/LogoMark";
 import { money, photoUrl } from "@/lib/format";
 import { fill, tkey, type ContentMap, type UiKey, type UiStrings } from "@/lib/i18n";
@@ -23,7 +24,9 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
   cancelled: ["st_cancelled", "st-cancelled"],
 };
 
-export default function GuestMenu({ venue, categories, dishes, table, i18n }: Props) {
+export default function GuestMenu({ venue, categories, dishes, table: initialTable, i18n }: Props) {
+  const [table, setTable] = useState(initialTable);
+  const [scanning, setScanning] = useState(false);
   const [lang, setLang] = useState(i18n.primary);
   const [pickLang, setPickLang] = useState(false);
   const langKey = `mnu.lang.${venue.slug}`;
@@ -51,6 +54,12 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
     document.documentElement.lang = lang;
     document.documentElement.dir = isRtl(lang) ? "rtl" : "ltr";
   }, [lang]);
+  const scanLabels = useMemo(() => ({ title: ui.scanTableBtn, help: ui.scanHelp, cameraError: ui.cameraError, wrong: ui.scanWrong, close: ui.close }), [ui]);
+  const onTableScanned = useCallback((n: string) => {
+    setTable(`Table ${n}`); setType("dinein"); setScanning(false); setErr("");
+    // Keep the table if the page is reloaded.
+    const u = new URL(window.location.href); u.searchParams.set("t", n); window.history.replaceState(null, "", u);
+  }, []);
   function chooseLang(l: string) {
     setLang(l); setPickLang(false);
     try { localStorage.setItem(langKey, l); } catch { /* storage unavailable */ }
@@ -250,12 +259,15 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
                 <li key={l.dish.id}><span>{dishName(l.dish)}</span><div className="g-qty"><button type="button" onClick={() => add(l.dish.id, -1)} aria-label={t("removeOne")}>−</button><span>{l.q}</span><button type="button" onClick={() => add(l.dish.id)} aria-label={t("addOne")}>+</button></div><em>{money(l.q * Number(l.dish.price), venue.currency)}</em></li>
               ))}</ul>
               {venue.dinein && venue.takeaway && (
-                <div className="g-seg"><button type="button" aria-pressed={type === "dinein"} onClick={() => setType("dinein")}>{t("atTable")}</button><button type="button" aria-pressed={type === "takeaway"} onClick={() => setType("takeaway")}>{t("takeaway")}</button></div>
+                <div className="g-seg">
+                  <button type="button" aria-pressed={type === "dinein"} onClick={() => setType("dinein")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M5 9v11M19 9v11M7 9l2-5h6l2 5M9 15h6" /></svg>{t("atTable")}</button>
+                  <button type="button" aria-pressed={type === "takeaway"} onClick={() => setType("takeaway")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z" /><path d="M9 11V6a3 3 0 0 1 6 0v5" /></svg>{t("takeaway")}</button>
+                </div>
               )}
               {type === "dinein"
                 ? (table
                   ? <div className="g-fixed"><span>{t("yourTable")}</span><b>{tableText(table)}</b></div>
-                  : <p className="g-hint">{t("scanTable")}</p>)
+                  : <div className="g-hint"><p>{t("scanTable")}</p><button type="button" className="g-scan-btn" onClick={() => setScanning(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10" /></svg>{t("scanTableBtn")}</button></div>)
                 : <label className="g-field">{t("nameForOrder")}<input value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>}
               {venue.notes && (noteOpen || note
                 ? <label className="g-field g-note">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} autoFocus={!note} /></label>
@@ -293,6 +305,9 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
               <button className="g-cta ghost" type="button" onClick={() => setShowMine(false)}>{t("backToMenu")}</button>
             </div>
         </Sheet>
+      )}
+      {scanning && (
+        <TableScanner slug={venue.slug} labels={scanLabels} onClose={() => setScanning(false)} onFound={onTableScanned} />
       )}
       {pickLang && (
         <Sheet closeLabel={t("close")} onClose={() => setPickLang(false)} label={t("language")}>

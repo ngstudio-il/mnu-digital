@@ -18,9 +18,9 @@ const NAV = [
   { href: "/dashboard/orders", label: "Orders", icon: <><path d="M6 3h12l1 18H5z"/><path d="M9 7a3 3 0 0 0 6 0"/></> },
   { href: "/dashboard/menu", label: "Menu", icon: <path d="M4 5h16M4 12h16M4 19h10"/> },
   { href: "/dashboard/qr", label: "QR codes", icon: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></> },
-  { href: "/dashboard/analytics", label: "Analytics", icon: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></> },
-  { href: "/dashboard/marketing", label: "Marketing", icon: <><path d="M3 11l15-6v14L3 13z"/><path d="M18 9a3 3 0 0 1 0 6"/><path d="M7 13.5l1.2 4.6a1.5 1.5 0 0 0 2.9-.8L10 14.6"/></> },
-  { href: "/dashboard/settings", label: "Settings", icon: <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></> },
+  { href: "/dashboard/analytics", label: "Analytics", desktopOnly: true, icon: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></> },
+  { href: "/dashboard/marketing", label: "Marketing", desktopOnly: true, icon: <><path d="M3 11l15-6v14L3 13z"/><path d="M18 9a3 3 0 0 1 0 6"/><path d="M7 13.5l1.2 4.6a1.5 1.5 0 0 0 2.9-.8L10 14.6"/></> },
+  { href: "/dashboard/settings", label: "Settings", icon: <><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></> },
 ];
 
 export default function Shell({ initialVenue, support = false, subscription, user: initialUser, pendingDraft = false, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; pendingDraft?: boolean; user: { id: string; name: string; email: string; provider: string; lang: string }; children: React.ReactNode }) {
@@ -102,7 +102,8 @@ export default function Shell({ initialVenue, support = false, subscription, use
           <a className="logo" href="/"><img src="/assets/mnu-logo.png" alt="mnu.digital" /></a>
           <nav className="nav" aria-label="Dashboard">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} aria-current={current?.href === n.href ? "page" : undefined}>
+              <Link key={n.href} href={n.href} aria-current={current?.href === n.href ? "page" : undefined}
+                className={"desktopOnly" in n ? "nav-desk" : n.href === "/dashboard/settings" && current && "desktopOnly" in current ? "m-on" : undefined}>
                 <svg viewBox="0 0 24 24">{n.icon}</svg>{n.label}
                 {n.label === "Orders" && newOrders > 0 && <span className="badge">{newOrders}</span>}
               </Link>

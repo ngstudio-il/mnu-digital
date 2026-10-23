@@ -695,3 +695,12 @@ button.me div { flex: 1; }
 .an-bar { min-width: 0; }
 .an-bar .seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 @media (max-width: 820px) { .nav a { white-space: nowrap; font-size: 10px; letter-spacing: -.01em; padding: 8px 2px; min-width: 0; } .nav a svg { flex: none; } }
+/* Phones: Analytics and Marketing are reached from Settings */
+.set-hub-mobile { display: none !important; }
+@media (max-width: 820px) {
+  .nav a.nav-desk { display: none; }
+  .nav a.m-on { background: var(--sage-soft); color: var(--sage-hi); }
+  .set-hub-mobile { display: grid !important; }
+  .nav a { font-size: 11px; }
+}
+@media (max-width: 900px) { .set-hub-card { padding-inline-end: 44px; } }

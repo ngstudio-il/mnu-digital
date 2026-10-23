@@ -3,8 +3,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { esc, sendEmail } from "@/lib/email";
 
-// Emails the support team when a venue owner writes in the chat.
-// To avoid flooding the inbox, a venue triggers at most one email every 10 minutes.
+// Emails the support team every time a venue owner writes in the chat.
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "office@ngstudio.co.il";
 
 export async function POST(request: Request) {
@@ -19,9 +18,6 @@ export async function POST(request: Request) {
   if (!msg || msg.sender !== "owner" || Date.now() - new Date(msg.created_at).getTime() > 5 * 60000) return NextResponse.json({ ok: false }, { status: 404 });
 
   const db = supabaseAdmin();
-  const { data: recent } = await db.from("support_messages").select("id").eq("venue_id", msg.venue_id).eq("sender", "owner")
-    .neq("id", msg.id).gte("created_at", new Date(new Date(msg.created_at).getTime() - 10 * 60000).toISOString()).limit(1);
-  if (recent?.length) return NextResponse.json({ ok: true, skipped: "recent" });
 
   const { data: venue } = await db.from("venues").select("id, name").eq("id", msg.venue_id).single();
   const origin = new URL(request.url).origin;

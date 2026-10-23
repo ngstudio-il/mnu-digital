@@ -2,7 +2,7 @@
 import "@/styles/lp.css";
 import { useEffect, useRef, useState } from "react";
 import { shrink } from "@/lib/shrink";
-import { LP_PDF_MAX } from "@/lib/lp-limits";
+import { LP_PDF_MAX, PDF_DIRECT_MAX } from "@/lib/lp-limits";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import QRCode from "qrcode";
 import { LP_LANGS, LP_STRINGS, MENU_LANGS, type LpLang } from "./strings";
@@ -68,7 +68,7 @@ export default function TryIt() {
       if (!ok.length) return setErr(t.errType);
       const pdf = ok.find((f) => f.type === "application/pdf");
       if (pdf && pdf.size > LP_PDF_MAX) return setErr(t.errPdf);
-      if (pdf && pdf.size > 3.5 * 1024 * 1024) {
+      if (pdf && pdf.size > PDF_DIRECT_MAX) {
         // Too big to post to our server, so it goes straight to storage first.
         setStep("reading");
         const path = await uploadPdf(pdf).catch((e: Error) => { setStep("pick"); setErr(e.message || t.errGeneric); return null; });

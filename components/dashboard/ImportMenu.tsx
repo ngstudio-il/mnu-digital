@@ -4,6 +4,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "./VenueContext";
 import type { Category } from "@/lib/types";
 import { shrink } from "@/lib/shrink";
+import { PDF_DIRECT_MAX, PDF_MAX } from "@/lib/lp-limits";
 
 type Row = { key: string; keep: boolean; name: string; description: string; price: string };
 type Section = { name: string; rows: Row[] };
@@ -31,7 +32,7 @@ export default function ImportMenu({ cats, onClose, onDone }: { cats: Category[]
     const chosen = Array.from(list).filter((f) => f.type.startsWith("image/") || f.type === "application/pdf");
     if (!chosen.length) return setErr("Choose photos (JPG, PNG) or a PDF.");
     const pdf = chosen.find((f) => f.type === "application/pdf");
-    if (pdf && pdf.size > 4 * 1024 * 1024) return setErr("That PDF is over 4 MB. Export a smaller one or upload photos instead.");
+    if (pdf && pdf.size > PDF_MAX) return setErr("That PDF is over 32 MB. Export a smaller one or upload photos instead.");
     setErr("");
     setFiles(pdf ? [pdf] : chosen.slice(0, 6));
   }
@@ -40,7 +41,13 @@ export default function ImportMenu({ cats, onClose, onDone }: { cats: Category[]
     setStep("reading"); setErr("");
     const fd = new FormData();
     if (mode === "text") fd.append("text", text);
-    else for (const f of files) fd.append("files", await shrink(f));
+    else if (files[0]?.type === "application/pdf" && files[0].size > PDF_DIRECT_MAX) {
+      // Too big to post to our server, so it goes to storage first and the server reads it from there.
+      const path = `${venue.id}/import/${crypto.randomUUID()}.pdf`;
+      const { error } = await supabaseBrowser().storage.from("dish-photos").upload(path, files[0], { contentType: "application/pdf" });
+      if (error) { setErr(`Couldn’t upload the PDF: ${error.message}`); setStep("pick"); return; }
+      fd.append("pdf", path);
+    } else for (const f of files) fd.append("files", await shrink(f));
     const res = await fetch("/api/ai/import", { method: "POST", body: fd }).catch(() => null);
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res || !res.ok) { setErr(json.error ?? "Couldn’t read the menu. Try again."); setStep("pick"); return; }

@@ -25,15 +25,14 @@ export async function POST(request: Request) {
   if ((count ?? 0) >= LP_DAILY_LIMIT) return NextResponse.json({ error: "You’ve tried a few menus today. Sign up free to keep going.", limit: true }, { status: 429 });
 
   try {
+    let pdfUrl: string | undefined;
     if (pdfPath) {
-      const { data: blob, error: dlError } = await db.storage.from("dish-photos").download(pdfPath);
-      await db.storage.from("dish-photos").remove([pdfPath]);
-      if (dlError || !blob) return NextResponse.json({ error: "Couldn’t read the uploaded file. Try again." }, { status: 400 });
-      if (blob.size > LP_PDF_MAX) return NextResponse.json({ error: "That PDF is too large." }, { status: 400 });
-      files.push(new File([blob], "menu.pdf", { type: "application/pdf" }));
+      const { data: signed } = await db.storage.from("dish-photos").createSignedUrl(pdfPath, 600);
+      if (!signed) return NextResponse.json({ error: "Couldn’t read the uploaded file. Try again." }, { status: 400 });
+      pdfUrl = signed.signedUrl;
     }
-    const content = await buildMenuContent(files, pasted);
-    const menu = await readMenu(content);
+    const content = await buildMenuContent(files, pasted, pdfUrl);
+    const menu = await readMenu(content).finally(() => { if (pdfPath) db.storage.from("dish-photos").remove([pdfPath]).catch(() => {}); });
     const { data, error } = await db.from("lp_drafts").insert({ ip_hash: hash, currency: menu.currency, sections: menu.sections }).select("id").single();
     if (error || !data) return NextResponse.json({ error: "Couldn’t save your menu. Try again." }, { status: 500 });
     return NextResponse.json({ draft: data.id, ...menu });

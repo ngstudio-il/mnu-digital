@@ -56,11 +56,14 @@ export class ImportError extends Error {
 }
 
 // Checks the input before any credit is spent.
-export async function buildMenuContent(files: File[], pasted: string) {
-  if (!files.length && !pasted) throw new ImportError("Choose a photo or PDF of your menu, or paste its text.", 400);
+// pdfUrl: a large PDF kept in storage, which Claude fetches itself (requests to the API are capped at 32 MB,
+// and a 32 MB file would be over that once base64-encoded).
+export async function buildMenuContent(files: File[], pasted: string, pdfUrl?: string) {
+  if (!files.length && !pasted && !pdfUrl) throw new ImportError("Choose a photo or PDF of your menu, or paste its text.", 400);
   if (pasted.length > 40000) throw new ImportError("That text is too long. Paste the menu in two parts.", 400);
   if (files.length > 6) throw new ImportError("Up to 6 photos at a time.", 400);
   const content: Anthropic.ContentBlockParam[] = [];
+  if (pdfUrl) content.push({ type: "document", source: { type: "url", url: pdfUrl } });
   for (const f of files) {
     const data = Buffer.from(await f.arrayBuffer()).toString("base64");
     if (f.type === "application/pdf") content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data } });

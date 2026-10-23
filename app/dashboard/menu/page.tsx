@@ -308,7 +308,7 @@ function DishEditor({ draft, cats, onClose, onSaved }: { draft: Draft; cats: Cat
             </div>
           </div>
           <textarea id="d-desc" value={d.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ingredients, how it’s served. Jot a few words and let AI polish them." />
-          <small>{ai.msg ? <span style={{ color: "var(--coral)" }}>{ai.msg}</span> : aiLeft !== null ? `${aiLeft} of ${ai.quota} AI descriptions left this month` : "AI uses the dish name, category, labels and anything you type here."}</small>
+          <small>{ai.msg ? <span style={{ color: "var(--coral)" }}>{ai.msg}</span> : aiLeft !== null ? `${aiLeft} of ${ai.quota} AI text credits left this month` : "AI uses the dish name, category, labels and anything you type here."}</small>
         </div>
         <div className="row2">
           <label className="field" htmlFor="d-price">Price ({venue.currency})<input id="d-price" type="number" min="0" step="0.5" value={d.price} onChange={(e) => set({ price: e.target.value })} /></label>

@@ -12,6 +12,7 @@ export const maxDuration = 60;
 
 const MODEL = "claude-haiku-5-5";
 const BATCH = 50;
+const PER_CREDIT = 10;
 
 const ITEMS_SCHEMA = {
   type: "object",
@@ -120,7 +121,13 @@ Return every key with its translation.`,
 
     const next = stale.find((s) => s.items.length);
     if (next) {
-      const batch = next.items.slice(0, BATCH);
+      // Translations share the monthly AI text allowance: 1 credit per 10 items, per language.
+      const { data: q, error: qError } = await supabase.rpc("ai_quota", { p_venue: venue.id });
+      const quota = (Array.isArray(q) ? q[0] : q) as { used: number; quota: number } | null;
+      if (qError || !quota) return NextResponse.json({ error: `Couldn’t check your AI allowance: ${qError?.message ?? "no plan found"}` }, { status: 500 });
+      const left = Math.max(0, quota.quota - quota.used);
+      if (!left) return NextResponse.json({ error: "You’ve used all your AI text credits for this month. Untranslated dishes show in your main language until the 1st.", remaining, quota: true }, { status: 429 });
+      const batch = next.items.slice(0, Math.min(BATCH, left * PER_CREDIT));
       const out = await ask(
         `You translate restaurant menus from ${language(primary).name} into ${language(next.lang).name}.
 Each item is a menu section, a dish (name and description) or a dietary label. Write the way a good restaurant menu in ${language(next.lang).name} would.
@@ -137,6 +144,8 @@ Keep descriptions faithful: do not add or drop ingredients. Keep an empty descri
       if (upserts.length) {
         const { error } = await supabase.from("menu_translations").upsert(upserts);
         if (error) return NextResponse.json({ error: `Couldn’t save translations: ${error.message}` }, { status: 500 });
+        const charge = await supabase.rpc("consume_ai_credits", { p_venue: venue.id, p_count: Math.ceil(upserts.length / PER_CREDIT) });
+        if (charge.error?.code === "PGRST202") return NextResponse.json({ error: "Database update missing: run 0010_ai_text_credits.sql in Supabase." }, { status: 500 });
       }
       // Items the AI skipped count as done for this round so a bad item can't loop forever.
       remaining -= batch.length;

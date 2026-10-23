@@ -122,9 +122,9 @@ export default function Settings() {
       <div className="card">
         <h3>Plan &amp; account</h3>
         <div className="set-row" style={{ display: "block" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><b>AI descriptions this month</b><span>{ai ? `${ai.used} of ${ai.quota}` : "–"}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><b>AI text this month</b><span>{ai ? `${ai.used} of ${ai.quota}` : "–"}</span></div>
           <div className="ai-meter"><i style={{ width: ai ? `${Math.min(100, Math.round((ai.used / ai.quota) * 100))}%` : "0%" }} /></div>
-          <span>100 a month during the free trial, 1,000 a month on the paid plan. Resets on the 1st.</span>
+          <span>Used for dish descriptions (1 credit each) and menu translations (1 credit per 10 dishes, sections or labels, per language). 100 credits a month during the free trial, 1,000 on the paid plan. Resets on the 1st.</span>
         </div>
         <div className="set-row" style={{ display: "block" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><b>AI images this month</b><span>{imgQ ? `${imgQ.used} of ${imgQ.quota}${imgQ.extra ? ` · ${imgQ.extra} from packs` : ""}` : "–"}</span></div>

@@ -35,7 +35,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
             <div><small>Categories</small><b>{cats ?? 0}</b></div>
             <div><small>Orders, 30 days</small><b>{v.orders30}</b></div>
             <div><small>Order value, 30 days</small><b>{money(v.revenue30, cur)}</b></div>
-            <div><small>AI descriptions this month</small><b>{v.aiUsed}</b></div>
+            <div><small>AI text credits this month</small><b>{v.aiUsed}</b></div>
             <div><small>Menu imports this month</small><b>{v.imports}</b></div>
             <div><small>Ordering</small><b>{v.ordering_on ? "On" : "Paused"}</b></div>
             <div><small>Tables</small><b>{venue?.tables ?? "—"}</b></div>

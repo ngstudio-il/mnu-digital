@@ -71,7 +71,7 @@ export default function MenuLanguages() {
       <div className="set-row">
         <div>
           <b>{!targets.length ? "No translations yet" : status.busy ? `Translating… ${status.remaining ? `${status.remaining} left` : ""}` : status.error ? "Translation paused" : "Translations up to date"}</b>
-          <span>{status.error ?? (targets.length ? "New and edited dishes are translated by AI within a few seconds. Guests get their phone’s language when you offer it, and can switch with the language button." : "Add languages and your whole menu is translated by AI.")}</span>
+          <span>{status.error ?? (targets.length ? "New and edited dishes are translated by AI within a few seconds, using your AI text credits (1 per 10 items, per language). Guests get their phone’s language when you offer it, and can switch with the language button." : "Add languages and your whole menu is translated by AI.")}</span>
         </div>
         {targets.length > 0 && <button className="btn ghost sm" type="button" onClick={run} disabled={status.busy}>{status.busy ? "Working…" : "Translate now"}</button>}
       </div>

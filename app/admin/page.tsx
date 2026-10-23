@@ -30,7 +30,7 @@ export default async function AdminOverview() {
         <div className="kpi"><small>Accounts (all users)</small><b>{totalUsers}</b></div>
         <div className="kpi"><small>Guest orders, last 30 days</small><b>{orders30}</b></div>
         <div className="kpi"><small>Order value, last 30 days</small><b>{usd(gmv30)}</b></div>
-        <div className="kpi"><small>AI descriptions / imports this month</small><b>{ai} / {imports}</b></div>
+        <div className="kpi"><small>AI text credits / imports this month</small><b>{ai} / {imports}</b></div>
       </div>
 
       <div className="ov-grid">

@@ -15,6 +15,10 @@ export type Venue = {
   notes: boolean;
   plan: string;
   logo_path?: string | null;
+  cover_path?: string | null;
+  theme?: string;
+  font?: string | null;
+  bg_color?: string | null;
   labels?: string[];
 };
 

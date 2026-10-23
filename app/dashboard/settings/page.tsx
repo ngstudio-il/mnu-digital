@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
 import MenuLanguages from "@/components/dashboard/MenuLanguages";
-import { BRANDS, photoUrl, planSummary, slugify } from "@/lib/format";
+import LookAndFeel from "@/components/dashboard/LookAndFeel";
+import { planSummary, slugify } from "@/lib/format";
 import type { Venue } from "@/lib/types";
 
 export default function Settings() {
@@ -16,19 +17,6 @@ export default function Settings() {
   const [currency, setCurrency] = useState(venue.currency);
   const [slug, setSlug] = useState(venue.slug);
   const [busy, setBusy] = useState(false);
-  const [logoBusy, setLogoBusy] = useState(false);
-
-  async function uploadLogo(file: File) {
-    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return toast("Use a PNG, JPG or WebP image.");
-    if (file.size > 5 * 1024 * 1024) return toast("Logo must be under 5 MB.");
-    setLogoBusy(true);
-    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-    const path = `${venue.id}/logo-${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabaseBrowser().storage.from("dish-photos").upload(path, file, { contentType: file.type, cacheControl: "31536000" });
-    if (error) { setLogoBusy(false); return toast("Upload failed: " + error.message); }
-    await patch({ logo_path: path }, "Logo updated");
-    setLogoBusy(false);
-  }
   const [ai, setAi] = useState<{ used: number; quota: number } | null>(null);
   const [imgQ, setImgQ] = useState<{ used: number; quota: number; extra: number } | null>(null);
 
@@ -94,28 +82,7 @@ export default function Settings() {
         {sw("notes", "Order notes", "Let guests add a note to their order")}
       </div>
 
-      <div className="card">
-        <h3>Look &amp; feel</h3>
-        <div><p className="fieldset-label">Logo</p>
-          <div className="logo-row">
-            <div className="logo-box" style={{ background: venue.brand }}>{photoUrl(venue.logo_path) ? <img src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} /> : <span>{venue.name.charAt(0)}</span>}</div>
-            <div style={{ display: "grid", gap: 6 }}>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <label className="btn ghost sm" style={{ cursor: "pointer" }}>{logoBusy ? "Uploading…" : venue.logo_path ? "Replace logo" : "Upload logo"}
-                  <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ""; }} />
-                </label>
-                {venue.logo_path && <button className="btn ghost sm" type="button" onClick={() => patch({ logo_path: null }, "Logo removed")}>Remove</button>}
-              </div>
-              <span className="note">Shown at the top of your menu. A square PNG with a transparent background looks best.</span>
-            </div>
-          </div>
-        </div>
-        <div><p className="fieldset-label">Brand colour</p>
-          <div className="swatches">{BRANDS.map((b) => (
-            <button key={b} type="button" aria-pressed={venue.brand === b} aria-label={`Brand colour ${b}`} style={{ background: b }} onClick={() => patch({ brand: b }, "Brand colour updated")} />
-          ))}</div>
-        </div>
-      </div>
+      <LookAndFeel />
 
       <MenuLanguages />
 

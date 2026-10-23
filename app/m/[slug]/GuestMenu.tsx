@@ -6,6 +6,7 @@ import Sheet from "./Sheet";
 import { money, photoUrl } from "@/lib/format";
 import { fill, tkey, type ContentMap, type UiKey, type UiStrings } from "@/lib/i18n";
 import { isRtl, language } from "@/lib/languages";
+import { look } from "@/lib/themes";
 import type { Category, Dish, Venue } from "@/lib/types";
 
 type I18n = { primary: string; langs: string[]; content: ContentMap; ui: Record<string, UiStrings> };
@@ -26,6 +27,8 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
   const [pickLang, setPickLang] = useState(false);
   const langKey = `mnu.lang.${venue.slug}`;
   const ui = i18n.ui[lang] ?? i18n.ui[i18n.primary];
+  const design = useMemo(() => look(venue), [venue]);
+  const cover = photoUrl(venue.cover_path);
   const t = (k: UiKey, vars?: Record<string, string | number>) => fill(ui[k], vars);
   const tr = (key: string) => (lang === i18n.primary ? undefined : i18n.content[lang]?.[key]);
   const dishName = (d: Dish) => tr(tkey.dish(d.id))?.name || d.name;
@@ -131,8 +134,10 @@ export default function GuestMenu({ venue, categories, dishes, table, i18n }: Pr
   }
 
   return (
-    <div className="g" lang={lang} dir={isRtl(lang) ? "rtl" : "ltr"} style={{ ["--brand" as string]: venue.brand }}>
-      <header className="g-head">
+    <div className={`g ${design.className}`} lang={lang} dir={isRtl(lang) ? "rtl" : "ltr"}>
+      <style>{design.css}</style>
+      {design.fonts && <link rel="stylesheet" href={design.fonts} precedence="default" />}
+      <header className={`g-head${cover ? " has-cover" : ""}`} style={cover ? { ["--cover" as string]: `url("${cover}")` } : undefined}>
         {photoUrl(venue.logo_path) && <img className="g-logo" src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} />}
         <small>{(ui[`type_${venue.type}` as UiKey] ?? venue.type).toUpperCase()}</small>
         <h1>{venue.name}</h1>

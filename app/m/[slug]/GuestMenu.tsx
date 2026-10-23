@@ -14,7 +14,7 @@ import { look } from "@/lib/themes";
 import type { Category, Dish, Venue } from "@/lib/types";
 
 type I18n = { primary: string; langs: string[]; content: ContentMap; ui: Record<string, UiStrings> };
-type Props = { venue: Venue; categories: Category[]; dishes: Dish[]; table: string | null; i18n: I18n; ownerView?: boolean; preview?: boolean };
+type Props = { venue: Venue; categories: Category[]; dishes: Dish[]; table: string | null; i18n: I18n; ownerView?: boolean; preview?: boolean; startLang?: string };
 type Saved = { token: string | null; number: number; at: string; total: number; label: string; items: { name: string; qty: number; price: number }[] };
 type Live = { token: string; status: string; total: number; items: { name: string; qty: number; price: number }[] };
 
@@ -29,7 +29,7 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
 // Design fields the dashboard's live preview may change while the owner edits them.
 const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path"] as const;
 
-export default function GuestMenu({ venue: savedVenue, categories: savedCats, dishes: savedDishes, table: initialTable, i18n, ownerView = false, preview = false }: Props) {
+export default function GuestMenu({ venue: savedVenue, categories: savedCats, dishes: savedDishes, table: initialTable, i18n, ownerView = false, preview = false, startLang }: Props) {
   const [venue, setVenue] = useState(savedVenue);
   // In the dashboard preview, dragging categories or dishes reorders this copy straight away.
   const [categories, setCategories] = useState(savedCats);
@@ -54,7 +54,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   }, []);
   const [table, setTable] = useState(initialTable);
   const [scanning, setScanning] = useState(false);
-  const [lang, setLang] = useState(i18n.primary);
+  const [lang, setLang] = useState(startLang ?? i18n.primary);
   const [pickLang, setPickLang] = useState(false);
   const langKey = `mnu.lang.${venue.slug}`;
   const ui = i18n.ui[lang] ?? i18n.ui[i18n.primary];
@@ -69,6 +69,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
 
   // Saved choice first, then the phone's own language when the menu offers it.
   useEffect(() => {
+    if (startLang) return;
     let pick: string | null = null;
     try { pick = localStorage.getItem(langKey); } catch { /* storage unavailable */ }
     if (!pick || !i18n.langs.includes(pick)) {

@@ -47,3 +47,35 @@ body { margin: 0; background: radial-gradient(1200px 600px at 0% 0%, #e7ece6 0%,
   .lp-sub { font-size: 16px; }
   .lp-drop { padding: 36px 16px; }
 }
+
+/* Header: language + log in */
+.lp-head-actions { display: flex; align-items: center; gap: 10px; }
+.lp-lang { position: relative; }
+.lp-lang-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--paper); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+.lp-lang-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.lp-lang-menu { position: absolute; top: calc(100% + 6px); inset-inline-end: 0; z-index: 10; list-style: none; margin: 0; padding: 6px; min-width: 160px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px rgba(31,40,41,.14); }
+.lp-lang-menu button { width: 100%; text-align: start; padding: 9px 12px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 15px; color: var(--paper); cursor: pointer; }
+.lp-lang-menu button:hover, .lp-lang-menu button[aria-selected="true"] { background: var(--ink); }
+.lp-lang-menu button[aria-selected="true"] { font-weight: 600; }
+
+/* Result: a livelier stage around the phone */
+.lp-grad { background: linear-gradient(90deg, var(--paper), #6f9393); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lp-stage { position: relative; display: grid; place-items: center; padding: 20px 0; }
+.lp-glow { position: absolute; width: 520px; height: 520px; max-width: 130%; border-radius: 50%; background: radial-gradient(circle, rgba(111,147,147,.35), transparent 65%); filter: blur(8px); animation: lp-float 8s ease-in-out infinite; }
+.lp-stage .lp-phone { position: relative; animation: lp-bob 7s ease-in-out infinite; }
+.lp-qr { position: absolute; inset-inline-end: -10px; bottom: 60px; display: grid; justify-items: center; gap: 4px; padding: 12px 14px; border-radius: 16px; background: #fff; box-shadow: 0 20px 40px rgba(31,40,41,.18); rotate: 6deg; }
+.lp-qr img { width: 64px; height: 64px; display: block; image-rendering: pixelated; }
+.lp-qr small { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--paper); }
+@keyframes lp-bob { 50% { translate: 0 -10px; } }
+@keyframes lp-float { 50% { scale: 1.08; } }
+.lp-translate { margin-top: 26px; padding: 18px; border-radius: 20px; background: #fff; border: 1px solid var(--line); width: min(520px, 100%); box-shadow: 0 14px 30px rgba(31,40,41,.06); }
+.lp-translate-head { display: grid; gap: 2px; margin-bottom: 12px; }
+.lp-translate-head b { color: var(--paper); font-size: 16px; }
+.lp-translate-head span { font-size: 14px; color: var(--dim); }
+.lp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.lp-chips button { padding: 8px 14px; border-radius: 99px; border: 1px solid rgba(31,40,41,.14); background: #fff; font: inherit; font-size: 14px; color: var(--paper); cursor: pointer; transition: border-color .2s, background .2s; }
+.lp-chips button:hover:not(:disabled) { border-color: var(--paper); }
+.lp-chips button.done { background: #e9f1ee; border-color: #c7dbd5; }
+.lp-chips button.on { background: var(--paper); border-color: var(--paper); color: #fff; }
+.lp-chips button:disabled { opacity: .4; cursor: default; }
+@media (max-width: 900px) { .lp-qr { display: none; } .lp-stage { order: 2; } .lp-lang-btn span { display: none; } .lp-lang-btn { padding: 9px; } }

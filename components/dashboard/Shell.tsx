@@ -21,6 +21,14 @@ const NAV = [
 export default function Shell({ initialVenue, support = false, subscription, user, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; user: { id: string; name: string; email: string; provider: string }; children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
+  const [preview, setPreview] = useState(false);
+  useEffect(() => {
+    if (!preview) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setPreview(false); };
+    document.addEventListener("keydown", esc);
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", esc); document.body.style.overflow = ""; };
+  }, [preview]);
   const [venue, setVenue] = useState(initialVenue);
   const [newOrders, setNewOrders] = useState(0);
   const [orderTick, setOrderTick] = useState(0);
@@ -103,13 +111,28 @@ export default function Shell({ initialVenue, support = false, subscription, use
             <h1>{title}</h1>
             <div className="top-actions">
               <span className="live-dot"><i /><span>{venue.ordering_on ? "Menu live · taking orders" : "Menu live · orders paused"}</span></span>
-              <a className="btn ghost sm" href={`/m/${venue.slug}`} target="_blank" rel="noreferrer">View menu</a>
+              <button className="top-btn" type="button" onClick={() => setPreview(true)} aria-label="Preview your menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg><span>Preview</span>
+              </button>
+              <a className="top-btn" href={`/m/${venue.slug}`} target="_blank" rel="noreferrer" aria-label="Open your menu in a new tab">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span>View menu</span>
+              </a>
               <button className="btn ghost sm" type="button" onClick={logout}>Log out</button>
             </div>
           </header>
           <main className="view">{children}</main>
         </div>
       </div>
+      {preview && (
+        <div className="menu-preview" role="dialog" aria-modal="true" aria-label="Your menu">
+          <div className="menu-preview-bar">
+            <b>Guest view</b>
+            <a className="btn ghost sm" href={`/m/${venue.slug}`} target="_blank" rel="noreferrer">Open in new tab</a>
+            <button className="x" type="button" onClick={() => setPreview(false)} aria-label="Close preview">×</button>
+          </div>
+          <iframe src={`/m/${venue.slug}`} title={`${venue.name} menu`} />
+        </div>
+      )}
       {!support && <SupportChat venueId={venue.id} />}
       <div className={`toast${msg ? " show" : ""}`} role="status">{msg}</div>
     </VenueContext.Provider>

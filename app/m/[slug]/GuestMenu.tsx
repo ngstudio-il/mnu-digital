@@ -295,7 +295,7 @@ export default function GuestMenu({ venue, categories, dishes, table: initialTab
                 ? <label className="g-field g-note">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} autoFocus={!note} /></label>
                 : <button type="button" className="g-note-add" onClick={() => setNoteOpen(true)}>+ {t("addNote")}</button>)}
               {err && <p className="g-err">{err}</p>}
-              <button className="g-cta" type="button" disabled={busy || !lines.length || (type === "dinein" && !table)} onClick={place}>{busy ? t("sending") : `${t("placeOrder")} · ${money(total, venue.currency)}`}</button>
+              <button className="g-cta g-sticky" type="button" disabled={busy || !lines.length || (type === "dinein" && !table)} onClick={place}>{busy ? t("sending") : `${t("placeOrder")} · ${money(total, venue.currency)}`}</button>
             </div>
         </Sheet>
       )}

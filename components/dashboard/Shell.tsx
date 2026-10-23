@@ -46,7 +46,9 @@ export default function Shell({ initialVenue, support = false, subscription, use
   }, []);
 
   const refreshNewOrders = useCallback(async () => {
-    const { count } = await supabaseBrowser().from("orders").select("id", { count: "exact", head: true }).eq("venue_id", venue.id).eq("status", "new");
+    // Same window as the Orders board (last 24 hours), so the badge matches what's in New.
+    const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const { count } = await supabaseBrowser().from("orders").select("id", { count: "exact", head: true }).eq("venue_id", venue.id).eq("status", "new").gte("created_at", since);
     setNewOrders(count ?? 0);
   }, [venue.id]);
 

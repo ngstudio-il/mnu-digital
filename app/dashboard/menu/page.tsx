@@ -9,7 +9,7 @@ import ImagePacks from "@/components/dashboard/ImagePacks";
 import BulkPhotos from "@/components/dashboard/BulkPhotos";
 import { Grip, SortableList } from "@/components/dashboard/Sortable";
 import { syncTranslations } from "@/lib/translate-client";
-import LogoMark from "@/components/LogoMark";
+import GuestView from "@/components/dashboard/GuestView";
 import DishEditor, { type Draft } from "@/components/dashboard/DishEditor";
 
 
@@ -23,6 +23,7 @@ export default function MenuPage() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [importing, setImporting] = useState(false);
   const [bulk, setBulk] = useState(false);
+  const [previewVersion, setPreviewVersion] = useState(0);
   // On phones the categories sit in one scrolling row, so they reorder sideways.
   const [narrow, setNarrow] = useState(false);
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function MenuPage() {
     ]);
     setCats(c.data ?? []);
     setDishes(d.data ?? []);
+    setPreviewVersion((v) => v + 1);
   }, [venue.id]);
   useEffect(() => { load(); }, [load]);
 
@@ -161,26 +163,7 @@ export default function MenuPage() {
           )}
         </div>
 
-        <div className="preview">
-          <small>Guest view</small>
-          <div className="pv-phone"><div className="pv-screen" translate="no">
-            <div className="pv-head" style={{ background: photoUrl(venue.cover_path) ? `linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.6)), url("${photoUrl(venue.cover_path)}") center / cover` : venue.brand }}>{photoUrl(venue.logo_path) && <LogoMark className="pv-logo" src={photoUrl(venue.logo_path)!} layout={venue.logo_layout} />}<small>{venue.type.toUpperCase()}</small><b>{venue.name}</b></div>
-            <div className="pv-list">
-              {cats.map((c) => {
-                const ds = (dishes ?? []).filter((d) => d.category_id === c.id && d.available).sort((a, b) => a.position - b.position);
-                if (!ds.length) return null;
-                return (
-                  <div key={c.id}>
-                    <div className="pv-cat" style={{ color: venue.brand }}>{c.name}</div>
-                    {ds.map((d) => { const src = photoUrl(d.image_path); return (
-                      <div className="pv-item" key={d.id}>{src ? <img src={src} alt="" /> : <span className="thumb-empty" />}<div><b>{d.name}</b><span>{d.description}</span></div><em>{priceText(d)}</em></div>
-                    ); })}
-                  </div>
-                );
-              })}
-            </div>
-          </div></div>
-        </div>
+        <GuestView slug={venue.slug} version={previewVersion} note="Updates after you save a dish or change the order." />
       </div>
       {bulk && <BulkPhotos missing={missingPhotos} onClose={() => { setBulk(false); load(); }} onProgress={load} />}
       {importing && <ImportMenu cats={cats} onClose={() => setImporting(false)} onDone={() => { setImporting(false); setActive("all"); load(); }} />}

@@ -517,3 +517,18 @@
 .vis-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--ink); color: var(--paper); }
 .vis-opt[aria-checked="true"] .vis-icon { background: var(--paper); color: #fff; }
 .vis-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Profile button (sidebar on desktop, avatar in the header on phones) */
+button.me { width: 100%; border: 1px solid var(--line); background: #fff; cursor: pointer; font: inherit; text-align: start; padding: 8px 10px 8px 8px; transition: border-color .2s, background .2s; }
+button.me:hover { border-color: var(--paper); background: var(--ink); }
+button.me div { flex: 1; }
+.me-chev { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--dim); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+[dir="rtl"] .me-chev { transform: scaleX(-1); }
+.top-me { display: none; width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--sage); color: #fff; font: 600 15px var(--font, inherit); cursor: pointer; box-shadow: 0 0 0 3px #fff, 0 0 0 4px var(--line); }
+@media (max-width: 820px) { .top-me { display: inline-grid; place-items: center; } }
+.profile-modal { display: grid; gap: 14px; max-width: 460px; }
+.pf-top { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: var(--ink); }
+.pf-top b { display: block; color: var(--paper); font-weight: 600; }
+.pf-top span:not(.avatar) { font-size: 13px; color: var(--dim); }
+.avatar.lg { width: 48px; height: 48px; font-size: 20px; }
+.dash-i18n-busy { position: fixed; z-index: 150; left: 50%; translate: -50% 0; top: 14px; padding: 8px 14px; border-radius: 99px; background: var(--paper); color: #fff; font-size: 13px; box-shadow: 0 10px 24px rgba(0,0,0,.18); }

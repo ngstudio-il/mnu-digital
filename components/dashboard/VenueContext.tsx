@@ -5,7 +5,7 @@ import type { Subscription, Venue } from "@/lib/types";
 export type DashCtx = {
   venue: Venue;
   setVenue: (v: Venue) => void;
-  user: { id: string; name: string; email: string; provider: string };
+  user: { id: string; name: string; email: string; provider: string; lang: string };
   toast: (msg: string) => void;
   newOrders: number;
   refreshNewOrders: () => void;

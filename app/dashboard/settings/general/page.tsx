@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { allZones, browserZone, zoneLabel } from "@/lib/timezone";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
@@ -14,6 +15,8 @@ export default function Settings() {
   const [type, setType] = useState(venue.type);
   const [currency, setCurrency] = useState(venue.currency);
   const [slug, setSlug] = useState(venue.slug);
+  const [tz, setTz] = useState(venue.timezone || browserZone());
+  const zones = useMemo(() => { const z = allZones(); return z.includes(tz) ? z : [tz, ...z]; }, [tz]);
   const [busy, setBusy] = useState(false);
   const [ai, setAi] = useState<{ used: number; quota: number } | null>(null);
   const [imgQ, setImgQ] = useState<{ used: number; quota: number; extra: number } | null>(null);
@@ -26,7 +29,7 @@ export default function Settings() {
   async function patch(p: Partial<Venue>, msg?: string) {
     const { data, error } = await supabaseBrowser().from("venues").update(p).eq("id", venue.id).select().single();
     if (error || !data) {
-      toast(error?.code === "23505" ? "That menu link is taken. Try another." : "Couldn’t save. Check your connection.");
+      toast(error?.code === "23505" ? "That menu link is taken. Try another." : error?.message.includes("timezone") ? "Time zone needs a database update first (0014_venue_timezone.sql)." : "Couldn’t save. Check your connection.");
       return false;
     }
     setVenue(data);
@@ -47,7 +50,7 @@ export default function Settings() {
     setBusy(true);
     const s = slugify(slug || name);
     setSlug(s);
-    await patch({ name: name.trim(), type, currency, slug: s }, "Venue details saved");
+    await patch({ name: name.trim(), type, currency, slug: s, ...("timezone" in venue ? { timezone: tz } : {}) }, "Venue details saved");
     setBusy(false);
   }
 
@@ -75,6 +78,10 @@ export default function Settings() {
             <option value="$">US dollar ($)</option><option value="₪">Israeli shekel (₪)</option><option value="€">Euro (€)</option><option value="£">Pound (£)</option>
           </select></label>
         </div>
+        <label className="field" htmlFor="v-tz">Time zone
+          <select id="v-tz" value={tz} onChange={(e) => setTz(e.target.value)} translate="no">{zones.map((z) => <option key={z} value={z}>{zoneLabel(z)}</option>)}</select>
+          <small>Used for today’s orders and revenue on your dashboard.</small>
+        </label>
         <label className="field" htmlFor="v-slug">Menu link<input id="v-slug" value={slug} onChange={(e) => setSlug(e.target.value)} /><small>/m/{slugify(slug || name)}. Changing it breaks QR codes you already printed.</small></label>
         <div><button className="btn" type="submit" disabled={busy}>{busy ? "Saving…" : "Save changes"}</button></div>
       </form>

@@ -95,7 +95,7 @@ export default function Orders() {
                 <Ticket id={o.id} key={o.id}>
                   <div className="t-top"><b>#{o.number}</b><span>{ago(o.created_at)}</span></div>
                   <div className="t-where"><span>{o.type === "takeaway" ? "Takeaway" : o.table_label || "Dine-in"}</span>{o.customer_name && <span>{o.customer_name}</span>}</div>
-                  <ul className="t-items">{o.order_items?.map((it) => <li key={it.id}><b>{it.qty}×</b>{it.name}</li>)}</ul>
+                  <ul className="t-items" translate="no">{o.order_items?.map((it) => <li key={it.id}><b>{it.qty}×</b>{it.name}</li>)}</ul>
                   {o.note && <p className="t-note">{o.note}</p>}
                   <div className="t-foot"><em>{money(o.total, venue.currency)}</em>
                     <div className="t-actions">{NEXT[o.status]?.map(([to, l]) => (

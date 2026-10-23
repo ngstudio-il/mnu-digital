@@ -48,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       initialVenue={venue}
       support={support}
       subscription={(sub ?? { status: "none", trial_end: null, current_period_end: null, cancel_at_period_end: false }) as Subscription}
-      user={{ id: user.id, name: meta.full_name ?? meta.name ?? "", email: user.email ?? "", provider: user.app_metadata?.provider ?? "email" }}
+      user={{ id: user.id, name: meta.first_name ?? meta.full_name ?? meta.name ?? "", email: user.email ?? "", provider: user.app_metadata?.provider ?? "email", lang: meta.ui_lang ?? "en" }}
     >
       {children}
     </Shell>

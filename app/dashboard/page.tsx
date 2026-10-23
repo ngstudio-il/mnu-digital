@@ -1,4 +1,5 @@
 "use client";
+import { browserZone, hourIn, startOfDayIn } from "@/lib/timezone";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -13,11 +14,11 @@ export default function Overview() {
 
   useEffect(() => {
     const sb = supabaseBrowser();
-    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const start = startOfDayIn(venue.timezone || browserZone());
     sb.from("orders").select("*, order_items(*)").eq("venue_id", venue.id).gte("created_at", start.toISOString()).order("created_at", { ascending: false })
       .then(({ data }: { data: Order[] | null }) => setOrders(data ?? []));
     sb.from("dishes").select("*").eq("venue_id", venue.id).then(({ data }: { data: Dish[] | null }) => setDishes(data ?? []));
-  }, [venue.id, orderTick]);
+  }, [venue.id, venue.timezone, orderTick]);
 
   const list = orders ?? [];
   const valid = list.filter((o) => o.status !== "cancelled");
@@ -27,7 +28,7 @@ export default function Overview() {
   valid.forEach((o) => o.order_items?.forEach((it) => { sold[it.name] = (sold[it.name] ?? 0) + it.qty; }));
   const top = Object.entries(sold).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const max = top[0]?.[1] ?? 1;
-  const hour = new Date().getHours();
+  const hour = hourIn(venue.timezone || browserZone());
   const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const steps = [
     { done: dishes.length > 0, label: "Add your dishes", href: "/dashboard/menu" },
@@ -59,7 +60,7 @@ export default function Overview() {
             {open.length ? open.slice(0, 5).map((o) => (
               <div className="mini-order" key={o.id}>
                 <span className="num">#{o.number}</span>
-                <div className="what"><b>{o.type === "takeaway" ? "Takeaway" : o.table_label || "Dine-in"}</b><span>{o.order_items?.map((it) => `${it.qty}× ${it.name}`).join(", ")}</span></div>
+                <div className="what"><b>{o.type === "takeaway" ? "Takeaway" : o.table_label || "Dine-in"}</b><span translate="no">{o.order_items?.map((it) => `${it.qty}× ${it.name}`).join(", ")}</span></div>
                 <span className={`pill st-${o.status}`}>{STATUS_LABEL[o.status]}</span>
                 <em>{money(o.total, venue.currency)}</em>
               </div>
@@ -71,7 +72,7 @@ export default function Overview() {
               const d = dishes.find((x) => x.name === name);
               const src = photoUrl(d?.image_path);
               return (
-                <div className="top-dish" key={name}>
+                <div className="top-dish" key={name} translate="no">
                   {src ? <img src={src} alt="" /> : <span className="thumb-empty" />}
                   <div><b>{name}</b><div className="bar"><i style={{ width: `${Math.round((n / max) * 100)}%` }} /></div></div>
                   <span>{n} sold</span>

@@ -75,7 +75,7 @@ export function ChatThread({ venueId, as, onRead }: { venueId: string; as: "owne
           <div className="chat-msg them"><p>Hi! This is the mnu.digital team. Ask us anything about your menu, orders or billing. We usually reply within a few hours.</p></div>
         )}
         {msgs === null ? <p className="note">Loading…</p> : msgs.map((m) => (
-          <div key={m.id} className={`chat-msg ${m.sender === as ? "me" : "them"}`}><p>{m.body}</p><span>{time(m.created_at)}</span></div>
+          <div key={m.id} className={`chat-msg ${m.sender === as ? "me" : "them"}`}><p translate="no">{m.body}</p><span>{time(m.created_at)}</span></div>
         ))}
         <div ref={end} />
       </div>

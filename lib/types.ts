@@ -9,6 +9,7 @@ export type Venue = {
   langs: string[];
   primary_lang?: string;
   is_public?: boolean;
+  timezone?: string | null;
   tables: number;
   ordering_on: boolean;
   dinein: boolean;

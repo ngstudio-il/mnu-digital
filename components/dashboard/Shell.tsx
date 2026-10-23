@@ -9,6 +9,8 @@ import type { Subscription, Venue } from "@/lib/types";
 import { planSummary } from "@/lib/format";
 import { VenueContext } from "./VenueContext";
 import SupportChat from "@/components/SupportChat";
+import ProfileDialog from "./ProfileDialog";
+import DashTranslator from "./DashTranslator";
 
 const NAV = [
   { href: "/dashboard", label: "Overview", icon: <><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></> },
@@ -18,7 +20,9 @@ const NAV = [
   { href: "/dashboard/settings", label: "Settings", icon: <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></> },
 ];
 
-export default function Shell({ initialVenue, support = false, subscription, user, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; user: { id: string; name: string; email: string; provider: string }; children: React.ReactNode }) {
+export default function Shell({ initialVenue, support = false, subscription, user: initialUser, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; user: { id: string; name: string; email: string; provider: string; lang: string }; children: React.ReactNode }) {
+  const [user, setUser] = useState(initialUser);
+  const [profile, setProfile] = useState(false);
   const path = usePathname();
   const router = useRouter();
   const [preview, setPreview] = useState(false);
@@ -99,7 +103,11 @@ export default function Shell({ initialVenue, support = false, subscription, use
               if (urgent) return <div className="plan-card"><b>{plan.title}</b><p>{plan.detail}</p><button className="btn sm" type="button" onClick={openBilling}>{subscription.status === "past_due" ? "Update card" : "Manage billing"}</button></div>;
               return null;
             })()}
-            <div className="me"><span className="avatar">{(user.name || user.email || "U").charAt(0).toUpperCase()}</span><div><b>{user.name || user.email}</b><span>{venue.name}</span></div></div>
+            <button type="button" className="me" onClick={() => setProfile(true)} aria-label="Your profile">
+              <span className="avatar" translate="no">{(user.name || user.email || "U").charAt(0).toUpperCase()}</span>
+              <div><b translate="no">{user.name || user.email}</b><span translate="no">{venue.name}</span></div>
+              <svg className="me-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </button>
           </div>
         </aside>
         <div className="main">
@@ -117,6 +125,7 @@ export default function Shell({ initialVenue, support = false, subscription, use
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Preview</span>
               </button>
               <button className="btn ghost sm" type="button" onClick={logout}>Log out</button>
+              <button type="button" className="top-me" onClick={() => setProfile(true)} aria-label="Your profile" translate="no">{(user.name || user.email || "U").charAt(0).toUpperCase()}</button>
             </div>
           </header>
           <main className="view">{children}</main>
@@ -132,6 +141,8 @@ export default function Shell({ initialVenue, support = false, subscription, use
           <iframe src={`/m/${venue.slug}`} title={`${venue.name} menu`} />
         </div>
       )}
+      {profile && <ProfileDialog user={user} toast={toast} onClose={() => setProfile(false)} onSaved={setUser} onLogout={logout} />}
+      <DashTranslator lang={user.lang} />
       {!support && <SupportChat venueId={venue.id} />}
       <div className={`toast${msg ? " show" : ""}`} role="status">{msg}</div>
     </VenueContext.Provider>

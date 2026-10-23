@@ -41,6 +41,7 @@ export default function TryIt() {
   const input = useRef<HTMLInputElement>(null);
   const [qr, setQr] = useState("");
   const [cover, setCover] = useState(false);
+  const [cooking, setCooking] = useState(false);
   useEffect(() => { QRCode.toDataURL("https://www.mnu.digital", { margin: 0, width: 120, color: { dark: "#1f2829", light: "#ffffff" } }).then(setQr).catch(() => {}); }, []);
 
   // Sign-up lives on the main site (www), also when this page is opened on lp.mnu.digital.
@@ -84,12 +85,17 @@ export default function TryIt() {
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res?.ok) { setStep("pick"); return setErr(json.error ?? t.errGeneric); }
     setDraft({ id: json.draft, dishes: (json.sections as { dishes: unknown[] }[]).reduce((n, s) => n + s.dishes.length, 0) });
-    setLangs([]); setShowLang(null); setTErr(""); setCover(false);
+    setLangs([]); setShowLang(null); setTErr("");
+    // A photo of one of their dishes for the cover, made before the menu is shown. Gives up after 50s.
+    setCooking(true);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 50000);
+    const made = await fetch("/api/lp/cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ draft: json.draft }), signal: ctrl.signal })
+      .then((r) => r.json()).then((j) => !!j?.cover).catch(() => false);
+    clearTimeout(timer);
+    setCover(made); setCooking(false);
     setStep("done");
-    // A photo of one of their dishes for the menu's cover; the preview reloads once it's ready.
-    const id = json.draft as string;
-    fetch("/api/lp/cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ draft: id }) })
-      .then((r) => r.json()).then((j) => { if (j?.cover) setDraft((d) => { if (d?.id === id) setCover(true); return d; }); }).catch(() => {});
+    window.scrollTo({ top: 0 });
   }
 
   async function translate(code: string) {
@@ -137,7 +143,7 @@ export default function TryIt() {
               <button role="tab" type="button" aria-selected={mode === "text"} onClick={() => setMode("text")} disabled={step === "reading"}>{t.tabText}</button>
             </div>
             {step === "reading" ? (
-              <div className="lp-reading"><i /><b>{t.reading}</b><span>{t.readingSub}</span></div>
+              <div className="lp-reading"><i /><b>{cooking ? t.cooking : t.reading}</b><span>{cooking ? t.cookingSub : t.readingSub}</span></div>
             ) : mode === "file" ? (
               <div className={`lp-drop${drag ? " over" : ""}`} role="button" tabIndex={0}
                 onClick={() => input.current?.click()}

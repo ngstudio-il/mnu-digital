@@ -93,9 +93,8 @@ body { margin: 0; background: radial-gradient(1200px 600px at 0% 0%, #e7ece6 0%,
   .lp-result h1 { font-size: 30px; }
   .lp-result .lp-sub { display: none; }
   .lp-result .lp-stage { order: 2; padding: 14px 0 6px; }
-  .lp-result .lp-stage { width: 100%; }
-  .lp-result .lp-phone { width: 100%; height: min(680px, 78vh); padding: 8px; border-radius: 38px; }
-  .lp-result .lp-phone iframe { border-radius: 30px; }
+  .lp-result .lp-stage { width: calc(100% + 16px); margin-inline: -8px; }
+  .lp-result .lp-phone { width: 100%; height: min(780px, 86vh); }
   .lp-result .lp-translate { display: none; }
   .lp-result .lp-translate, .lp-result .lp-field, .lp-result .lp-btn.big, .lp-result .lp-note, .lp-result .lp-again { order: 3; }
   .lp-result .lp-field { margin: 18px 0 14px; width: 100%; }

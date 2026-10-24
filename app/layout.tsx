@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import SignupConversion from "@/components/marketing/SignupConversion";
 
 export const metadata: Metadata = {
   title: "mnu.digital · Digital menus for restaurants",
@@ -28,7 +29,7 @@ gtag('config', 'AW-18530337238');`,
           href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Heebo:wght@400;500;700&family=Noto+Sans+Arabic:wght@400;500;700&display=swap"
         />
       </head>
-      <body>{children}</body>
+      <body>{children}<SignupConversion /></body>
     </html>
   );
 }

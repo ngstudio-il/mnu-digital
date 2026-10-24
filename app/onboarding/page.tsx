@@ -38,5 +38,6 @@ export default async function Onboarding() {
   if (!venue) redirect("/dashboard");
   // A menu made on the try-it page is added in the dashboard instead of the starter sections.
   if (!jar.get(DRAFT_COOKIE)) await supabase.from("categories").insert(STARTER_CATEGORIES.map((n, i) => ({ venue_id: venue!.id, name: n, position: i })));
-  redirect("/billing");
+  // signup=1: counted once as a Google Ads sign-up conversion (SignupConversion).
+  redirect("/billing?signup=1");
 }

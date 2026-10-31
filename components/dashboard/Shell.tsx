@@ -79,7 +79,7 @@ export default function Shell({ initialVenue, support = false, subscription, use
 
   const plan = planSummary(subscription);
   async function openBilling() {
-    const res = await fetch("/api/stripe/portal", { method: "POST" }).catch(() => null);
+    const res = await fetch("/api/billing/manage", { method: "POST" }).catch(() => null);
     const json = res ? await res.json().catch(() => ({})) : {};
     if (res?.ok && json.url) window.location.href = json.url;
     else toast(json.error ?? "Couldn’t open billing. Try again.");

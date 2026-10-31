@@ -13,13 +13,14 @@ const FEATURES = [
   "Your logo, colours and languages",
 ];
 
-export default function BillingPlan({ venueName, returning }: { venueName: string; returning: boolean }) {
+export default function BillingPlan({ venueName, returning, provider }: { venueName: string; returning: boolean; provider: "paypal" | "stripe" }) {
+  const via = provider === "paypal" ? "PayPal" : "Stripe";
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
   async function start() {
     setBusy(true); setErr("");
-    const res = await fetch("/api/stripe/checkout", { method: "POST" }).catch(() => null);
+    const res = await fetch(provider === "paypal" ? "/api/paypal/subscribe" : "/api/stripe/checkout", { method: "POST" }).catch(() => null);
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res?.ok || !json.url) { setErr(json.error ?? "Couldn’t open checkout. Try again."); setBusy(false); return; }
     window.location.href = json.url;
@@ -46,16 +47,16 @@ export default function BillingPlan({ venueName, returning }: { venueName: strin
             <ul className="perks dark">{FEATURES.map((f) => <li key={f}>{f}</li>)}</ul>
             {!returning && (
               <ol className="trial-steps">
-                <li><b>Today</b><span>Full access, card saved securely with Stripe</span></li>
+                <li><b>Today</b><span>Full access, payment set up securely with {via}</span></li>
                 <li><b>Day 7</b><span>First charge of $39, then monthly</span></li>
-                <li><b>Anytime</b><span>Cancel in Settings before day 7 and pay nothing</span></li>
+                <li><b>Anytime</b><span>Cancel before day 7 and pay nothing</span></li>
               </ol>
             )}
           </div>
 
           <p className="err" aria-live="polite">{err}</p>
-          <button className="btn block" type="button" onClick={start} disabled={busy}>{busy ? "Opening secure checkout…" : returning ? "Continue to payment" : "Start free trial"}</button>
-          <p className="legal">Payments are processed by Stripe. We never see your card number.</p>
+          <button className="btn block" type="button" onClick={start} disabled={busy}>{busy ? `Opening ${via}…` : returning ? `Continue to payment with ${via}` : `Start free trial with ${via}`}</button>
+          <p className="legal">{provider === "paypal" ? "Payments are processed by PayPal. Pay with your PayPal account or a card. We never see your card number." : "Payments are processed by Stripe. We never see your card number."}</p>
         </div>
       </section>
       <aside className="auth-side" aria-hidden="true">

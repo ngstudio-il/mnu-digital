@@ -12,7 +12,10 @@ export default function ImagePacks({ onClose }: { onClose: () => void }) {
 
   async function buy(pack: string) {
     setBusy(pack); setErr("");
-    const res = await fetch("/api/stripe/image-pack", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pack }) }).catch(() => null);
+    const send = (url: string) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pack }) }).catch(() => null);
+    // PayPal; Stripe only while PayPal isn't set up on the server.
+    let res = await send("/api/paypal/image-pack");
+    if (res?.status === 503) res = await send("/api/stripe/image-pack");
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res?.ok || !json.url) { setErr(json.error ?? "Couldn’t open checkout."); setBusy(""); return; }
     window.location.href = json.url;
@@ -35,7 +38,7 @@ export default function ImagePacks({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         {err && <p className="note" style={{ color: "var(--coral)" }}>{err}</p>}
-        <p className="note">One-time payment through Stripe. No subscription change.</p>
+        <p className="note">One-time payment through PayPal. No subscription change.</p>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import Shell from "@/components/dashboard/Shell";
 import { billingConfigured } from "@/lib/stripe";
+import { paypalConfigured } from "@/lib/paypal";
 import { SUPPORT_COOKIE } from "@/lib/admin";
 import type { Subscription, Venue } from "@/lib/types";
 
@@ -38,8 +39,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const { data: sub } = await supabase.from("subscriptions").select("status, trial_end, current_period_end, cancel_at_period_end").eq("venue_id", venue.id).maybeSingle();
-  // Payment is required only once Stripe keys are configured, so setup never locks the owner out.
-  if (!support && billingConfigured() && (!sub || !["trialing", "active", "past_due"].includes(sub.status))) {
+  // Payment is required only once Stripe or PayPal keys are configured, so setup never locks the owner out.
+  // A subscription cancelled mid-period works until the end of what was paid for.
+  const ended = !!sub?.cancel_at_period_end && !!sub.current_period_end && new Date(sub.current_period_end).getTime() < Date.now();
+  if (!support && (billingConfigured() || paypalConfigured()) && (!sub || !["trialing", "active", "past_due"].includes(sub.status) || ended)) {
     const { data: isAdmin } = await supabase.rpc("is_admin");
     if (isAdmin !== true) redirect("/billing");
   }

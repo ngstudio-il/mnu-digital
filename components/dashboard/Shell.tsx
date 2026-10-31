@@ -11,6 +11,7 @@ import { VenueContext } from "./VenueContext";
 import SupportChat from "@/components/SupportChat";
 import ProfileDialog from "./ProfileDialog";
 import SetupVenue from "./SetupVenue";
+import BillingMove from "./BillingMove";
 import DashTranslator from "./DashTranslator";
 
 const NAV = [
@@ -23,7 +24,7 @@ const NAV = [
   { href: "/dashboard/settings", label: "Settings", icon: <><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></> },
 ];
 
-export default function Shell({ initialVenue, support = false, subscription, user: initialUser, pendingDraft = false, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; pendingDraft?: boolean; user: { id: string; name: string; email: string; provider: string; lang: string }; children: React.ReactNode }) {
+export default function Shell({ initialVenue, support = false, subscription, user: initialUser, pendingDraft = false, billingMove = false, children }: { initialVenue: Venue; support?: boolean; subscription: Subscription; pendingDraft?: boolean; billingMove?: boolean; user: { id: string; name: string; email: string; provider: string; lang: string }; children: React.ReactNode }) {
   const [user, setUser] = useState(initialUser);
   const [profile, setProfile] = useState(false);
   // A menu made on the try-it page before signing up is added once the owner reaches the dashboard.
@@ -154,6 +155,7 @@ export default function Shell({ initialVenue, support = false, subscription, use
           <iframe src={`/m/${venue.slug}`} title={`${venue.name} menu`} />
         </div>
       )}
+      {!support && billingMove && <BillingMove until={subscription.status === "trialing" ? subscription.trial_end ?? subscription.current_period_end : subscription.current_period_end} />}
       {!support && venue.setup_done === false && <SetupVenue venue={venue} onDone={(v) => { setVenue(v); toast("Welcome to mnu.digital"); }} />}
       {profile && <ProfileDialog user={user} toast={toast} onClose={() => setProfile(false)} onSaved={setUser} onLogout={logout} />}
       <DashTranslator lang={user.lang} />

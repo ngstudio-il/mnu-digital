@@ -38,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect(isAdmin === true ? "/admin" : "/onboarding");
   }
 
-  const { data: sub } = await supabase.from("subscriptions").select("status, trial_end, current_period_end, cancel_at_period_end").eq("venue_id", venue.id).maybeSingle();
+  const { data: sub } = await supabase.from("subscriptions").select("*").eq("venue_id", venue.id).maybeSingle();
   // Payment is required only once Stripe or PayPal keys are configured, so setup never locks the owner out.
   // A subscription cancelled mid-period works until the end of what was paid for.
   const ended = !!sub?.cancel_at_period_end && !!sub.current_period_end && new Date(sub.current_period_end).getTime() < Date.now();
@@ -54,6 +54,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       support={support}
       subscription={(sub ?? { status: "none", trial_end: null, current_period_end: null, cancel_at_period_end: false }) as Subscription}
       pendingDraft={pendingDraft}
+      billingMove={!!meta.billing_move && (sub as { provider?: string } | null)?.provider !== "paypal"}
       user={{ id: user.id, name: meta.first_name ?? meta.full_name ?? meta.name ?? "", email: user.email ?? "", provider: user.app_metadata?.provider ?? "email", lang: meta.ui_lang ?? "en" }}
     >
       {children}

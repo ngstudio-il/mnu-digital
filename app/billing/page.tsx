@@ -14,7 +14,7 @@ export default async function Billing() {
   if (!venue) redirect("/onboarding");
   const { data: sub } = await supabase.from("subscriptions").select("status, cancel_at_period_end, current_period_end").eq("venue_id", venue.id).maybeSingle();
   const ended = !!sub?.cancel_at_period_end && !!sub.current_period_end && new Date(sub.current_period_end).getTime() < Date.now();
-  if (sub && ["trialing", "active", "past_due"].includes(sub.status) && !ended) redirect("/dashboard");
+  if (sub && ["trialing", "active", "past_due"].includes(sub.status) && !ended && !sub.cancel_at_period_end) redirect("/dashboard");
   const returning = Boolean(sub && sub.status !== "none");
   // PayPal for new subscriptions; Stripe only while PayPal isn't set up on the server.
   return <BillingPlan venueName={venue.name} returning={returning} provider={paypalConfigured() ? "paypal" : "stripe"} />;

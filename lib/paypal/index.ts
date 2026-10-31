@@ -78,6 +78,7 @@ export type PayPalSubscription = {
   plan_id: string;
   custom_id?: string;
   start_time?: string;
+  subscriber?: { email_address?: string; name?: { given_name?: string; surname?: string } };
   billing_info?: { next_billing_time?: string; outstanding_balance?: { value: string }; failed_payments_count?: number; cycle_executions?: { tenure_type: string; cycles_completed: number }[] };
   links?: { href: string; rel: string }[];
 };
@@ -141,15 +142,23 @@ export const WEBHOOK_EVENTS = [
 ];
 
 // AI image packs, paid once through PayPal Orders. Credited once per order (grant_image_pack is keyed by it).
-export async function captureImagePack(orderId: string, venueId: string) {
+export async function captureImagePack(orderId: string, venueId: string, origin?: string) {
   const db = supabaseAdmin();
-  let order = await paypal<{ status: string; purchase_units?: { custom_id?: string; payments?: { captures?: { amount: { value: string } }[] } }[] }>("GET", `/v2/checkout/orders/${encodeURIComponent(orderId)}`);
+  let order = await paypal<{ status: string; payer?: { email_address?: string; name?: { given_name?: string; surname?: string } }; purchase_units?: { custom_id?: string; payments?: { captures?: { id: string; create_time?: string; amount: { value: string; currency_code: string } }[] } }[] }>("GET", `/v2/checkout/orders/${encodeURIComponent(orderId)}`);
   const unit = order.purchase_units?.[0];
   const [orderVenue, credits] = (unit?.custom_id ?? "").split(":");
   if (orderVenue !== venueId || !Number(credits)) return false;
   if (order.status === "APPROVED") order = await paypal("POST", `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {}, { "PayPal-Request-Id": `capture-${orderId}` });
   if (order.status !== "COMPLETED") return false;
-  const paid = Number(order.purchase_units?.[0]?.payments?.captures?.[0]?.amount.value ?? 0);
+  const capture = order.purchase_units?.[0]?.payments?.captures?.[0];
+  const paid = Number(capture?.amount.value ?? 0);
   const { data } = await db.rpc("grant_image_pack", { p_session: `paypal:${orderId}`, p_venue: venueId, p_credits: Number(credits), p_amount: Math.round(paid * 100) });
+  if (data === true && origin && capture) {
+    const { notifyPayment } = await import("@/lib/email/admin-alerts");
+    await notifyPayment(venueId, origin, {
+      id: `paypal:${capture.id}`, provider: "paypal", kind: "image_pack", amount: paid, currency: capture.amount.currency_code, paidAt: capture.create_time, note: `${credits} images`,
+      payerName: [order.payer?.name?.given_name, order.payer?.name?.surname].filter(Boolean).join(" ") || undefined, payerEmail: order.payer?.email_address,
+    });
+  }
   return data === true;
 }

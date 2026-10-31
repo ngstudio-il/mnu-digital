@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { grantImagePackFromSession, stripe, syncSubscription } from "@/lib/stripe";
-import { notifySubscription } from "@/lib/email/admin-alerts";
+import { notifyPayment, notifySubscription } from "@/lib/email/admin-alerts";
 
 // Stripe → app: keeps public.subscriptions in step with trials, renewals, failed payments and cancellations.
 export async function POST(request: Request) {
@@ -39,6 +39,19 @@ export async function POST(request: Request) {
       const sub = event.data.object as Stripe.Subscription;
       await syncSubscription(sub);
       if (sub.metadata?.venue_id) await notifySubscription("canceled", sub.metadata.venue_id, origin);
+      break;
+    }
+    case "invoice.paid": {
+      // Existing Stripe subscribers: every real payment gets an alert to invoice it.
+      const inv = event.data.object as Stripe.Invoice;
+      if (inv.amount_paid > 0) {
+        const subId = (inv as unknown as { subscription?: string | { id: string } }).subscription ?? inv.parent?.subscription_details?.subscription;
+        const sub = subId ? await s.subscriptions.retrieve(typeof subId === "string" ? subId : subId.id).catch(() => null) : null;
+        await notifyPayment(sub?.metadata?.venue_id ?? null, origin, {
+          id: `stripe:${inv.id}`, provider: "stripe", kind: "subscription", amount: inv.amount_paid / 100, currency: inv.currency.toUpperCase(),
+          paidAt: new Date(inv.created * 1000).toISOString(), payerName: inv.customer_name ?? undefined, payerEmail: inv.customer_email ?? undefined,
+        });
+      }
       break;
     }
     case "customer.subscription.created":

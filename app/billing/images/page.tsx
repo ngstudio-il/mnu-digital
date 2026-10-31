@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 import { grantImagePackFromSession, stripe } from "@/lib/stripe";
 import { captureImagePack } from "@/lib/paypal";
@@ -15,7 +16,8 @@ export default async function ImagesBought({ searchParams }: { searchParams: Pro
   if (token) {
     try {
       const { data: venue } = await supabase.from("venues").select("id").eq("owner_id", user.id).order("created_at").limit(1).maybeSingle();
-      if (venue) await captureImagePack(token, venue.id);
+      const h = await headers();
+      if (venue) await captureImagePack(token, venue.id, `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`);
     } catch {
       // The webhook will capture and credit it.
     }

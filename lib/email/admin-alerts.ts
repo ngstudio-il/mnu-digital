@@ -50,3 +50,39 @@ export async function notifySubscription(kind: "trial" | "paid" | "canceled", ve
     });
   } catch (e) { console.error("subscription alert failed", e); }
 }
+
+export type Payment = { id: string; provider: "paypal" | "stripe"; kind: "subscription" | "image_pack"; amount: number; currency: string; payerName?: string; payerEmail?: string; paidAt?: string; note?: string };
+
+// Every payment received, so an invoice can be issued for it (by hand in iCount for now).
+// Recorded in public.payments first; a payment already there (a resent webhook) isn't emailed again.
+export async function notifyPayment(venueId: string | null, origin: string, p: Payment) {
+  try {
+    const db = supabaseAdmin();
+    const paidAt = p.paidAt ?? new Date().toISOString();
+    const { data: saved, error } = await db.from("payments").upsert({
+      id: p.id, venue_id: venueId, provider: p.provider, kind: p.kind, amount: p.amount, currency: p.currency,
+      payer_name: p.payerName ?? null, payer_email: p.payerEmail ?? null, paid_at: paidAt,
+    }, { onConflict: "id", ignoreDuplicates: true }).select("id");
+    // No row back means it was already recorded. (Before 0023 there is no table: alert anyway.)
+    if (!error && !saved?.length) return;
+    const { data: venue } = venueId ? await db.from("venues").select("name, owner_id").eq("id", venueId).maybeSingle() : { data: null };
+    const { data: owner } = venue ? await db.auth.admin.getUserById(venue.owner_id) : { data: null };
+    const email = owner?.user?.email ?? "";
+    const { count } = venueId ? await db.from("payments").select("id", { count: "exact", head: true }).eq("venue_id", venueId).eq("kind", "subscription") : { count: 0 };
+    const name = venue?.name ?? "A venue";
+    const amount = `${p.amount.toFixed(2)} ${p.currency}`;
+    const what = p.kind === "image_pack" ? `AI image pack${p.note ? ` (${p.note})` : ""}` : `mnu.digital Pro, monthly${count === 1 ? " · first payment" : count ? ` · payment #${count}` : ""}`;
+    const when = new Date(paidAt).toLocaleString("en-GB", { timeZone: "Asia/Jerusalem", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const rows: [string, string][] = [
+      ["Amount", amount], ["For", what], ["Paid", when], ["Via", p.provider === "paypal" ? "PayPal" : "Stripe"], ["Transaction", p.id.replace(/^\w+:/, "")],
+      ["Payer", [p.payerName, p.payerEmail].filter(Boolean).join(" · ") || "—"], ["Account email", email],
+    ];
+    await sendEmail({
+      to: TEAM,
+      replyTo: p.payerEmail || email || undefined,
+      subject: `Payment received · ${amount} · ${name}${count === 1 && p.kind === "subscription" ? " (first payment)" : ""}`,
+      text: `Payment received: issue an invoice.\n${name}\n${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\n${origin}/admin${venueId ? `/venues/${venueId}` : ""}`,
+      html: card("Payment received · issue an invoice", name, rows, { href: `${origin}/admin${venueId ? `/venues/${venueId}` : ""}`, text: "Open in admin" }),
+    });
+  } catch (e) { console.error("payment alert failed", e); }
+}

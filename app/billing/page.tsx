@@ -17,5 +17,5 @@ export default async function Billing() {
   if (sub && ["trialing", "active", "past_due"].includes(sub.status) && !ended && !sub.cancel_at_period_end) redirect("/dashboard");
   const returning = Boolean(sub && sub.status !== "none");
   // PayPal for new subscriptions; Stripe only while PayPal isn't set up on the server.
-  return <BillingPlan venueName={venue.name} returning={returning} provider={paypalConfigured() ? "paypal" : "stripe"} />;
+  return <BillingPlan venueName={venue.name} returning={returning} provider={paypalConfigured() ? "paypal" : "stripe"} paypalClientId={paypalConfigured() ? (process.env.PAYPAL_CLIENT_ID ?? "").trim() : ""} />;
 }

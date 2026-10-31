@@ -1,7 +1,7 @@
 "use client";
 import "@/styles/app.css";
 import "@/styles/auth.css";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import ScanShowcase from "@/components/marketing/ScanShowcase";
 
@@ -13,8 +13,53 @@ const FEATURES = [
   "Your logo, colours and languages",
 ];
 
-export default function BillingPlan({ venueName, returning, provider }: { venueName: string; returning: boolean; provider: "paypal" | "stripe" }) {
+type PayPalButtons = { isEligible: () => boolean; render: (el: HTMLElement) => Promise<void> };
+type PayPalSdk = { Buttons: (o: object) => PayPalButtons; FUNDING: { CARD: string; PAYPAL: string } };
+
+export default function BillingPlan({ venueName, returning, provider, paypalClientId = "" }: { venueName: string; returning: boolean; provider: "paypal" | "stripe"; paypalClientId?: string }) {
   const via = provider === "paypal" ? "PayPal" : "Stripe";
+  const cardBox = useRef<HTMLDivElement>(null);
+  const paypalBox = useRef<HTMLDivElement>(null);
+  // PayPal's buttons, right on this page: pay by card (no PayPal account needed), or log in to PayPal.
+  // If they can't load, the plain button below opens PayPal's own page instead.
+  const [sdk, setSdk] = useState<"loading" | "ready" | "failed">(provider === "paypal" && paypalClientId ? "loading" : "failed");
+
+  useEffect(() => {
+    if (sdk !== "loading") return;
+    const w = window as Window & { paypal?: PayPalSdk };
+    const create = async () => {
+      const res = await fetch("/api/paypal/subscribe", { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (json.active) { window.location.href = "/dashboard"; throw new Error("active"); }
+      if (!res.ok || !json.id) { setErr(json.error ?? "Couldn’t start the payment. Try again."); throw new Error("subscribe"); }
+      return json.id as string;
+    };
+    const opts = (fundingSource: string, color: string) => ({
+      fundingSource,
+      style: { layout: "vertical", shape: "pill", height: 48, label: "subscribe", ...(color ? { color } : {}) },
+      createSubscription: create,
+      onApprove: (data: { subscriptionID?: string }) => { setBusy(true); window.location.href = `/billing/paypal?subscription_id=${encodeURIComponent(data.subscriptionID ?? "")}`; },
+      onError: () => setErr("The payment didn’t go through. Try again, or use another card."),
+    });
+    const draw = async () => {
+      const pp = w.paypal;
+      if (!pp || !cardBox.current || !paypalBox.current) return setSdk("failed");
+      let shown = 0;
+      for (const [box, b] of [[cardBox.current, pp.Buttons(opts(pp.FUNDING.CARD, "black"))], [paypalBox.current, pp.Buttons(opts(pp.FUNDING.PAYPAL, "gold"))]] as const) {
+        if (b.isEligible()) { await b.render(box).catch(() => {}); shown++; }
+      }
+      setSdk(shown ? "ready" : "failed");
+    };
+    if (w.paypal) { draw(); return; }
+    const s = document.createElement("script");
+    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(paypalClientId)}&vault=true&intent=subscription&components=buttons&enable-funding=card&locale=en_US`;
+    s.async = true;
+    s.onload = () => { draw(); };
+    s.onerror = () => setSdk("failed");
+    document.head.appendChild(s);
+    const timer = setTimeout(() => setSdk((v) => (v === "loading" ? "failed" : v)), 12000);
+    return () => clearTimeout(timer);
+  }, [sdk, paypalClientId]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -55,8 +100,16 @@ export default function BillingPlan({ venueName, returning, provider }: { venueN
           </div>
 
           <p className="err" aria-live="polite">{err}</p>
-          <button className="btn block" type="button" onClick={start} disabled={busy}>{busy ? `Opening ${via}…` : returning ? `Continue to payment with ${via}` : `Start free trial with ${via}`}</button>
-          <p className="legal">{provider === "paypal" ? "Payments are processed by PayPal. Pay with your PayPal account or a card. We never see your card number." : "Payments are processed by Stripe. We never see your card number."}</p>
+          {provider === "paypal" && sdk !== "failed" && (
+            <div className="pp-buttons" aria-busy={sdk === "loading"}>
+              {sdk === "loading" && <p className="note" style={{ textAlign: "center" }}>Loading secure payment…</p>}
+              <div ref={cardBox} />
+              {sdk === "ready" && <p className="pp-or"><span>or</span></p>}
+              <div ref={paypalBox} />
+            </div>
+          )}
+          {(provider !== "paypal" || sdk === "failed") && <button className="btn block" type="button" onClick={start} disabled={busy}>{busy ? `Opening ${via}…` : returning ? `Continue to payment with ${via}` : `Start free trial with ${via}`}</button>}
+          <p className="legal">{provider === "paypal" ? "Pay with a debit or credit card, no PayPal account needed, or log in to PayPal. Payments are processed securely by PayPal; we never see your card number." : "Payments are processed by Stripe. We never see your card number."}</p>
         </div>
       </section>
       <aside className="auth-side" aria-hidden="true">

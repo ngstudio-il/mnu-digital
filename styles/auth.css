@@ -88,3 +88,7 @@ form { display: grid; gap: 14px; }
 @media (prefers-reduced-motion: reduce) { .ss-beam, .ss-path, .ss-phone, .ss-toast { animation: none; } .ss-toast { opacity: 1; } }
 .auth-mockup { position: relative; margin-top: 36px; width: 100%; max-width: 620px; align-self: center; }
 .auth-side .hm .halo { border-color: rgba(255,255,255,.12); }
+/* PayPal buttons on the billing page: card first, then PayPal. */
+.pp-buttons { margin-top: 6px; display: grid; gap: 4px; min-height: 52px; }
+.pp-or { display: flex; align-items: center; gap: 12px; margin: 6px 0; font-size: 12px; color: var(--dim); }
+.pp-or::before, .pp-or::after { content: ""; flex: 1; height: 1px; background: rgba(31,40,41,.12); }

@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   const { data: existing } = await supabaseAdmin().from("subscriptions").select("status, cancel_at_period_end, current_period_end").eq("venue_id", venue.id).maybeSingle();
   const ended = existing?.cancel_at_period_end && existing.current_period_end && new Date(existing.current_period_end).getTime() < Date.now();
-  if (existing && ["trialing", "active", "past_due"].includes(existing.status) && !existing.cancel_at_period_end && !ended) return NextResponse.json({ url: `${origin}/dashboard` });
+  if (existing && ["trialing", "active", "past_due"].includes(existing.status) && !existing.cancel_at_period_end && !ended) return NextResponse.json({ url: `${origin}/dashboard`, active: true });
 
   try {
     const { trial, plain } = await ensurePlans();
@@ -35,7 +35,9 @@ export async function POST(request: Request) {
     });
     const approve = sub.links?.find((l) => l.rel === "approve")?.href;
     if (!approve) return NextResponse.json({ error: "Couldn’t open PayPal. Try again." }, { status: 502 });
-    return NextResponse.json({ url: approve });
+    // id: for the PayPal buttons on the billing page (card or PayPal account, in place);
+    // url: PayPal's own page, when the buttons can't load.
+    return NextResponse.json({ id: sub.id, url: approve });
   } catch (e) {
     return NextResponse.json({ error: e instanceof PayPalError ? `PayPal: ${e.message}` : "Couldn’t open PayPal. Try again." }, { status: 502 });
   }

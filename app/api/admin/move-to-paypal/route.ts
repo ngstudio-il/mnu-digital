@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { billingConfigured, stripe } from "@/lib/stripe";
-import { sendEmail } from "@/lib/email";
+import { emailFrom, sendEmail } from "@/lib/email";
 import { billingMoveEmail } from "@/lib/email/billing-move";
 
 const TEAM = process.env.SUPPORT_EMAIL || "office@ngstudio.co.il";
 
 // Admin-only: moves one Stripe subscriber to PayPal.
 //   ?email=…&test=1     emails the message to the team only, changes nothing.
+//   ?email=…&resend=1   sends them the email again and changes nothing (e.g. it didn't go out the first time).
 //   ?email=…&confirm=1  cancels their Stripe subscription right away (nothing more can be charged there),
 //                       keeps their menu working until the end of the trial/period already given,
 //                       shows them a "set up payment" notice in the dashboard, and emails them.
@@ -17,8 +18,8 @@ export async function GET(request: Request) {
   if (!(await getAdmin())) return NextResponse.json({ error: "Admins only." }, { status: 403 });
   const q = new URL(request.url).searchParams;
   const email = (q.get("email") ?? "").trim().toLowerCase();
-  const test = q.get("test") === "1", confirm = q.get("confirm") === "1";
-  if (!email || (!test && !confirm)) return NextResponse.json({ error: "Use ?email=…&test=1 first, then ?email=…&confirm=1." }, { status: 400 });
+  const test = q.get("test") === "1", confirm = q.get("confirm") === "1", resend = q.get("resend") === "1";
+  if (!email || (!test && !confirm && !resend)) return NextResponse.json({ error: "Use ?email=…&test=1 first, then ?email=…&confirm=1." }, { status: 400 });
 
   const db = supabaseAdmin();
   let user = null;
@@ -49,6 +50,10 @@ export async function GET(request: Request) {
   }
 
   if (sub?.provider === "paypal") return NextResponse.json({ error: "Already on PayPal." }, { status: 400 });
+  if (resend) {
+    const sent = await sendEmail({ to: email, replyTo: TEAM, subject: message.subject, text: message.text, html: message.html });
+    return NextResponse.json({ resent: true, to: email, from: emailFrom(), email: sent });
+  }
   let stripeResult = "no Stripe subscription";
   if (sub?.stripe_subscription_id && billingConfigured()) {
     const s = stripe();
@@ -68,5 +73,5 @@ export async function GET(request: Request) {
   }).eq("venue_id", venue.id);
   await db.auth.admin.updateUserById(user.id, { user_metadata: { ...meta, billing_move: true } });
   const sent = await sendEmail({ to: email, replyTo: TEAM, subject: message.subject, text: message.text, html: message.html });
-  return NextResponse.json({ done: true, venue: venue.name, stripe: stripeResult, menuWorksUntil: keepUntil, dashboardNotice: "on", email: sent });
+  return NextResponse.json({ done: true, venue: venue.name, stripe: stripeResult, menuWorksUntil: keepUntil, dashboardNotice: "on", from: emailFrom(), email: sent });
 }

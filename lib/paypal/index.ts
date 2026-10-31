@@ -6,7 +6,8 @@ export const PAYPAL_PLAN = { product: "mnu.digital Pro", amount: "39.00", curren
 export const BRAND = "MNU digital";
 
 export const paypalConfigured = () => Boolean(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY);
-export const paypalLive = () => (process.env.PAYPAL_ENV ?? "live") !== "sandbox";
+export const paypalLive = () => clean(process.env.PAYPAL_ENV ?? "live").toLowerCase() !== "sandbox";
+const clean = (v: string | undefined) => (v ?? "").trim().replace(/^["']|["']$/g, "");
 const base = () => (paypalLive() ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com");
 
 export class PayPalError extends Error {
@@ -16,10 +17,11 @@ export class PayPalError extends Error {
 let token: { value: string; until: number } | null = null;
 async function accessToken() {
   if (token && token.until > Date.now()) return token.value;
-  const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
+  // Trimmed: a space or line break pasted into Vercel along with the key makes PayPal refuse it.
+  const auth = Buffer.from(`${clean(process.env.PAYPAL_CLIENT_ID)}:${clean(process.env.PAYPAL_CLIENT_SECRET)}`).toString("base64");
   const res = await fetch(`${base()}/v1/oauth2/token`, { method: "POST", headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" }, body: "grant_type=client_credentials", cache: "no-store" });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok || !json.access_token) throw new PayPalError(json.error_description ?? "PayPal sign-in failed. Check PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET and PAYPAL_ENV.", res.status);
+  if (!res.ok || !json.access_token) throw new PayPalError(`${json.error_description ?? "PayPal sign-in failed"} (${paypalLive() ? "live" : "sandbox"} mode). Check that PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET are from the same app, both from its ${paypalLive() ? "Live" : "Sandbox"} tab.`, res.status);
   token = { value: json.access_token, until: Date.now() + (Number(json.expires_in ?? 300) - 60) * 1000 };
   return token.value;
 }

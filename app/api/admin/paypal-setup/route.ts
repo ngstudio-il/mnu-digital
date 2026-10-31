@@ -27,6 +27,14 @@ export async function GET(request: Request) {
       PAYPAL_WEBHOOK_ID: !setId ? `Not set: add PAYPAL_WEBHOOK_ID = ${webhook} in Vercel and redeploy.` : setId === webhook ? "Set correctly." : `Set to a different id: change it to ${webhook} and redeploy.`,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof PayPalError ? e.message : "PayPal error", details: e instanceof PayPalError ? e.details : undefined }, { status: 502 });
+    // Only public facts about the keys, to tell a wrong or mismatched key apart: never the keys themselves.
+    const id = (process.env.PAYPAL_CLIENT_ID ?? "").trim(), secret = (process.env.PAYPAL_CLIENT_SECRET ?? "").trim();
+    return NextResponse.json({
+      error: e instanceof PayPalError ? e.message : "PayPal error",
+      details: e instanceof PayPalError ? e.details : undefined,
+      mode: paypalLive() ? "live" : "sandbox",
+      clientId: { startsWith: id.slice(0, 6), endsWith: id.slice(-4), length: id.length },
+      secret: { length: secret.length, hadSpaces: secret !== (process.env.PAYPAL_CLIENT_SECRET ?? "") },
+    }, { status: 502 });
   }
 }

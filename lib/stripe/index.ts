@@ -33,9 +33,10 @@ const ts = (n: number | null | undefined) => (n ? new Date(n * 1000).toISOString
 export async function syncSubscription(sub: Stripe.Subscription) {
   const venueId = sub.metadata?.venue_id;
   if (!venueId) return;
-  // A venue that has moved to PayPal: its old Stripe subscription ending must not switch it off.
+  // A venue that has moved to PayPal (or is in its grace period on the way there): its old Stripe
+  // subscription ending must not switch it off.
   const { data: row } = await supabaseAdmin().from("subscriptions").select("provider").eq("venue_id", venueId).maybeSingle();
-  if (row?.provider === "paypal") return;
+  if (row?.provider && row.provider !== "stripe") return;
   const periodEnd = sub.items?.data?.[0]?.current_period_end;
   await supabaseAdmin().from("subscriptions").upsert({
     venue_id: venueId,

@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const { data: venue } = await supabase.from("venues").select("id").eq("owner_id", user.id).order("created_at").limit(1).maybeSingle();
   const { data: sub } = venue ? await supabase.from("subscriptions").select("*").eq("venue_id", venue.id).maybeSingle() : { data: null };
   if (sub?.provider === "paypal") return NextResponse.json({ url: paypalLive() ? "https://www.paypal.com/myaccount/autopay/" : "https://www.sandbox.paypal.com/myaccount/autopay/" });
-  if (!sub?.stripe_customer_id || !billingConfigured()) return NextResponse.json({ url: `${origin}/billing` });
+  if (sub?.provider === "grace" || !sub?.stripe_customer_id || !billingConfigured()) return NextResponse.json({ url: `${origin}/billing` });
   try {
     const portal = await stripe().billingPortal.sessions.create({ customer: sub.stripe_customer_id, return_url: `${origin}/dashboard/settings/general` });
     return NextResponse.json({ url: portal.url });

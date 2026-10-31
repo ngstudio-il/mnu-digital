@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { ChatThread } from "@/components/SupportChat";
 
-export default function VenueActions({ venueId, slug, stripeCustomer, chatOnly = false }: { venueId: string; slug: string; stripeCustomer: string | null; chatOnly?: boolean }) {
+export default function VenueActions({ venueId, slug, paypalSubscription, chatOnly = false }: { venueId: string; slug: string; paypalSubscription: string | null; chatOnly?: boolean }) {
   const [busy, setBusy] = useState(false);
   if (chatOnly) return <div className="adm-chatbox"><ChatThread venueId={venueId} as="admin" /></div>;
 
@@ -35,7 +35,7 @@ export default function VenueActions({ venueId, slug, stripeCustomer, chatOnly =
       <a className="btn ghost sm" href={`/m/${slug}`} target="_blank" rel="noreferrer">View public menu</a>
       <button className="btn ghost sm" type="button" onClick={generatePhotos} disabled={gen.running}>{gen.running ? `Creating photos… ${gen.made} done${gen.remaining !== null ? `, ${gen.remaining} left` : ""}` : "Generate missing photos"}</button>
       {(gen.msg || (!gen.running && gen.made > 0)) && <p className="note" style={{ width: "100%" }}>{gen.made > 0 && !gen.running ? `${gen.made} photos created. ` : ""}{gen.msg}</p>}
-      {stripeCustomer && <a className="btn ghost sm" href={`https://dashboard.stripe.com/customers/${stripeCustomer}`} target="_blank" rel="noreferrer">Open in Stripe</a>}
+      {paypalSubscription && <a className="btn ghost sm" href={`https://www.paypal.com/billing/subscriptions/${encodeURIComponent(paypalSubscription)}`} target="_blank" rel="noreferrer">Open in PayPal</a>}
     </div>
   );
 }

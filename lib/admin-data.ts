@@ -5,7 +5,7 @@ import { getAdmin } from "@/lib/admin";
 export type VenueRow = {
   id: string; name: string; slug: string; type: string; created_at: string; ordering_on: boolean;
   owner_id: string; owner_email: string; owner_name: string; provider: string; last_sign_in: string | null;
-  status: string; trial_end: string | null; current_period_end: string | null; stripe_customer_id: string | null;
+  status: string; trial_end: string | null; current_period_end: string | null; billing: string; paypal_subscription_id: string | null; cancel_at_period_end: boolean;
   dishes: number; orders30: number; revenue30: number; ordersToday: number; lastOrder: string | null;
   aiUsed: number; imports: number; images: number; unread: number;
 };
@@ -21,7 +21,7 @@ export async function loadAdminData() {
 
   const [venues, subs, dishes, orders, usage, unread, users] = await Promise.all([
     db.from("venues").select("id, name, slug, type, created_at, ordering_on, owner_id").order("created_at", { ascending: false }),
-    db.from("subscriptions").select("venue_id, status, trial_end, current_period_end, stripe_customer_id"),
+    db.from("subscriptions").select("*"),
     db.from("dishes").select("venue_id"),
     db.from("orders").select("venue_id, total, status, created_at").gte("created_at", since30),
     db.from("ai_usage").select("venue_id, used, imports, images").eq("month", month()),
@@ -55,7 +55,7 @@ export async function loadAdminData() {
       ...v,
       owner_email: u?.email ?? "—", owner_name: meta.full_name ?? meta.name ?? "", provider: (u?.app_metadata?.provider as string) ?? "email",
       last_sign_in: u?.last_sign_in_at ?? null,
-      status: s?.status ?? "none", trial_end: s?.trial_end ?? null, current_period_end: s?.current_period_end ?? null, stripe_customer_id: s?.stripe_customer_id ?? null,
+      status: s?.status ?? "none", trial_end: s?.trial_end ?? null, current_period_end: s?.current_period_end ?? null, billing: s?.provider ?? "none", paypal_subscription_id: s?.paypal_subscription_id ?? null, cancel_at_period_end: !!s?.cancel_at_period_end,
       dishes: dishCount.get(v.id) ?? 0, orders30: o?.n ?? 0, revenue30: o?.rev ?? 0, ordersToday: o?.today ?? 0, lastOrder: o?.last ?? null,
       aiUsed: a?.used ?? 0, imports: a?.imports ?? 0, images: (a as { images?: number } | undefined)?.images ?? 0, unread: unreadBy.get(v.id) ?? 0,
     };

@@ -27,7 +27,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
         <div className="card">
           <div className="card-head"><h3 style={{ fontSize: 22 }}>{v.name}</h3><span className={`pill st-${v.status}`}>{v.status.replace("_", " ")}</span></div>
           <p className="note" style={{ marginBottom: 16 }}>{v.type} · /m/{v.slug} · joined {day(v.created_at)}</p>
-          <VenueActions venueId={v.id} slug={v.slug} stripeCustomer={v.stripe_customer_id} />
+          <VenueActions venueId={v.id} slug={v.slug} paypalSubscription={v.paypal_subscription_id} />
           <div className="adm-danger"><div><b>Danger zone</b><span>Delete {v.owner_email} and everything in this account.</span></div><DeleteUser userId={v.owner_id} email={v.owner_email} /></div>
         </div>
         <div className="card">
@@ -41,6 +41,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
             <div><small>Menu imports this month</small><b>{v.imports}</b></div>
             <div><small>Ordering</small><b>{v.ordering_on ? "On" : "Paused"}</b></div>
             <div><small>Tables</small><b>{venue?.tables ?? "—"}</b></div>
+            <div><small>Billing</small><b style={{ fontSize: 15 }}>{v.billing === "paypal" ? "PayPal" : v.billing === "grace" ? `No payment method${v.current_period_end ? ` · ends ${day(v.trial_end ?? v.current_period_end)}` : ""}` : v.billing === "stripe" ? "Stripe (old)" : "—"}{v.cancel_at_period_end && v.billing === "paypal" ? " · cancelled" : ""}</b></div>
           </div>
         </div>
         <div className="card">
@@ -68,7 +69,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
         </div>
         <div className="card">
           <div className="card-head"><h3>Support chat</h3></div>
-          <VenueActions venueId={v.id} slug={v.slug} stripeCustomer={null} chatOnly />
+          <VenueActions venueId={v.id} slug={v.slug} paypalSubscription={null} chatOnly />
         </div>
       </div>
     </div>

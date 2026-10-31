@@ -8,6 +8,7 @@ export const LANDING_HTML = String.raw`<header>
       <a class="link" href="#features">Features</a>
       <a class="link" href="#pricing">Pricing</a>
       <a class="link" href="#faq">FAQ</a>
+      <a class="link" href="#contact">Contact</a>
       <a class="login" href="/login"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.5"/><path d="M3.5 17.5c1-3.2 3.5-5 6.5-5s5.5 1.8 6.5 5"/></svg><span>Log in</span></a>
       <a class="btn btn-sm" href="/signup">Start for Free</a>
     </nav>

@@ -721,3 +721,18 @@ button.me div { flex: 1; }
 .del-list { margin: 0; padding-inline-start: 20px; display: grid; gap: 4px; font-size: 14px; color: var(--text); }
 .btn.danger-solid { background: #c4614f; border-color: #c4614f; color: #fff; }
 .btn.danger-solid:disabled { opacity: .45; }
+
+/* Admin → Inquiries (home page contact form) */
+.inq { display: grid; gap: 14px; max-width: 860px; }
+.inq-tabs { display: flex; gap: 8px; }
+.inq-tabs button { font: inherit; font-size: 14px; padding: 8px 16px; border-radius: 99px; border: 1px solid rgba(31,40,41,.12); background: #fff; color: var(--paper); cursor: pointer; }
+.inq-tabs button.on { background: var(--paper); color: #fff; border-color: var(--paper); }
+.inq-tabs i { font-style: normal; opacity: .6; margin-inline-start: 4px; }
+.inq-card.done { opacity: .6; }
+.inq-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.inq-head h3 { margin: 8px 0 4px; font-size: 18px; }
+.inq-head h3 small { font-weight: 400; color: var(--dim); font-size: 15px; }
+.inq-head .note a { color: var(--sage-hi); }
+.inq-actions { display: flex; gap: 8px; }
+.inq-body { margin: 14px 0 0; padding: 14px 16px; border-radius: 14px; background: #f6f6f2; white-space: pre-wrap; line-height: 1.55; color: var(--paper); }
+.inq .pill { background: #eef3f1; color: var(--sage-hi); }

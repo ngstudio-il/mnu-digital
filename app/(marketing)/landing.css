@@ -484,3 +484,28 @@ footer .logo img { height: 40px; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .sold-demo .s { display: none; }
 }
+
+/* Contact form popup */
+.cf-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(31,40,41,.45); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; animation: cf-in .2s ease; }
+.cf { position: relative; width: min(560px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; background: #fff; border-radius: 26px; padding: 30px; box-shadow: 0 40px 90px rgba(31,40,41,.3); }
+.cf h3 { font-size: 26px; }
+.cf-sub { margin: 8px 0 18px; color: var(--dim, #7c8789); font-size: 15px; }
+.cf-x { position: absolute; top: 14px; inset-inline-end: 14px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: #f2f2ee; font-size: 22px; line-height: 1; cursor: pointer; color: var(--paper); }
+.cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cf-field { display: grid; gap: 6px; margin-bottom: 12px; font-size: 13px; font-weight: 500; color: var(--paper); }
+.cf-field small { font-weight: 400; color: var(--dim, #7c8789); }
+.cf-field input, .cf-field select, .cf-field textarea { font: 400 15px var(--font); color: var(--paper); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(31,40,41,.14); background: #fff; width: 100%; box-sizing: border-box; }
+.cf-field textarea { resize: vertical; min-height: 100px; }
+.cf-field :is(input, select, textarea):focus { outline: 2px solid var(--sage-hi); outline-offset: 0; border-color: transparent; }
+.cf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.cf-err { margin: 0 0 12px; color: var(--coral); font-size: 14px; }
+.cf-send { width: 100%; justify-content: center; margin-top: 4px; }
+.cf-send:disabled { opacity: .6; cursor: default; transform: none; }
+.cf-done { text-align: center; padding: 18px 4px 6px; }
+.cf-done p { margin: 10px 0 22px; color: var(--dim, #7c8789); }
+.cf-check { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: #e4f1e5; color: #3f8a4a; font-size: 26px; margin-bottom: 14px; }
+@keyframes cf-in { from { opacity: 0; } }
+@media (max-width: 560px) { .cf { padding: 24px 18px; border-radius: 22px; } .cf-row { grid-template-columns: 1fr; gap: 0; } }
+.cf form { display: block; }
+.cf-field small { display: inline; margin: 0; font-size: 12px; }
+.cf h3, .cf-sub { grid-column: auto; }

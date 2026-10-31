@@ -41,7 +41,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
             <div><small>Menu imports this month</small><b>{v.imports}</b></div>
             <div><small>Ordering</small><b>{v.ordering_on ? "On" : "Paused"}</b></div>
             <div><small>Tables</small><b>{venue?.tables ?? "—"}</b></div>
-            <div><small>Billing</small><b style={{ fontSize: 15 }}>{v.billing === "paypal" ? "PayPal" : v.billing === "grace" ? `No payment method${v.current_period_end ? ` · ends ${day(v.trial_end ?? v.current_period_end)}` : ""}` : v.billing === "stripe" ? "Stripe (old)" : "—"}{v.cancel_at_period_end && v.billing === "paypal" ? " · cancelled" : ""}</b></div>
+            <div><small>Billing</small><b style={{ fontSize: 15 }}>{v.billing === "paypal" ? "PayPal" : v.billing === "grace" ? `No payment method${v.current_period_end ? ` · ends ${day(v.trial_end ?? v.current_period_end)}` : ""}` : "—"}{v.cancel_at_period_end && v.billing === "paypal" ? " · cancelled" : ""}</b></div>
           </div>
         </div>
         <div className="card">

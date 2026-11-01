@@ -5,6 +5,7 @@ import { flushSync } from "react-dom";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Sheet from "./Sheet";
 import TableScanner from "./TableScanner";
+import AddressInput, { type PickedAddress } from "./AddressInput";
 import LogoMark from "@/components/LogoMark";
 import { dishPrice, money, photoUrl } from "@/lib/format";
 import { CURRENCY_CODE, track } from "@/lib/marketing";
@@ -156,10 +157,16 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const [open, setOpen] = useState<Dish | null>(null);
   const [checkout, setCheckout] = useState(false);
   // At the table comes first. The table number itself only comes from the QR code on it.
-  const [type, setType] = useState<"dinein" | "takeaway">(venue.dinein ? "dinein" : "takeaway");
+  const [type, setType] = useState<"dinein" | "takeaway" | "delivery">(venue.dinein ? "dinein" : venue.takeaway ? "takeaway" : "delivery");
   const [noteOpen, setNoteOpen] = useState(false);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
+  // Phone (Settings → Ordering) and, for delivery, where to bring it.
+  const [phone, setPhone] = useState("");
+  const [addr, setAddr] = useState<PickedAddress | null>(null);
+  const [extra, setExtra] = useState({ apt: "", floor: "", building: "", code: "", instructions: "" });
+  const [dropoff, setDropoff] = useState<"door" | "hand" | "call">("hand");
+  const askPhone = type === "delivery" ? "required" : venue.ask_phone ?? "off";
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [placed, setPlaced] = useState<number | null>(null);
@@ -280,7 +287,8 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const total = lines.reduce((t, l) => t + l.q * Number(l.price), 0);
   const priceText = (d: Dish) => { const p = dishPrice(d); return p ? (p.from ? t("fromPrice", { p: money(p.amount, venue.currency) }) : money(p.amount, venue.currency)) : null; };
   const [variant, setVariant] = useState<string | null>(null);
-  const canOrder = venue.ordering_on && (venue.dinein || venue.takeaway);
+  const canOrder = venue.ordering_on && (venue.dinein || venue.takeaway || !!venue.delivery);
+  const orderTypes = (["dinein", "takeaway", "delivery"] as const).filter((k) => (k === "delivery" ? !!venue.delivery : venue[k]));
   const add = (id: string, n = 1) => {
     if (n > 0) { const d = dishes.find((x) => x.id === id.split("::")[0]); if (d) track("AddToCart", { name: d.name, value: Number(unitPrice(d, id.split("::")[1] ?? null) ?? 0) * n, currency: currencyCode }); }
     setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) + n) }));
@@ -289,9 +297,11 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   async function place() {
     setErr("");
     if (type === "dinein" && !table) return setErr(t("scanTable"));
-    if (type === "takeaway" && !name.trim()) return setErr(t("errName"));
+    if (type !== "dinein" && !name.trim()) return setErr(t("errName"));
+    if (askPhone === "required" && phone.replace(/\D/g, "").length < 6) return setErr(t("errPhone"));
+    if (type === "delivery" && !addr?.address) return setErr(t("errAddress"));
     setBusy(true);
-    const label = type === "dinein" ? table! : "Takeaway";
+    const label = type === "dinein" ? table! : type === "delivery" ? "Delivery" : "Takeaway";
     const args = {
       p_slug: venue.slug, p_table: label, p_type: type, p_name: name.trim() || null, p_note: note.trim() || null,
       p_items: lines.map((l) => ({ dish_id: l.dish.id, qty: l.q, ...(l.variant ? { variant: l.variant } : {}) })),
@@ -299,7 +309,9 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
     const sb = supabaseBrowser();
     let number: number | null = null;
     let token: string | null = null;
-    const v2 = await sb.rpc("place_order_v2", args);
+    const delivery = type === "delivery" && addr ? { ...addr, ...extra, dropoff } : null;
+    const v3 = await sb.rpc("place_order_v3", { ...args, p_phone: askPhone !== "off" ? phone.trim() || null : null, p_delivery: delivery });
+    const v2 = v3.error?.code === "PGRST202" && type !== "delivery" ? await sb.rpc("place_order_v2", args) : v3;
     if (!v2.error) { number = (v2.data as { number: number; token: string }).number; token = (v2.data as { number: number; token: string }).token; }
     else if (v2.error.code === "PGRST202") {
       // Tracking isn't set up in the database yet: place the order the old way.
@@ -308,7 +320,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
       number = v1.data as number;
     } else { setBusy(false); return setErr(v2.error.message.replace(/^.*?: /, "")); }
     setBusy(false);
-    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : `Takeaway · ${name.trim()}`, items: lines.map((l) => ({ name: l.variant ? `${l.dish.name} (${l.variant})` : l.dish.name, qty: l.q, price: Number(l.price) })) };
+    const saved: Saved = { token, number: number!, at: new Date().toISOString(), total, label: type === "dinein" ? label : type === "delivery" ? `Delivery · ${addr?.address ?? ""}` : `Takeaway · ${name.trim()}`, items: lines.map((l) => ({ name: l.variant ? `${l.dish.name} (${l.variant})` : l.dish.name, qty: l.q, price: Number(l.price) })) };
     const next = [saved, ...mine].slice(0, 20);
     setMine(next);
     try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* storage unavailable */ }
@@ -400,10 +412,11 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
               <ul className="g-lines">{lines.map((l) => (
                 <li key={l.key}><span>{lineName(l.dish, l.variant)}</span><div className="g-qty"><button type="button" onClick={() => add(l.key, -1)} aria-label={t("removeOne")}>−</button><span>{l.q}</span><button type="button" onClick={() => add(l.key)} aria-label={t("addOne")}>+</button></div><em>{money(l.q * l.price, venue.currency)}</em></li>
               ))}</ul>
-              {venue.dinein && venue.takeaway && (
+              {orderTypes.length > 1 && (
                 <div className="g-seg">
-                  <button type="button" aria-pressed={type === "dinein"} onClick={() => setType("dinein")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M5 9v11M19 9v11M7 9l2-5h6l2 5M9 15h6" /></svg>{t("atTable")}</button>
-                  <button type="button" aria-pressed={type === "takeaway"} onClick={chooseTakeaway}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z" /><path d="M9 11V6a3 3 0 0 1 6 0v5" /></svg>{t("takeaway")}</button>
+                  {venue.dinein && <button type="button" aria-pressed={type === "dinein"} onClick={() => setType("dinein")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M5 9v11M19 9v11M7 9l2-5h6l2 5M9 15h6" /></svg>{t("atTable")}</button>}
+                  {venue.takeaway && <button type="button" aria-pressed={type === "takeaway"} onClick={chooseTakeaway}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z" /><path d="M9 11V6a3 3 0 0 1 6 0v5" /></svg>{t("takeaway")}</button>}
+                  {venue.delivery && <button type="button" aria-pressed={type === "delivery"} onClick={() => setType("delivery")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" /><circle cx="7" cy="17.5" r="1.8" /><circle cx="17" cy="17.5" r="1.8" /></svg>{t("delivery")}</button>}
                 </div>
               )}
               {type === "dinein"
@@ -411,6 +424,24 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
                   ? <div className="g-fixed"><span>{t("yourTable")}</span><b>{tableText(table)}</b></div>
                   : <div className="g-hint"><p>{t("scanTable")}</p><button type="button" className="g-scan-btn" onClick={() => setScanning(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10" /></svg>{t("scanTableBtn")}</button></div>)
                 : <label className="g-field">{t("nameForOrder")}<input ref={nameInput} value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>}
+              {askPhone !== "off" && <label className="g-field">{askPhone === "required" ? t("phone") : t("phoneOptional")}<input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" inputMode="tel" dir="ltr" /></label>}
+              {type === "delivery" && (
+                <div className="g-delivery">
+                  <AddressInput value={addr} onChange={setAddr} label={t("address")} placeholder={t("addressPlaceholder")} lang={lang} />
+                  <div className="g-row2">
+                    <label className="g-field">{t("apt")}<input value={extra.apt} onChange={(e) => setExtra({ ...extra, apt: e.target.value })} autoComplete="address-line2" /></label>
+                    <label className="g-field">{t("floor")}<input value={extra.floor} onChange={(e) => setExtra({ ...extra, floor: e.target.value })} inputMode="numeric" /></label>
+                  </div>
+                  <div className="g-row2">
+                    <label className="g-field">{t("building")}<input value={extra.building} onChange={(e) => setExtra({ ...extra, building: e.target.value })} /></label>
+                    <label className="g-field">{t("gateCode")}<input value={extra.code} onChange={(e) => setExtra({ ...extra, code: e.target.value })} /></label>
+                  </div>
+                  <div className="g-field"><span>{t("dropoff")}</span>
+                    <div className="g-chips">{(["hand", "door", "call"] as const).map((k) => <button key={k} type="button" aria-pressed={dropoff === k} onClick={() => setDropoff(k)}>{t(k === "hand" ? "dropHand" : k === "door" ? "dropDoor" : "dropCall")}</button>)}</div>
+                  </div>
+                  <label className="g-field">{t("courierNote")}<input value={extra.instructions} onChange={(e) => setExtra({ ...extra, instructions: e.target.value })} placeholder={t("courierPlaceholder")} /></label>
+                </div>
+              )}
               {venue.notes && (noteOpen || note
                 ? <label className="g-field g-note">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} autoFocus={!note} /></label>
                 : <button type="button" className="g-note-add" onClick={() => setNoteOpen(true)}>+ {t("addNote")}</button>)}
@@ -450,7 +481,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
                 return (
                   <div className="g-order" key={`${o.number}-${o.at}`}>
                     <div className="g-order-top"><b>{t("orderN", { n: o.number })}</b>{st ? <span className={`g-pill ${st[1]}`}>{st[0]}</span> : <span className="g-pill st-new">{o.token ? t("checking") : t("sent")}</span>}</div>
-                    <small>{tableText(o.label).replace(/^(Takeaway|Pickup)/, t("takeaway"))} · {new Date(o.at).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}</small>
+                    <small>{tableText(o.label).replace(/^(Takeaway|Pickup)/, t("takeaway")).replace(/^Delivery/, t("delivery"))} · {new Date(o.at).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}</small>
                     <ul>{items.map((it, i) => <li key={i}><span>{it.qty}× {it.name}</span><em>{money(it.qty * Number(it.price), venue.currency)}</em></li>)}</ul>
                     <div className="g-order-total"><span>{t("total")}</span><b>{money(l?.total ?? o.total, venue.currency)}</b></div>
                   </div>

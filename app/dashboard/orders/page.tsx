@@ -29,10 +29,28 @@ const NEXT: Partial<Record<OrderStatus, [OrderStatus, string][]>> = {
 };
 const DONE_MSG: Record<OrderStatus, string> = { preparing: "accepted", ready: "is ready", done: "completed", cancelled: "declined", new: "" };
 
+const DROPOFF = { door: "Leave at door", hand: "Hand it to them", call: "Call on arrival" } as const;
+
+// Where a delivery goes: the address (opens in Google Maps) and the details for the courier.
+function DeliveryBox({ d }: { d: NonNullable<Order["delivery"]> }) {
+  const maps = d.lat !== undefined && d.lng !== undefined
+    ? `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}${d.place_id ? `&query_place_id=${encodeURIComponent(d.place_id)}` : ""}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`;
+  const parts = [d.apt && `Apt ${d.apt}`, d.floor && `Floor ${d.floor}`, d.building, d.code && `Code ${d.code}`].filter(Boolean);
+  return (
+    <div className="t-addr">
+      <a href={maps} target="_blank" rel="noreferrer" translate="no">{d.address}</a>
+      {parts.length > 0 && <span translate="no">{parts.join(" · ")}</span>}
+      {d.dropoff && <span>{DROPOFF[d.dropoff]}</span>}
+      {d.instructions && <span className="t-addr-note">“{d.instructions}”</span>}
+    </div>
+  );
+}
+
 export default function Orders() {
   const { venue, setVenue, toast, orderTick, refreshNewOrders } = useDash();
   const [orders, setOrders] = useState<Order[] | null>(null);
-  const [filter, setFilter] = useState<"all" | "dinein" | "takeaway">("all");
+  const [filter, setFilter] = useState<"all" | "dinein" | "takeaway" | "delivery">("all");
   const [, setNow] = useState(0);
 
   useEffect(() => {
@@ -76,7 +94,7 @@ export default function Orders() {
     <>
       <div className="orders-bar">
         <div className="seg" role="group" aria-label="Filter orders">
-          {([["all", "All"], ["dinein", "Dine-in"], ["takeaway", "Takeaway"]] as const).map(([k, l]) => (
+          {([["all", "All"], ["dinein", "Dine-in"], ["takeaway", "Takeaway"], ...(venue.delivery || orders?.some((o) => o.type === "delivery") ? [["delivery", "Delivery"] as const] : [])] as const).map(([k, l]) => (
             <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>{l}</button>
           ))}
         </div>
@@ -94,7 +112,8 @@ export default function Orders() {
               {orders === null ? <p className="col-empty">Loading…</p> : items.length ? items.map((o) => (
                 <Ticket id={o.id} key={o.id}>
                   <div className="t-top"><b>#{o.number}</b><span>{ago(o.created_at)}</span></div>
-                  <div className="t-where"><span>{o.type === "takeaway" ? "Takeaway" : o.table_label || "Dine-in"}</span>{o.customer_name && <span>{o.customer_name}</span>}</div>
+                  <div className="t-where"><span className={o.type === "delivery" ? "t-delivery" : undefined}>{o.type === "takeaway" ? "Takeaway" : o.type === "delivery" ? "Delivery" : o.table_label || "Dine-in"}</span>{o.customer_name && <span>{o.customer_name}</span>}{o.customer_phone && <a className="t-phone" href={`tel:${o.customer_phone.replace(/[^\d+]/g, "")}`} dir="ltr">{o.customer_phone}</a>}</div>
+                  {o.delivery && <DeliveryBox d={o.delivery} />}
                   <ul className="t-items" translate="no">{o.order_items?.map((it) => <li key={it.id}><b>{it.qty}×</b>{it.name}</li>)}</ul>
                   {o.note && <p className="t-note">{o.note}</p>}
                   <div className="t-foot"><em>{money(o.total, venue.currency)}</em>

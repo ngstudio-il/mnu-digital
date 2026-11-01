@@ -32,7 +32,7 @@ export default function Settings() {
   async function patch(p: Partial<Venue>, msg?: string) {
     const { data, error } = await supabaseBrowser().from("venues").update(p).eq("id", venue.id).select().single();
     if (error || !data) {
-      toast(error?.code === "23505" ? "That menu link is taken. Try another." : error?.message.includes("timezone") ? "Time zone needs a database update first (0014_venue_timezone.sql)." : "Couldn’t save. Check your connection.");
+      toast(error?.code === "23505" ? "That menu link is taken. Try another." : error?.message.includes("timezone") ? "Time zone needs a database update first (0014_venue_timezone.sql)." : /delivery|ask_phone/.test(error?.message ?? "") ? "Delivery needs a database update first (0026_delivery.sql)." : "Couldn’t save. Check your connection.");
       return false;
     }
     setVenue(data);
@@ -63,10 +63,11 @@ export default function Settings() {
     router.refresh();
   }
 
-  const sw = (key: "ordering_on" | "dinein" | "takeaway" | "notes", label: string, sub: string) => (
+  const sw = (key: "ordering_on" | "dinein" | "takeaway" | "notes" | "delivery", label: string, sub: string) => (
+
     <div className="set-row">
       <div><b>{label}</b><span>{sub}</span></div>
-      <button className="switch" type="button" role="switch" aria-checked={venue[key]} aria-label={label} onClick={() => patch({ [key]: !venue[key] } as Partial<Venue>)} />
+      <button className="switch" type="button" role="switch" aria-checked={!!venue[key]} aria-label={label} onClick={() => patch({ [key]: !venue[key] } as Partial<Venue>)} />
     </div>
   );
 
@@ -95,6 +96,13 @@ export default function Settings() {
         {sw("ordering_on", "Accept orders", "Guests can order from the menu")}
         {sw("dinein", "Dine-in", "Orders come in with a table number")}
         {sw("takeaway", "Takeaway", "Guests can order to take away")}
+        {sw("delivery", "Delivery", "Guests give their address and phone number, and you deliver")}
+        <div className="set-row">
+          <div><b>Guest phone number</b><span>{venue.delivery ? "Always asked for delivery. " : ""}For dine-in and takeaway orders, so you can call the guest.</span></div>
+          <select className="set-select" value={venue.ask_phone ?? "off"} onChange={(e) => patch({ ask_phone: e.target.value as Venue["ask_phone"] })} aria-label="Guest phone number">
+            <option value="off">Don’t ask</option><option value="optional">Optional</option><option value="required">Required</option>
+          </select>
+        </div>
         {sw("notes", "Order notes", "Let guests add a note to their order")}
       </div>
 

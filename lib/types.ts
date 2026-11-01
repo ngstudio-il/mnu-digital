@@ -17,6 +17,8 @@ export type Venue = {
   dinein: boolean;
   takeaway: boolean;
   notes: boolean;
+  delivery?: boolean;
+  ask_phone?: "off" | "optional" | "required";
   plan: string;
   logo_path?: string | null;
   cover_path?: string | null;
@@ -54,13 +56,21 @@ export type Order = {
   number: number;
   venue_id: string;
   table_label: string | null;
-  type: "dinein" | "takeaway";
+  type: "dinein" | "takeaway" | "delivery";
   customer_name: string | null;
+  customer_phone?: string | null;
+  delivery?: DeliveryAddress | null;
   note: string | null;
   status: OrderStatus;
   total: number;
   created_at: string;
   order_items?: OrderItem[];
+};
+
+export type DeliveryAddress = {
+  address: string; place_id?: string; lat?: number; lng?: number;
+  apt?: string; floor?: string; building?: string; code?: string;
+  dropoff?: "door" | "hand" | "call"; instructions?: string;
 };
 
 export type Subscription = {

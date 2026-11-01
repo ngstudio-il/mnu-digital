@@ -53,7 +53,8 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         options: { data: { full_name: name.trim() }, emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       setBusy(false);
-      if (error) return setErr(error.message);
+      // Supabase's own mail service sends only a few confirmation emails an hour.
+      if (error) return setErr(/rate limit/i.test(error.message) ? "We couldn’t send the confirmation email right now. Try again in a few minutes, or sign up with Google." : /already registered/i.test(error.message) ? "There’s already an account with this email. Log in instead." : error.message);
       if (!data.session) return setInfo(`We sent a confirmation link to ${email.trim()}. Open it to finish signing up.`);
       router.push("/onboarding");
     } else {

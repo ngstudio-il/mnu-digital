@@ -16,6 +16,7 @@ export default async function Billing() {
   const ended = !!sub?.cancel_at_period_end && !!sub.current_period_end && new Date(sub.current_period_end).getTime() < Date.now();
   if (sub && ["trialing", "active", "past_due"].includes(sub.status) && !ended && !sub.cancel_at_period_end) redirect("/dashboard");
   const returning = Boolean(sub && sub.status !== "none");
+  const { data: billing } = await supabase.from("billing_profiles").select("country, name, tax_id, address").eq("venue_id", venue.id).maybeSingle();
   // PayPal for new subscriptions; Stripe only while PayPal isn't set up on the server.
-  return <BillingPlan venueName={venue.name} returning={returning} provider={paypalConfigured() ? "paypal" : "stripe"} paypalClientId={paypalConfigured() ? (process.env.PAYPAL_CLIENT_ID ?? "").trim() : ""} />;
+  return <BillingPlan venueName={venue.name} returning={returning} provider={paypalConfigured() ? "paypal" : "stripe"} paypalClientId={paypalConfigured() ? (process.env.PAYPAL_CLIENT_ID ?? "").trim() : ""} billing={billing ? { country: billing.country, name: billing.name, tax_id: billing.tax_id ?? "", address: billing.address ?? "" } : null} />;
 }

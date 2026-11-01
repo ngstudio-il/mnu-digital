@@ -6,6 +6,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "@/components/dashboard/VenueContext";
 import { planSummary, slugify } from "@/lib/format";
 import type { Venue } from "@/lib/types";
+import BillingDetailsCard from "@/components/billing/BillingDetailsCard";
 
 export default function Settings() {
   const { venue, setVenue, user, toast, subscription, openBilling } = useDash();
@@ -109,6 +110,8 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      <BillingDetailsCard venueId={venue.id} venueName={venue.name} toast={toast} />
 
       <div className="card">
         <h3>Plan &amp; account</h3>

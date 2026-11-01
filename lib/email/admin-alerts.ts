@@ -71,11 +71,16 @@ export async function notifyPayment(venueId: string | null, origin: string, p: P
     const { count } = venueId ? await db.from("payments").select("id", { count: "exact", head: true }).eq("venue_id", venueId).eq("kind", "subscription") : { count: 0 };
     const name = venue?.name ?? "A venue";
     const amount = `${p.amount.toFixed(2)} ${p.currency}`;
+    // What goes on the invoice, as the owner entered it before paying.
+    const { data: bill } = venueId ? await db.from("billing_profiles").select("country, name, tax_id, address").eq("venue_id", venueId).maybeSingle() : { data: null };
+    const { countryName } = await import("@/lib/countries");
     const what = p.kind === "image_pack" ? `AI image pack${p.note ? ` (${p.note})` : ""}` : `mnu.digital Pro, monthly${count === 1 ? " · first payment" : count ? ` · payment #${count}` : ""}`;
     const when = new Date(paidAt).toLocaleString("en-GB", { timeZone: "Asia/Jerusalem", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
     const rows: [string, string][] = [
       ["Amount", amount], ["For", what], ["Paid", when], ["Via", p.provider === "paypal" ? "PayPal" : "Stripe"], ["Transaction", p.id.replace(/^\w+:/, "")],
       ["Payer", [p.payerName, p.payerEmail].filter(Boolean).join(" · ") || "—"], ["Account email", email],
+      ["Invoice to", bill?.name ?? "— (no billing details)"], ["Country", bill?.country ? `${countryName(bill.country)} (${bill.country})` : "—"],
+      ...(bill?.tax_id ? [["Tax ID", bill.tax_id] as [string, string]] : []), ...(bill?.address ? [["Address", bill.address] as [string, string]] : []),
     ];
     await sendEmail({
       to: TEAM,

@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { STATUS_LABEL, ago, money } from "@/lib/format";
 import VenueActions from "@/components/admin/VenueActions";
 import DeleteUser from "@/components/admin/DeleteUser";
+import { countryName } from "@/lib/countries";
 import type { OrderStatus } from "@/lib/types";
 
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -14,10 +15,11 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
   const v = rows.find((r) => r.id === id);
   if (!v) notFound();
   const db = supabaseAdmin();
-  const [{ data: venue }, { data: orders }, { count: cats }] = await Promise.all([
+  const [{ data: venue }, { data: orders }, { count: cats }, { data: bill }] = await Promise.all([
     db.from("venues").select("currency, brand, langs, tables, dinein, takeaway").eq("id", id).single(),
     db.from("orders").select("number, table_label, type, total, status, created_at").eq("venue_id", id).order("created_at", { ascending: false }).limit(8),
     db.from("categories").select("id", { count: "exact", head: true }).eq("venue_id", id),
+    db.from("billing_profiles").select("country, name, tax_id, address").eq("venue_id", id).maybeSingle(),
   ]);
   const cur = venue?.currency ?? "$";
 
@@ -64,6 +66,7 @@ export default async function AdminVenue({ params }: { params: Promise<{ id: str
             <div><small>Name</small><b style={{ fontSize: 15 }}>{v.owner_name || "—"}</b></div>
             <div><small>Signs in with</small><b style={{ fontSize: 15 }}>{v.provider}</b></div>
             <div><small>Last sign-in</small><b style={{ fontSize: 15 }}>{v.last_sign_in ? ago(v.last_sign_in) : "—"}</b></div>
+            <div style={{ gridColumn: "1 / -1" }}><small>Invoice to</small><b style={{ fontSize: 15 }}>{bill ? [bill.name, countryName(bill.country), bill.tax_id && `Tax ID ${bill.tax_id}`, bill.address].filter(Boolean).join(" · ") : "No billing details yet"}</b></div>
             <div><small>{v.status === "trialing" ? "Trial ends" : "Renews"}</small><b style={{ fontSize: 15 }}>{day(v.status === "trialing" ? v.trial_end : v.current_period_end)}</b></div>
           </div>
         </div>

@@ -4,6 +4,8 @@ import "@/styles/auth.css";
 import { useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import ScanShowcase from "@/components/marketing/ScanShowcase";
+import BillingDetailsForm, { billingValid } from "@/components/billing/BillingDetailsForm";
+import { guessCountry, type BillingDetails } from "@/lib/countries";
 
 const FEATURES = [
   "Unlimited dishes, photos and menu views",
@@ -16,8 +18,20 @@ const FEATURES = [
 type PayPalButtons = { isEligible: () => boolean; render: (el: HTMLElement) => Promise<void> };
 type PayPalSdk = { Buttons: (o: object) => PayPalButtons; FUNDING: { CARD: string; PAYPAL: string } };
 
-export default function BillingPlan({ venueName, returning, provider, paypalClientId = "" }: { venueName: string; returning: boolean; provider: "paypal" | "stripe"; paypalClientId?: string }) {
+export default function BillingPlan({ venueName, returning, provider, paypalClientId = "", billing: initialBilling }: { venueName: string; returning: boolean; provider: "paypal" | "stripe"; paypalClientId?: string; billing: BillingDetails | null }) {
   const via = provider === "paypal" ? "PayPal" : "Stripe";
+  // Billing details for the invoice, saved before the payment starts.
+  const placeholder = /^my venue$/i.test(venueName.trim()) ? "" : venueName;
+  const [billing, setBilling] = useState<BillingDetails>(initialBilling ?? { country: "", name: placeholder, tax_id: "", address: "" });
+  const billingRef = useRef(billing);
+  billingRef.current = billing;
+  useEffect(() => { if (!initialBilling) setBilling((b) => (b.country ? b : { ...b, country: guessCountry() })); }, [initialBilling]);
+  const saveBilling = async () => {
+    const res = await fetch("/api/billing/details", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(billingRef.current) }).catch(() => null);
+    const json = res ? await res.json().catch(() => ({})) : {};
+    if (!res?.ok) { setErr(json.error ?? "Couldn’t save your billing details. Try again."); return false; }
+    return true;
+  };
   const cardBox = useRef<HTMLDivElement>(null);
   const paypalBox = useRef<HTMLDivElement>(null);
   // PayPal's buttons, right on this page: pay by card (no PayPal account needed), or log in to PayPal.
@@ -28,6 +42,7 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
     if (sdk !== "loading") return;
     const w = window as Window & { paypal?: PayPalSdk };
     const create = async () => {
+      if (!(await saveBilling())) throw new Error("billing");
       const res = await fetch("/api/paypal/subscribe", { method: "POST" });
       const json = await res.json().catch(() => ({}));
       if (json.active) { window.location.href = "/dashboard"; throw new Error("active"); }
@@ -37,6 +52,11 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
     const opts = (fundingSource: string, color: string) => ({
       fundingSource,
       style: { layout: "vertical", shape: "pill", height: 48, label: "subscribe", ...(color ? { color } : {}) },
+      // Country and invoice name first; PayPal opens only once they're filled in.
+      onClick: (_: unknown, actions: { resolve: () => unknown; reject: () => unknown }) => {
+        if (!billingValid(billingRef.current)) { setErr("Add your country and the name for your invoices first."); document.getElementById("bd-country")?.focus(); return actions.reject(); }
+        setErr(""); return actions.resolve();
+      },
       createSubscription: create,
       onApprove: (data: { subscriptionID?: string }) => { setBusy(true); window.location.href = `/billing/paypal?subscription_id=${encodeURIComponent(data.subscriptionID ?? "")}`; },
       onError: () => setErr("The payment didn’t go through. Try again, or use another card."),
@@ -64,7 +84,9 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
   const [err, setErr] = useState("");
 
   async function start() {
+    if (provider === "paypal" && !billingValid(billing)) { setErr("Add your country and the name for your invoices first."); return; }
     setBusy(true); setErr("");
+    if (provider === "paypal" && !(await saveBilling())) { setBusy(false); return; }
     const res = await fetch(provider === "paypal" ? "/api/paypal/subscribe" : "/api/stripe/checkout", { method: "POST" }).catch(() => null);
     const json = res ? await res.json().catch(() => ({})) : {};
     if (!res?.ok || !json.url) { setErr(json.error ?? "Couldn’t open checkout. Try again."); setBusy(false); return; }
@@ -99,6 +121,13 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
             )}
           </div>
 
+          {provider === "paypal" && (
+            <fieldset className="bd-box">
+              <legend>Billing details</legend>
+              <p className="note">For your invoices. You can change them later in Settings.</p>
+              <BillingDetailsForm value={billing} onChange={setBilling} />
+            </fieldset>
+          )}
           <p className="err" aria-live="polite">{err}</p>
           {provider === "paypal" && sdk !== "failed" && (
             <div className="pp-buttons" aria-busy={sdk === "loading"}>

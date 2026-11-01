@@ -7,6 +7,7 @@ import { useDash } from "@/components/dashboard/VenueContext";
 import { planSummary, slugify } from "@/lib/format";
 import type { Venue } from "@/lib/types";
 import BillingDetailsCard from "@/components/billing/BillingDetailsCard";
+import { VENUE_TYPES } from "@/lib/venue-types";
 
 export default function Settings() {
   const { venue, setVenue, user, toast, subscription, openBilling } = useDash();
@@ -76,7 +77,7 @@ export default function Settings() {
         <h3>Venue</h3>
         <label className="field" htmlFor="v-name">Venue name<input id="v-name" value={name} onChange={(e) => setName(e.target.value)} /></label>
         <div className="row2">
-          <label className="field" htmlFor="v-type">Type<select id="v-type" value={type} onChange={(e) => setType(e.target.value)}>{["Restaurant", "Café", "Bar", "Hotel", "Other"].map((t) => <option key={t}>{t}</option>)}</select></label>
+          <label className="field" htmlFor="v-type">Type<select id="v-type" value={type} onChange={(e) => setType(e.target.value)}>{(VENUE_TYPES.includes(type) ? VENUE_TYPES : [type, ...VENUE_TYPES]).map((t) => <option key={t}>{t}</option>)}</select></label>
           <label className="field" htmlFor="v-cur">Currency<select id="v-cur" value={currency} onChange={(e) => setCurrency(e.target.value)}>
             <option value="$">US dollar ($)</option><option value="₪">Israeli shekel (₪)</option><option value="€">Euro (€)</option><option value="£">Pound (£)</option>
           </select></label>

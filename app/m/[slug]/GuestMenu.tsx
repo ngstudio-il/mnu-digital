@@ -323,7 +323,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
       {ownerView && venue.is_public === false && <div className="g-private">Private menu · only you can see it. Guests see a “private” notice until you make it public in Settings → General.</div>}
       <header className={`g-head${cover ? " has-cover" : ""}`} style={cover ? { ["--cover" as string]: `url("${cover}")` } : undefined}>
         {photoUrl(venue.logo_path) && <LogoMark className="g-logo" src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} layout={venue.logo_layout} />}
-        <small>{(ui[`type_${venue.type}` as UiKey] ?? venue.type).toUpperCase()}</small>
+        <small>{(ui[`type_${venue.type.replace(/\s+/g, "")}` as UiKey] ?? venue.type).toUpperCase()}</small>
         <h1>{venue.name}</h1>
         {table && <span className="g-table">{tableText(table)}</span>}
         <div className="g-top">

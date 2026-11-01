@@ -41,4 +41,12 @@ export function countryFromZone(tz: string | null | undefined) {
   return ZONES[tz] ?? "";
 }
 
+// Menu currency for a country: shekel, euro, pound; dollar for everyone else.
+const EURO = "AT BE HR CY EE FI FR DE GR IE IT LV LT LU MT NL PT SK SI ES AD MC SM VA ME XK".split(" ");
+export function currencyForCountry(c: string) {
+  if (c === "IL" || c === "PS") return "₪";
+  if (c === "GB" || c === "GG" || c === "JE" || c === "IM") return "£";
+  return EURO.includes(c) ? "€" : "$";
+}
+
 export type BillingDetails = { country: string; name: string; tax_id: string; address: string };

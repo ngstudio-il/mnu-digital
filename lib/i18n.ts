@@ -1,11 +1,22 @@
 // Words on the guest menu. English and Hebrew are written by hand; every other
 // language is translated once by AI and cached in the ui_translations table.
-export const UI_VERSION = 7;
+export const UI_VERSION = 8;
 
 export const UI_EN = {
   type_Restaurant: "Restaurant",
   type_Café: "Café",
+  type_Bakery: "Bakery",
+  type_Patisserie: "Patisserie",
+  type_Pizzeria: "Pizzeria",
   type_Bar: "Bar",
+  type_Pub: "Pub",
+  type_Winebar: "Wine bar",
+  type_Icecreamshop: "Ice cream",
+  type_Juicebar: "Juice bar",
+  type_Fastfood: "Fast food",
+  type_Deli: "Deli",
+  type_Foodtruck: "Food truck",
+  type_Catering: "Catering",
   type_Hotel: "Hotel",
   type_Other: "Menu",
   menu: "Menu",
@@ -76,7 +87,18 @@ export type UiStrings = Record<UiKey, string>;
 export const UI_HE: UiStrings = {
   type_Restaurant: "מסעדה",
   type_Café: "בית קפה",
+  type_Bakery: "מאפייה",
+  type_Patisserie: "קונדיטוריה",
+  type_Pizzeria: "פיצרייה",
   type_Bar: "בר",
+  type_Pub: "פאב",
+  type_Winebar: "בר יין",
+  type_Icecreamshop: "גלידרייה",
+  type_Juicebar: "בר מיצים",
+  type_Fastfood: "מזון מהיר",
+  type_Deli: "מעדנייה",
+  type_Foodtruck: "פוד טראק",
+  type_Catering: "קייטרינג",
   type_Hotel: "מלון",
   type_Other: "תפריט",
   menu: "תפריט",

@@ -757,3 +757,5 @@ button.me div { flex: 1; }
 .t-addr a { color: var(--paper); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
 .t-addr span { color: var(--dim); font-size: 12.5px; }
 .t-addr .t-addr-note { color: var(--text); font-style: italic; }
+.set-row.set-off { opacity: .45; }
+.set-row.set-off .switch, .set-row.set-off select { cursor: not-allowed; }

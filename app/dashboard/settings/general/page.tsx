@@ -63,11 +63,12 @@ export default function Settings() {
     router.refresh();
   }
 
+  // With ordering off, the rest of the ordering settings don't apply, so they're locked.
+  const off = !venue.ordering_on;
   const sw = (key: "ordering_on" | "dinein" | "takeaway" | "notes" | "delivery", label: string, sub: string) => (
-
-    <div className="set-row">
+    <div className={`set-row${key !== "ordering_on" && off ? " set-off" : ""}`}>
       <div><b>{label}</b><span>{sub}</span></div>
-      <button className="switch" type="button" role="switch" aria-checked={!!venue[key]} aria-label={label} onClick={() => patch({ [key]: !venue[key] } as Partial<Venue>)} />
+      <button className="switch" type="button" role="switch" aria-checked={!!venue[key]} aria-label={label} disabled={key !== "ordering_on" && off} onClick={() => patch({ [key]: !venue[key] } as Partial<Venue>)} />
     </div>
   );
 
@@ -93,13 +94,13 @@ export default function Settings() {
 
       <div className="card">
         <h3>Ordering</h3>
-        {sw("ordering_on", "Accept orders", "Guests can order from the menu")}
+        {sw("ordering_on", "Accept orders", off ? "Off: guests can only browse the menu. Turn it on to set up how they order." : "Guests can order from the menu")}
         {sw("dinein", "Dine-in", "Orders come in with a table number")}
         {sw("takeaway", "Takeaway", "Guests can order to take away")}
         {sw("delivery", "Delivery", "Guests give their address and phone number, and you deliver")}
-        <div className="set-row">
+        <div className={`set-row${off ? " set-off" : ""}`}>
           <div><b>Guest phone number</b><span>{venue.delivery ? "Always asked for delivery. " : ""}For dine-in and takeaway orders, so you can call the guest.</span></div>
-          <select className="set-select" value={venue.ask_phone ?? "off"} onChange={(e) => patch({ ask_phone: e.target.value as Venue["ask_phone"] })} aria-label="Guest phone number">
+          <select className="set-select" disabled={off} value={venue.ask_phone ?? "off"} onChange={(e) => patch({ ask_phone: e.target.value as Venue["ask_phone"] })} aria-label="Guest phone number">
             <option value="off">Don’t ask</option><option value="optional">Optional</option><option value="required">Required</option>
           </select>
         </div>

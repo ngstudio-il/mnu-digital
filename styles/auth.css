@@ -100,3 +100,9 @@ form { display: grid; gap: 14px; }
 .bd-form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bd-form small { font-weight: 400; color: var(--dim); font-size: 12px; }
 @media (max-width: 520px) { .bd-form .row2 { grid-template-columns: 1fr; } }
+/* Free trial emphasis on the billing page */
+.trial-pill { display: inline-block; margin-bottom: 12px; padding: 5px 12px; border-radius: 99px; background: #e4f1e5; color: #3f8a4a; font-size: 13px; font-weight: 600; }
+.plan-then { margin: 8px 0 0; color: var(--dim); font-size: 14px; }
+.trial-note { display: grid; gap: 4px; margin: 18px 0 4px; padding: 14px 16px; border-radius: 16px; background: #eef6ef; border: 1px solid #cfe6d3; }
+.trial-note b { color: #2f6e39; font-size: 15px; }
+.trial-note span { color: #4d5759; font-size: 13.5px; line-height: 1.5; }

@@ -20,6 +20,9 @@ type PayPalSdk = { Buttons: (o: object) => PayPalButtons; FUNDING: { CARD: strin
 
 export default function BillingPlan({ venueName, returning, provider, paypalClientId = "", billing: initialBilling }: { venueName: string; returning: boolean; provider: "paypal" | "stripe"; paypalClientId?: string; billing: BillingDetails | null }) {
   const via = provider === "paypal" ? "PayPal" : "Stripe";
+  // The day the trial ends and the first $39 is charged.
+  const [firstCharge, setFirstCharge] = useState("in 7 days");
+  useEffect(() => { setFirstCharge(new Date(Date.now() + 7 * 86400000).toLocaleDateString("en-GB", { day: "numeric", month: "long" })); }, []);
   // Billing details for the invoice, saved before the payment starts.
   const placeholder = /^my venue$/i.test(venueName.trim()) ? "" : venueName;
   const [billing, setBilling] = useState<BillingDetails>(initialBilling ?? { country: "", name: placeholder, tax_id: "", address: "" });
@@ -110,7 +113,15 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
           <p className="sub">{returning ? `Pick up where ${venueName} left off.` : `Get ${venueName} online today. You won’t be charged until day 7.`}</p>
 
           <div className="plan-box">
-            <div className="plan-price"><b>$39</b><span>/month</span></div>
+            {returning ? (
+              <div className="plan-price"><b>$39</b><span>/month</span></div>
+            ) : (
+              <>
+                <span className="trial-pill">7 days free</span>
+                <div className="plan-price"><b>$0</b><span>today</span></div>
+                <p className="plan-then">then $39/month from {firstCharge}. Cancel anytime before and pay nothing.</p>
+              </>
+            )}
             <ul className="perks dark">{FEATURES.map((f) => <li key={f}>{f}</li>)}</ul>
             {!returning && (
               <ol className="trial-steps">
@@ -127,6 +138,12 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
               <p className="note">For your invoices. You can change them later in Settings.</p>
               <BillingDetailsForm value={billing} onChange={setBilling} />
             </fieldset>
+          )}
+          {!returning && (
+            <div className="trial-note">
+              <b>Try everything free for 7 days</b>
+              <span>Nothing is charged today. Your first payment of $39 is on {firstCharge}, and you can cancel before then in one click.</span>
+            </div>
           )}
           <p className="err" aria-live="polite">{err}</p>
           {provider === "paypal" && sdk !== "failed" && (

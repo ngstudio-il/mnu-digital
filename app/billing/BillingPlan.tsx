@@ -110,7 +110,9 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
         </div>
         <div className="auth-box">
           <h1>{returning ? "Reactivate your menu" : "Start your 7-day free trial"}</h1>
-          <p className="sub">{returning ? `Pick up where ${venueName} left off.` : `Get ${venueName} online today. You won’t be charged until day 7.`}</p>
+          <p className="sub">{returning ? `Pick up where ${placeholder || "you"} left off.` : `Get ${placeholder || "your menu"} online today, free for the first 7 days.`}</p>
+          {/* On phones the dark showcase panel is hidden, so a smaller copy of it sits here. */}
+          <div className="ss-mobile" aria-hidden="true"><ScanShowcase /></div>
 
           <div className="plan-box">
             {returning ? (

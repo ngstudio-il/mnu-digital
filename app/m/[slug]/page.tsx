@@ -1,4 +1,5 @@
 import { photoUrl } from "@/lib/format";
+import { paypalConfigured } from "@/lib/paypal";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -40,8 +41,15 @@ async function load(slug: string) {
     ownerView = !!user && (user.id === venue.owner_id || (await sb.rpc("is_admin")).data === true);
     if (!ownerView) return { venue: venue as Venue, categories: [], dishes: [], offline: true, private: true, ownerView, primary, langs: [primary], content: {}, ui: await loadUi(sb, [primary]) };
   }
+  // No active subscription: guests see the menu as unavailable. The owner (and admins) still see it,
+  // with a note, but nobody can order.
   const { data: active, error } = await sb.rpc("venue_active", { p_venue: venue.id });
-  if (billingConfigured() && !error && active === false) {
+  const inactive = (billingConfigured() || paypalConfigured()) && !error && active === false;
+  if (inactive && !ownerView) {
+    const { data: { user } } = await sb.auth.getUser();
+    ownerView = !!user && (user.id === venue.owner_id || (await sb.rpc("is_admin")).data === true);
+  }
+  if (inactive && !ownerView) {
     return { venue: venue as Venue, categories: [], dishes: [], offline: true, private: false, ownerView, primary, langs: [primary], content: {}, ui: await loadUi(sb, [primary]) };
   }
   const targets = ((venue.langs as string[]) ?? []).filter((l) => l !== primary);
@@ -55,7 +63,7 @@ async function load(slug: string) {
   // A language is offered once at least part of the menu is translated into it.
   const langs = [primary, ...targets.filter((l) => content[l])];
   return {
-    venue: venue as Venue, categories: (c.data ?? []) as Category[], dishes: (d.data ?? []) as Dish[], offline: false, private: false, ownerView,
+    venue: (inactive ? { ...venue, ordering_on: false } : venue) as Venue, categories: (c.data ?? []) as Category[], dishes: (d.data ?? []) as Dish[], offline: false, private: false, ownerView, inactive,
     primary, langs, content, ui: await loadUi(sb, langs),
   };
 }
@@ -84,5 +92,5 @@ export default async function Page({ params, searchParams }: Props) {
   const table = t && /^\d{1,3}$/.test(t) ? `Table ${t}` : null;
   // The dashboard's preview frame doesn't count as a visit, so it gets no tracking.
   const inPreview = preview === "1";
-  return <>{!inPreview && data.venue.marketing && <Tracking m={data.venue.marketing} />}<GuestMenu preview={inPreview} ownerView={data.ownerView} venue={data.venue} categories={data.categories} dishes={data.dishes} table={table} i18n={{ primary: data.primary, langs: data.langs, content: data.content, ui: data.ui }} /></>;
+  return <>{!inPreview && data.venue.marketing && <Tracking m={data.venue.marketing} />}<GuestMenu preview={inPreview} ownerView={data.ownerView} inactive={"inactive" in data && !!data.inactive} venue={data.venue} categories={data.categories} dishes={data.dishes} table={table} i18n={{ primary: data.primary, langs: data.langs, content: data.content, ui: data.ui }} /></>;
 }

@@ -136,7 +136,7 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
   }
 
   async function remove() {
-    if (!d.id) return;
+    if (!d.id || !window.confirm(`Delete “${d.name || "this dish"}” from your menu?`)) return;
     setBusy(true);
     await supabaseBrowser().from("dishes").delete().eq("id", d.id);
     toast("Dish deleted");
@@ -153,6 +153,11 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
         <header className="editor-head">
           <button className="editor-back" type="button" onClick={onClose} aria-label="Back to the menu">←</button>
           <h3 id="m-title">{d.id ? "Edit dish" : "New dish"}</h3>
+          {d.id && (
+            <button className="editor-trash" type="button" onClick={remove} disabled={busy} aria-label="Delete dish" title="Delete dish">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></svg>
+            </button>
+          )}
           <div className="editor-actions">
             <button className="btn ghost sm" type="button" onClick={onClose}>Cancel</button>
             <button className="btn sm" type="submit" disabled={busy || uploading}>{busy ? "Saving…" : d.id ? "Save dish" : "Add dish"}</button>
@@ -220,7 +225,6 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
         </section>
         <div className="inline">Available on the menu <button className="switch" type="button" role="switch" aria-checked={d.available} aria-label="Available" onClick={() => set({ available: !d.available })} /></div>
         {err && <p className="note" style={{ color: "var(--coral)" }}>{err}</p>}
-        {d.id && <div className="editor-danger"><button className="btn danger sm" type="button" onClick={remove} disabled={busy}>Delete dish</button></div>}
         </div>
         <aside className="editor-side">
           <section className="photo-card" aria-label="Photo">

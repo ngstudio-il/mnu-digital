@@ -834,3 +834,4 @@ button.me div { flex: 1; }
 @media (max-width: 560px) { .hours-day { grid-template-columns: minmax(0, 1fr); } .hours-day.closed { grid-template-columns: auto minmax(0, 1fr); } }
 @media (max-width: 560px) { .hours-ed input[type="time"]::-webkit-calendar-picker-indicator { display: none; } }
 .gen-body form.card { display: grid; gap: 14px; }
+.demo-log { margin: 14px 0 0; padding: 12px 14px; list-style: none; border-radius: 12px; background: #f6f6f2; font-size: 13px; display: grid; gap: 4px; color: var(--paper); }

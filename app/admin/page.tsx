@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { loadAdminData, PRICE } from "@/lib/admin-data";
 import { ago } from "@/lib/format";
+import DemoMenu from "@/components/admin/DemoMenu";
 
 export default async function AdminOverview() {
   const { rows, noVenue, totalUsers } = await loadAdminData();
@@ -77,6 +78,7 @@ export default async function AdminOverview() {
           </div>
         </div>
       </div>
+      <div style={{ marginTop: 18 }}><DemoMenu /></div>
     </>
   );
 }

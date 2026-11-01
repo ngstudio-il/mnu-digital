@@ -441,7 +441,13 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
                 <li key={l.key}><span>{lineName(l.dish, l.variant)}</span><div className="g-qty"><button type="button" onClick={() => add(l.key, -1)} aria-label={t("removeOne")}>−</button><span>{l.q}</span><button type="button" onClick={() => add(l.key)} aria-label={t("addOne")}>+</button></div><em>{money(l.q * l.price, venue.currency)}</em></li>
               ))}</ul>
               {venue.notes && (noteOpen || note
-                ? <label className="g-field g-note">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} autoFocus={!note} /></label>
+                ? <label className="g-field g-note">{t("noteLabel")}
+                    <span className="g-note-wrap">
+                      {/* Left empty, the note closes again once they tap elsewhere. */}
+                      <input value={note} onChange={(e) => setNote(e.target.value)} onBlur={() => { if (!note.trim()) { setNote(""); setNoteOpen(false); } }} placeholder={t("notePlaceholder")} autoFocus={!note} />
+                      <button type="button" className="g-note-x" onMouseDown={(e) => e.preventDefault()} onClick={() => { setNote(""); setNoteOpen(false); }} aria-label={t("close")}>×</button>
+                    </span>
+                  </label>
                 : <button type="button" className="g-note-add" onClick={() => setNoteOpen(true)}>+ {t("addNote")}</button>)}
               {orderTypes.length > 1 && (
                 <div className="g-seg">

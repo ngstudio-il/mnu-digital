@@ -10,7 +10,12 @@ import BillingDetailsCard from "@/components/billing/BillingDetailsCard";
 import { VENUE_TYPES } from "@/lib/venue-types";
 import VenueInfoCard from "@/components/dashboard/VenueInfoCard";
 
-const GEN_TABS = [["business", "Business"], ["menu", "On your menu"], ["ordering", "Ordering"], ["billing", "Plan & billing"]] as const;
+const GEN_TABS = [
+  ["business", "Business", <><path d="M3 21h18M5 21V8l7-5 7 5v13" /><path d="M10 21v-6h4v6" /></>],
+  ["menu", "On your menu", <><rect x="6" y="2.5" width="12" height="19" rx="2.5" /><path d="M9.5 7h5M9.5 10.5h5M9.5 14h3" /></>],
+  ["ordering", "Ordering", <><path d="M6 7h12l-1 13H7z" /><path d="M9 7V5a3 3 0 0 1 6 0v2" /></>],
+  ["billing", "Plan & billing", <><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3 10h18M7 15h4" /></>],
+] as const;
 type GenTab = (typeof GEN_TABS)[number][0];
 
 export default function Settings() {
@@ -88,9 +93,9 @@ export default function Settings() {
   return (
     <div className="gen">
       {/* One topic at a time instead of every card at once. */}
-      <div className="gen-tabs" role="tablist" aria-label="General settings">
-        {GEN_TABS.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => pick(k)}>{l}</button>)}
-      </div>
+      <nav className="gen-tabs" role="tablist" aria-label="General settings" aria-orientation="vertical">
+        {GEN_TABS.map(([k, l, icon]) => <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => pick(k)}><svg viewBox="0 0 24 24" aria-hidden="true">{icon}</svg>{l}</button>)}
+      </nav>
       <div className="gen-body">
       {tab === "business" && <>
       <form className="card" onSubmit={saveVenue}>

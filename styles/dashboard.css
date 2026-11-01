@@ -759,3 +759,12 @@ button.me div { flex: 1; }
 .t-addr .t-addr-note { color: var(--text); font-style: italic; }
 .set-row.set-off { opacity: .45; }
 .set-row.set-off .switch, .set-row.set-off select { cursor: not-allowed; }
+/* Dish editor on phones: Cancel and Save in a bar fixed to the bottom of the screen. */
+@media (max-width: 900px) {
+  /* A blur on the header would pin the bar to the header instead of the screen. */
+  .editor-head { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--ink); }
+  .editor-actions { position: fixed; z-index: 70; left: 0; right: 0; bottom: 0; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba(244,244,241,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line); }
+  .editor-actions .btn { flex: 1; justify-content: center; padding-block: 14px; font-size: 15px; }
+  .editor-actions .btn:not(.ghost) { flex: 2; }
+  .editor-body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+}

@@ -1,4 +1,5 @@
 "use client";
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "./VenueContext";
@@ -143,7 +144,10 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
   }
 
   const src = photoUrl(d.image_path);
-  return (
+  // Rendered straight into <body>, so on phones nothing in the dashboard layout can shift the
+  // full-screen editor or its bottom bar.
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <div className="editor-page">
       <form className="editor" role="dialog" aria-modal="true" aria-labelledby="m-title" onSubmit={save} noValidate>
         <header className="editor-head">
@@ -280,6 +284,7 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
           <button type="button" className="x" onClick={() => setZoom(false)} aria-label="Close">×</button>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

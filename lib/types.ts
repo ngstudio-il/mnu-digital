@@ -72,6 +72,8 @@ export type Order = {
 // hide: fields filled in but not shown right now. search: dish search box (on unless false).
 export type VenueInfo = {
   phone?: string; address?: string; hours?: string; wifi_name?: string; wifi_password?: string; about?: string;
+  // Weekly hours (lib/hours.ts). hours, when set alongside, is a note under them (e.g. holidays).
+  schedule?: import("./hours").Schedule;
   hide?: ("phone" | "address" | "hours" | "wifi" | "about")[]; search?: boolean;
 };
 

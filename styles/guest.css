@@ -270,3 +270,12 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-search svg { inset-inline-start: calc(max(16px, env(safe-area-inset-left, 0px)) + 14px); }
 .g-search button { inset-inline-end: calc(max(16px, env(safe-area-inset-right, 0px)) + 8px); }
 @keyframes g-search-in { from { opacity: 0; translate: 0 -6px; } }
+/* Opening hours */
+.g-dot { width: 8px; height: 8px; border-radius: 50%; background: #e0897a; box-shadow: 0 0 0 3px rgba(224,137,122,.25); }
+.g-dot.on { background: #6fd18e; box-shadow: 0 0 0 3px rgba(111,209,142,.28); }
+.g-open-pill { margin-inline-start: 8px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: #fbecea; color: #b0503f; }
+.g-open-pill.on { background: #e4f1e5; color: #3f8a4a; }
+.g-hours { margin: 2px 0 0; display: grid; gap: 4px; }
+.g-hours div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.g-hours dt { color: var(--paper); font-weight: 500; }
+.g-hours dd { margin: 0; color: var(--text); text-align: end; }

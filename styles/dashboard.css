@@ -786,3 +786,41 @@ button.me div { flex: 1; }
 .info-show .switch { display: inline-block; }
 .info-show[aria-checked="false"] .switch { background: rgba(31,40,41,.2); }
 .info-show[aria-checked="false"] .switch::after { left: 3px; }
+.seg button[aria-checked="true"] { background: var(--paper); color: #fff; }
+.info-label-end { display: inline-flex; align-items: center; gap: 12px; }
+/* Opening hours editor */
+.hours-ed { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid rgba(31,40,41,.1); border-radius: 14px; background: #faf9f6; }
+.hours-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
+.hours-day { display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: start; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.hours-day:first-of-type { border-top: 0; }
+.hours-name { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: var(--paper); min-height: 38px; }
+.hours-day.closed .hours-name span { color: var(--dim); }
+.hours-ranges { display: grid; gap: 6px; justify-items: start; align-content: center; min-height: 38px; }
+.hours-ranges .note { margin: 0; line-height: 38px; }
+.hours-range { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hours-range input { font: 400 14px var(--font); padding: 7px 8px; border-radius: 10px; border: 1px solid rgba(31,40,41,.14); background: #fff; color: var(--paper); }
+.hours-add { border: 1px dashed rgba(31,40,41,.25); background: #fff; border-radius: 99px; padding: 5px 11px; font: 500 12.5px var(--font); color: var(--sage-hi); cursor: pointer; }
+.hours-x { width: 28px; height: 28px; border-radius: 50%; border: 0; background: #fbecea; color: #c4614f; font-size: 16px; line-height: 1; cursor: pointer; }
+@media (max-width: 560px) { .hours-day { grid-template-columns: 1fr; gap: 4px; } .hours-ranges { padding-inline-start: 52px; } }
+/* Settings → General: tabs */
+.gen { max-width: 820px; }
+.gen-tabs { display: flex; gap: 6px; padding: 5px; margin-bottom: 18px; border-radius: 16px; background: #fff; border: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.gen-tabs::-webkit-scrollbar { display: none; }
+.gen-tabs button { flex: 1 0 auto; border: 0; background: none; padding: 10px 16px; border-radius: 12px; font: 500 14px var(--font); color: var(--text); cursor: pointer; white-space: nowrap; }
+.gen-tabs button[aria-selected="true"] { background: var(--paper); color: #fff; }
+.gen-body { display: grid; gap: 18px; }
+.hours-ed .hours-range { flex-wrap: nowrap; }
+.hours-ed .hours-range input { width: 124px; flex: none; min-width: 0; }
+@media (max-width: 560px) { .hours-ed .hours-range input { width: 112px; } .hours-ranges { padding-inline-start: 0; } .hours-ranges .note { line-height: 1.4; } }
+.hours-add { white-space: nowrap; }
+@media (max-width: 560px) {
+  .hours-ed { padding: 10px 12px; }
+  .hours-ed .hours-range { width: 100%; }
+  .hours-ed .hours-range input { flex: 1 1 0; width: auto; padding: 7px 6px; font-size: 16px; }
+  .hours-day.closed { grid-template-columns: auto 1fr; align-items: center; }
+  .hours-day.closed .hours-ranges, .hours-day.closed .hours-ranges .note { min-height: 0; }
+}
+.info-field input, .info-field textarea, .hours-ed { box-sizing: border-box; }
+.hours-ranges, .hours-range { min-width: 0; }
+@media (max-width: 560px) { .hours-day { grid-template-columns: minmax(0, 1fr); } .hours-day.closed { grid-template-columns: auto minmax(0, 1fr); } }
+@media (max-width: 560px) { .hours-ed input[type="time"]::-webkit-calendar-picker-indicator { display: none; } }

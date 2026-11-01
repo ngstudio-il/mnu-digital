@@ -6,6 +6,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import Sheet from "./Sheet";
 import TableScanner from "./TableScanner";
 import AddressInput, { type PickedAddress } from "./AddressInput";
+import { hasSchedule, openNow, summarize } from "@/lib/hours";
 import LogoMark from "@/components/LogoMark";
 import { dishPrice, money, photoUrl } from "@/lib/format";
 import { CURRENCY_CODE, track } from "@/lib/marketing";
@@ -223,7 +224,16 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
 
   // Business details in the header (Settings → General → On your menu), and dish search.
   const info = venue.info ?? {};
-  const showInfo = (k: "phone" | "address" | "hours" | "wifi" | "about") => !(info.hide ?? []).includes(k) && !!(k === "wifi" ? info.wifi_name || info.wifi_password : info[k]?.trim());
+  const showInfo = (k: "phone" | "address" | "hours" | "wifi" | "about") => !(info.hide ?? []).includes(k) && !!(k === "wifi" ? info.wifi_name || info.wifi_password : k === "hours" ? hasSchedule(info.schedule) || info.hours?.trim() : info[k]?.trim());
+  // "Open until 22:00" / "Closed now", worked out in the guest's browser after load (it depends on the clock).
+  const [openState, setOpenState] = useState<{ open: boolean; until?: string } | null>(null);
+  useEffect(() => {
+    if (!hasSchedule(info.schedule)) { setOpenState(null); return; }
+    const tick = () => setOpenState(openNow(info.schedule!, venue.timezone));
+    tick();
+    const t = setInterval(tick, 60000);
+    return () => clearInterval(t);
+  }, [info.schedule, venue.timezone]);
   const [infoOpen, setInfoOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const searchOn = info.search !== false;
@@ -390,7 +400,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
           <div className="g-info-row">
             {showInfo("phone") && <a className="g-chip" href={`tel:${info.phone!.replace(/[^\d+]/g, "")}`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /></svg>{t("call")}</a>}
             {showInfo("address") && <a className="g-chip" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(info.address!)}`} target="_blank" rel="noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z" /><circle cx="12" cy="9" r="2.5" /></svg>{t("directions")}</a>}
-            {showInfo("hours") && <button type="button" className="g-chip" onClick={() => setInfoOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>{t("hours")}</button>}
+            {showInfo("hours") && <button type="button" className="g-chip" onClick={() => setInfoOpen(true)}>{openState ? <i className={`g-dot${openState.open ? " on" : ""}`} aria-hidden="true" /> : <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>}{openState ? (openState.open ? (openState.until ? t("openUntil", { t: openState.until }) : t("openNow")) : t("closedNow")) : t("hours")}</button>}
             {showInfo("wifi") && <button type="button" className="g-chip" onClick={() => setInfoOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0" /><circle cx="12" cy="19" r="1" /></svg>{t("wifi")}</button>}
           </div>
         )}
@@ -547,7 +557,12 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
           <div className="g-sheet-body g-infosheet">
             <h3>{venue.name}</h3>
             {showInfo("about") && <p className="g-info-about">{info.about}</p>}
-            {showInfo("hours") && <div className="g-info-block"><b>{t("hours")}</b><p>{info.hours}</p></div>}
+            {showInfo("hours") && (
+              <div className="g-info-block"><b>{t("hours")}{openState && <span className={`g-open-pill${openState.open ? " on" : ""}`}>{openState.open ? t("openNow") : t("closedNow")}</span>}</b>
+                {hasSchedule(info.schedule) && <dl className="g-hours">{summarize(info.schedule!, lang, t("closed")).map(([d, h]) => <div key={d}><dt>{d}</dt><dd dir="ltr">{h}</dd></div>)}</dl>}
+                {info.hours?.trim() && <p>{info.hours}</p>}
+              </div>
+            )}
             {showInfo("wifi") && (
               <div className="g-info-block"><b>{t("wifi")}</b>
                 {info.wifi_name && <p>{t("wifiNetwork")}: <span translate="no">{info.wifi_name}</span></p>}

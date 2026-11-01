@@ -1,6 +1,6 @@
 // Words on the guest menu. English and Hebrew are written by hand; every other
 // language is translated once by AI and cached in the ui_translations table.
-export const UI_VERSION = 11;
+export const UI_VERSION = 12;
 
 export const UI_EN = {
   type_Restaurant: "Restaurant",
@@ -43,6 +43,10 @@ export const UI_EN = {
   call: "Call",
   directions: "Directions",
   hours: "Opening hours",
+  openNow: "Open now",
+  openUntil: "Open until {t}",
+  closedNow: "Closed now",
+  closed: "Closed",
   wifi: "Wi-Fi",
   wifiNetwork: "Network",
   wifiPassword: "Password",
@@ -160,6 +164,10 @@ export const UI_HE: UiStrings = {
   call: "חיוג",
   directions: "ניווט",
   hours: "שעות פתיחה",
+  openNow: "פתוח עכשיו",
+  openUntil: "פתוח עד {t}",
+  closedNow: "סגור עכשיו",
+  closed: "סגור",
   wifi: "Wi-Fi",
   wifiNetwork: "רשת",
   wifiPassword: "סיסמה",

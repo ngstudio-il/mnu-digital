@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useDash } from "./VenueContext";
 import type { VenueInfo } from "@/lib/types";
+import HoursEditor from "./HoursEditor";
 
 type Key = "phone" | "address" | "hours" | "wifi" | "about";
 
@@ -12,6 +13,17 @@ export default function VenueInfoCard() {
   const { venue, setVenue, toast } = useDash();
   const [v, setV] = useState<VenueInfo>(venue.info ?? {});
   const [busy, setBusy] = useState(false);
+  const [writing, setWriting] = useState(false);
+  // The "about" line from what we already know: venue name, kind, address, sections and dishes.
+  async function writeAbout() {
+    setWriting(true);
+    const res = await fetch("/api/ai/about", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ draft: v.about ?? "" }) }).catch(() => null);
+    const json = res ? await res.json().catch(() => ({})) : {};
+    setWriting(false);
+    if (!res?.ok || !json.text) return toast(json.error ?? "Couldn’t write it. Try again.");
+    setV((x) => ({ ...x, about: json.text }));
+    toast(json.quota ? `Written. ${json.quota - json.used} AI text credits left this month. Save to keep it.` : "Written. Save to keep it.");
+  }
   const hidden = (k: Key) => (v.hide ?? []).includes(k);
   const toggle = (k: Key) => setV((x) => ({ ...x, hide: hidden(k) ? (x.hide ?? []).filter((h) => h !== k) : [...(x.hide ?? []), k] }));
   const set = (k: keyof VenueInfo) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV((x) => ({ ...x, [k]: e.target.value }));
@@ -38,7 +50,7 @@ export default function VenueInfoCard() {
       <h3>On your menu</h3>
       <p className="note" style={{ marginTop: -4 }}>Shown at the top of your menu. Leave a field empty, or switch it to Hidden, to keep it off.</p>
       <div className="info-field">
-        <div className="info-label"><label htmlFor="vi-about">A few words about you</label>{show("about", "About")}</div>
+        <div className="info-label"><label htmlFor="vi-about">A few words about you</label><span className="info-label-end"><button type="button" className="ai-btn sm" onClick={writeAbout} disabled={writing}>{writing ? "Writing…" : "✦ Write with AI"}</button>{show("about", "About")}</span></div>
         <textarea id="vi-about" value={v.about ?? ""} onChange={set("about")} maxLength={300} rows={2} placeholder="Neighbourhood bakery since 1998. Everything baked fresh every morning." dir="auto" />
       </div>
       <div className="row2">
@@ -53,7 +65,8 @@ export default function VenueInfoCard() {
       </div>
       <div className="info-field">
         <div className="info-label"><label htmlFor="vi-hours">Opening hours</label>{show("hours", "Opening hours")}</div>
-        <textarea id="vi-hours" value={v.hours ?? ""} onChange={set("hours")} maxLength={400} rows={3} placeholder={"Mon–Fri 8:00–22:00\nSat–Sun 9:00–23:00"} dir="auto" />
+        <HoursEditor value={v.schedule} onChange={(schedule) => setV((x) => ({ ...x, schedule }))} />
+        <input value={v.hours ?? ""} onChange={set("hours")} maxLength={200} placeholder="Note under the hours (optional), e.g. Closed on public holidays" dir="auto" aria-label="Note under the opening hours" />
       </div>
       <div className="info-field">
         <div className="info-label"><span>Wi-Fi for guests</span>{show("wifi", "Wi-Fi")}</div>

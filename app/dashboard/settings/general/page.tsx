@@ -10,9 +10,21 @@ import BillingDetailsCard from "@/components/billing/BillingDetailsCard";
 import { VENUE_TYPES } from "@/lib/venue-types";
 import VenueInfoCard from "@/components/dashboard/VenueInfoCard";
 
+const GEN_TABS = [["business", "Business"], ["menu", "On your menu"], ["ordering", "Ordering"], ["billing", "Plan & billing"]] as const;
+type GenTab = (typeof GEN_TABS)[number][0];
+
 export default function Settings() {
   const { venue, setVenue, user, toast, subscription, openBilling } = useDash();
   const plan = planSummary(subscription);
+  // The open tab follows the address (#ordering), so a link can open a section directly.
+  const [tab, setTab] = useState<GenTab>("business");
+  useEffect(() => {
+    const read = () => { const h = window.location.hash.slice(1); if (GEN_TABS.some(([k]) => k === h)) setTab(h as GenTab); };
+    read();
+    window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
+  const pick = (k: GenTab) => { setTab(k); window.history.replaceState(null, "", `#${k}`); };
   const router = useRouter();
   const [name, setName] = useState(venue.name);
   const [type, setType] = useState(venue.type);
@@ -74,8 +86,13 @@ export default function Settings() {
   );
 
   return (
-    <div className="set-grid">
-      <div className="set-col">
+    <div className="gen">
+      {/* One topic at a time instead of every card at once. */}
+      <div className="gen-tabs" role="tablist" aria-label="General settings">
+        {GEN_TABS.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => pick(k)}>{l}</button>)}
+      </div>
+      <div className="gen-body">
+      {tab === "business" && <>
       <form className="card" onSubmit={saveVenue}>
         <h3>Venue</h3>
         <label className="field" htmlFor="v-name">Venue name<input id="v-name" value={name} onChange={(e) => setName(e.target.value)} /></label>
@@ -92,9 +109,22 @@ export default function Settings() {
         <label className="field" htmlFor="v-slug">Menu link<input id="v-slug" value={slug} onChange={(e) => setSlug(e.target.value)} /><small>/m/{slugify(slug || name)}. Changing it breaks QR codes you already printed.</small></label>
         <div><button className="btn" type="submit" disabled={busy}>{busy ? "Saving…" : "Save changes"}</button></div>
       </form>
-
+      <div className="card vis-card">
+        <div className="vis-head">
+          <div><h3>Menu visibility</h3><span className="note">{venue.is_public === false ? "Only you can see the menu. Guests see a “private” notice and can’t order." : "Anyone with your QR code or link can see the menu and order."}</span></div>
+          <div className="vis-switch" role="radiogroup" aria-label="Menu visibility">
+            <button type="button" role="radio" aria-checked={venue.is_public !== false} onClick={() => { if (venue.is_public === false) patchVisibility(true); }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>Public</button>
+            <button type="button" role="radio" aria-checked={venue.is_public === false} onClick={() => { if (venue.is_public !== false) patchVisibility(false); }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>Private</button>
+          </div>
+        </div>
+      </div>
+      </>}
+      {tab === "menu" && <>
       <VenueInfoCard />
-
+      </>}
+      {tab === "ordering" && <>
       <div className="card">
         <h3>Ordering</h3>
         {sw("ordering_on", "Accept orders", off ? "Off: guests can only browse the menu. Turn it on to set up how they order." : "Guests can order from the menu")}
@@ -109,24 +139,9 @@ export default function Settings() {
         </div>
         {sw("notes", "Order notes", "Let guests add a note to their order")}
       </div>
-
-      </div>
-
-      <div className="set-col">
-      <div className="card vis-card">
-        <div className="vis-head">
-          <div><h3>Menu visibility</h3><span className="note">{venue.is_public === false ? "Only you can see the menu. Guests see a “private” notice and can’t order." : "Anyone with your QR code or link can see the menu and order."}</span></div>
-          <div className="vis-switch" role="radiogroup" aria-label="Menu visibility">
-            <button type="button" role="radio" aria-checked={venue.is_public !== false} onClick={() => { if (venue.is_public === false) patchVisibility(true); }}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" /></svg>Public</button>
-            <button type="button" role="radio" aria-checked={venue.is_public === false} onClick={() => { if (venue.is_public !== false) patchVisibility(false); }}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>Private</button>
-          </div>
-        </div>
-      </div>
-
+      </>}
+      {tab === "billing" && <>
       <BillingDetailsCard venueId={venue.id} venueName={venue.name} timezone={venue.timezone ?? null} support={venue.owner_id !== user.id} toast={toast} />
-
       <div className="card">
         <h3>Plan &amp; account</h3>
         <div className="set-row" style={{ display: "block" }}>
@@ -142,6 +157,7 @@ export default function Settings() {
         <div className="set-row"><div><b>{plan.title}</b><span>{plan.detail}</span></div><button className="btn sm" type="button" onClick={openBilling}>{subscription.status === "past_due" ? "Update card" : "Manage billing"}</button></div>
         <div className="set-row"><div><b>{user.name || "Your account"}</b><span>{user.email}{user.provider === "google" ? " · Google account" : ""}</span></div><button className="btn danger sm" type="button" onClick={logout}>Log out</button></div>
       </div>
+      </>}
       </div>
     </div>
   );

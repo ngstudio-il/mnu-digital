@@ -28,6 +28,7 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
   const placeholder = /^my venue$/i.test(venueName.trim()) ? "" : venueName;
   const [billing, setBilling] = useState<BillingDetails>(initialBilling ?? { country: "", name: placeholder || ownerName, tax_id: "", address: "" });
   const billingRef = useRef(billing);
+  const [needName, setNeedName] = useState(false);
   billingRef.current = billing;
   useEffect(() => { if (!initialBilling) setBilling((b) => (b.country ? b : { ...b, country: guessCountry() })); }, [initialBilling]);
   const saveBilling = async () => {
@@ -58,7 +59,12 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
       style: { layout: "vertical", shape: "pill", height: 48, label: "subscribe", ...(color ? { color } : {}) },
       // Country and invoice name first; PayPal opens only once they're filled in.
       onClick: (_: unknown, actions: { resolve: () => unknown; reject: () => unknown }) => {
-        if (!billingValid(billingRef.current)) { setErr("Add your country and the name for your invoices first."); document.getElementById("bd-country")?.focus(); return actions.reject(); }
+        if (!billingValid(billingRef.current)) {
+          setErr("Add your country and the name for your invoices first.");
+          setNeedName(true);
+          setTimeout(() => document.getElementById(billingRef.current.country ? "bd-name" : "bd-country")?.focus(), 50);
+          return actions.reject();
+        }
         setErr(""); return actions.resolve();
       },
       createSubscription: create,
@@ -88,7 +94,7 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
   const [err, setErr] = useState("");
 
   async function start() {
-    if (provider === "paypal" && !billingValid(billing)) { setErr("Add your country and the name for your invoices first."); return; }
+    if (provider === "paypal" && !billingValid(billing)) { setErr("Add your country and the name for your invoices first."); setNeedName(true); return; }
     setBusy(true); setErr("");
     if (provider === "paypal" && !(await saveBilling())) { setBusy(false); return; }
     const res = await fetch(provider === "paypal" ? "/api/paypal/subscribe" : "/api/stripe/checkout", { method: "POST" }).catch(() => null);
@@ -139,7 +145,7 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
             <fieldset className="bd-box">
               <legend>Billing details</legend>
               <p className="note">For your invoices. You can change them later in Settings.</p>
-              <BillingDetailsForm value={billing} onChange={setBilling} />
+              <BillingDetailsForm value={billing} onChange={setBilling} compact open={needName} />
             </fieldset>
           )}
           {!returning && (

@@ -228,6 +228,15 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const [copied, setCopied] = useState(false);
   const searchOn = info.search !== false;
   const [query, setQuery] = useState("");
+  // Search opens from the magnifier in the header, with the keyboard up right away (focusing inside
+  // the tap, after rendering the field synchronously, is what lets iOS open it).
+  const [searching, setSearching] = useState(false);
+  const searchInput = useRef<HTMLInputElement>(null);
+  function openSearch() {
+    flushSync(() => setSearching(true));
+    searchInput.current?.focus();
+  }
+  function closeSearch() { setQuery(""); setSearching(false); }
 
   const groups = useMemo(() => {
     const g = categories.map((c) => ({ id: c.id, name: (lang !== i18n.primary && i18n.content[lang]?.[tkey.cat(c.id)]?.name) || c.name, items: dishes.filter((d) => d.category_id === c.id) })).filter((g) => g.items.length);
@@ -387,6 +396,9 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
         )}
         {table && <span className="g-table">{tableText(table)}</span>}
         <div className="g-top">
+          {searchOn && <button type="button" className="g-lang g-search-btn" onClick={() => (searching ? closeSearch() : openSearch())} aria-label={t("searchDishes")} aria-expanded={searching} title={t("searchDishes")}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+          </button>}
           {(mine.length > 0 || count > 0) && <button type="button" className="g-mine" onClick={() => setShowMine(true)}>{t("myOrders")}<b>{mine.length + (count > 0 ? 1 : 0)}</b></button>}
           {i18n.langs.length > 1 && (
             <button type="button" className="g-lang" onClick={() => setPickLang(true)} aria-label={`${t("language")}: ${language(lang).native}`} title={language(lang).native}>
@@ -395,14 +407,14 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
           )}
         </div>
       </header>
-      {searchOn && (
+      {searchOn && searching && (
         <div className="g-search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("searchDishes")} aria-label={t("searchDishes")} enterKeyHint="search" />
-          {query && <button type="button" onClick={() => setQuery("")} aria-label={t("close")}>×</button>}
+          <input ref={searchInput} type="search" value={query} onKeyDown={(e) => { if (e.key === "Escape") closeSearch(); }} onChange={(e) => setQuery(e.target.value)} placeholder={t("searchDishes")} aria-label={t("searchDishes")} enterKeyHint="search" />
+          <button type="button" onClick={closeSearch} aria-label={t("close")}>×</button>
         </div>
       )}
-      <nav className="g-cats" ref={catsNav} aria-label={t("menu")} hidden={!!q}>{groups.map((g) => (
+      <nav className="g-cats" ref={catsNav} aria-label={t("menu")} hidden={!!q || searching}>{groups.map((g) => (
         <a key={g.id} href={`#c-${g.id}`} data-cat={g.id} className={activeCat === g.id ? "on" : undefined} aria-current={activeCat === g.id ? "true" : undefined}
           onClick={(e) => { e.preventDefault(); jumpTo(g.id); }}>{g.name}</a>
       ))}</nav>

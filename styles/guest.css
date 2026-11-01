@@ -265,3 +265,8 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-search input:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
 .g-search button { position: absolute; inset-inline-end: 8px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--chip); color: var(--dim); font-size: 18px; line-height: 1; cursor: pointer; }
 .g-cats[hidden] { display: none; }
+.g-search-btn svg { width: 17px; height: 17px; stroke-width: 2; stroke-linecap: round; }
+.g-search { position: sticky; top: 0; z-index: 6; margin: 0; padding: 10px max(16px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--ink) 94%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: g-search-in .18s ease-out; }
+.g-search svg { inset-inline-start: calc(max(16px, env(safe-area-inset-left, 0px)) + 14px); }
+.g-search button { inset-inline-end: calc(max(16px, env(safe-area-inset-right, 0px)) + 8px); }
+@keyframes g-search-in { from { opacity: 0; translate: 0 -6px; } }

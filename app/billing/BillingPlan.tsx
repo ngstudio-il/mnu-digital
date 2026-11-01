@@ -18,14 +18,15 @@ const FEATURES = [
 type PayPalButtons = { isEligible: () => boolean; render: (el: HTMLElement) => Promise<void> };
 type PayPalSdk = { Buttons: (o: object) => PayPalButtons; FUNDING: { CARD: string; PAYPAL: string } };
 
-export default function BillingPlan({ venueName, returning, provider, paypalClientId = "", billing: initialBilling }: { venueName: string; returning: boolean; provider: "paypal" | "stripe"; paypalClientId?: string; billing: BillingDetails | null }) {
+export default function BillingPlan({ venueName, returning, provider, paypalClientId = "", billing: initialBilling, ownerName = "" }: { venueName: string; returning: boolean; provider: "paypal" | "stripe"; paypalClientId?: string; billing: BillingDetails | null; ownerName?: string }) {
   const via = provider === "paypal" ? "PayPal" : "Stripe";
   // The day the trial ends and the first $39 is charged.
   const [firstCharge, setFirstCharge] = useState("in 7 days");
   useEffect(() => { setFirstCharge(new Date(Date.now() + 7 * 86400000).toLocaleDateString("en-GB", { day: "numeric", month: "long" })); }, []);
-  // Billing details for the invoice, saved before the payment starts.
+  // Billing details for the invoice, saved before the payment starts. The name starts as the
+  // business name, or (before it has one) the owner's own name from sign-up or Google; they can change it.
   const placeholder = /^my venue$/i.test(venueName.trim()) ? "" : venueName;
-  const [billing, setBilling] = useState<BillingDetails>(initialBilling ?? { country: "", name: placeholder, tax_id: "", address: "" });
+  const [billing, setBilling] = useState<BillingDetails>(initialBilling ?? { country: "", name: placeholder || ownerName, tax_id: "", address: "" });
   const billingRef = useRef(billing);
   billingRef.current = billing;
   useEffect(() => { if (!initialBilling) setBilling((b) => (b.country ? b : { ...b, country: guessCountry() })); }, [initialBilling]);

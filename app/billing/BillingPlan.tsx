@@ -109,7 +109,7 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
   }
 
   return (
-    <div className="auth">
+    <div className="auth auth-bill">
       <section className="auth-form">
         <div className="auth-top">
           <a className="logo" href="/"><img src="/assets/mnu-logo.png" alt="mnu.digital" /></a>
@@ -121,6 +121,8 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
           {/* On phones the dark showcase panel is hidden, so a smaller copy of it sits here. */}
           <div className="ss-mobile" aria-hidden="true"><ScanShowcase /></div>
 
+          {/* Desktop: the plan beside the payment, so the page fits one screen. */}
+          <div className="bill-grid">
           <div className="plan-box">
             {returning ? (
               <div className="plan-price"><b>$39</b><span>/month</span></div>
@@ -141,6 +143,7 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
             )}
           </div>
 
+          <div className="bill-pay">
           {provider === "paypal" && (
             <fieldset className="bd-box">
               <legend>Billing details</legend>
@@ -165,6 +168,8 @@ export default function BillingPlan({ venueName, returning, provider, paypalClie
           )}
           {(provider !== "paypal" || sdk === "failed") && <button className="btn block" type="button" onClick={start} disabled={busy}>{busy ? `Opening ${via}…` : returning ? `Continue to payment with ${via}` : `Start free trial with ${via}`}</button>}
           <p className="legal">{provider === "paypal" ? "Pay with a debit or credit card, no PayPal account needed, or log in to PayPal. Payments are processed securely by PayPal; we never see your card number." : "Payments are processed by Stripe. We never see your card number."}</p>
+          </div>
+          </div>
         </div>
       </section>
       <aside className="auth-side" aria-hidden="true">

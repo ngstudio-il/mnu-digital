@@ -1,3 +1,4 @@
+import { photoUrl } from "@/lib/format";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -61,8 +62,15 @@ async function load(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await load((await params).slug);
+  // Share preview: the cover photo, else the logo or the app icon on a square (/og).
+  const slug = (await params).slug;
+  const cover = data && !data.private ? photoUrl(data.venue.cover_path) : null;
+  const image = cover ?? `/og?slug=${encodeURIComponent(slug)}`;
+  const title = data ? `${data.venue.name} · ${data.ui[data.primary].menu}` : "Menu not found";
   return {
-    title: data ? `${data.venue.name} · ${data.ui[data.primary].menu}` : "Menu not found",
+    title,
+    openGraph: { title, images: [cover ? { url: image } : { url: image, width: 800, height: 800 }], type: "website" },
+    twitter: { card: cover ? "summary_large_image" : "summary", images: [image] },
     ...(data?.venue.is_public === false ? { robots: { index: false, follow: false } } : {}),
   };
 }

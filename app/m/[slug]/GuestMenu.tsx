@@ -89,13 +89,8 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
     // Keep the table if the page is reloaded.
     const u = new URL(window.location.href); u.searchParams.set("t", n); window.history.replaceState(null, "", u);
   }, []);
-  // Take Away needs a name, so the name field opens ready to type. Focusing inside the tap
-  // (after rendering it synchronously) is what lets iOS show the keyboard.
+  // First field of the details step (focused when it opens).
   const nameInput = useRef<HTMLInputElement>(null);
-  function chooseTakeaway() {
-    flushSync(() => setType("takeaway"));
-    nameInput.current?.focus();
-  }
   // Popup message from Settings → Marketing: after a short delay, once per guest or every visit.
   const popup = venue.marketing?.popup;
   const [showPopup, setShowPopup] = useState(false);
@@ -157,7 +152,10 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const [open, setOpen] = useState<Dish | null>(null);
   const [checkout, setCheckout] = useState(false);
   // At the table comes first. The table number itself only comes from the QR code on it.
-  const [type, setType] = useState<"dinein" | "takeaway" | "delivery">(venue.dinein ? "dinein" : venue.takeaway ? "takeaway" : "delivery");
+  const [type, setType] = useState<"dinein" | "takeaway" | "delivery">(venue.dinein ? "dinein" : venue.takeaway ? "takeaway" : venue.delivery ? "delivery" : "dinein");
+  // Checkout is two steps when it needs the guest's details: the order, then name / phone / address.
+  const [step, setStep] = useState<"order" | "details">("order");
+  const [moreOpen, setMoreOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
@@ -167,6 +165,16 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const [extra, setExtra] = useState({ apt: "", floor: "", building: "", code: "", instructions: "" });
   const [dropoff, setDropoff] = useState<"door" | "hand" | "call">("hand");
   const askPhone = type === "delivery" ? "required" : venue.ask_phone ?? "off";
+  // Details from this guest's last order on this phone, so they don't type them again.
+  useEffect(() => {
+    try {
+      const g = JSON.parse(localStorage.getItem("mnu.guest") ?? "null");
+      if (!g) return;
+      if (g.name) setName(g.name);
+      if (g.phone) setPhone(g.phone);
+      if (g.addr?.address) { setAddr(g.addr); setExtra((x) => ({ ...x, ...g.extra })); if (g.dropoff) setDropoff(g.dropoff); }
+    } catch { /* storage unavailable */ }
+  }, []);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [placed, setPlaced] = useState<number | null>(null);
@@ -289,6 +297,17 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   const [variant, setVariant] = useState<string | null>(null);
   const canOrder = venue.ordering_on && (venue.dinein || venue.takeaway || !!venue.delivery);
   const orderTypes = (["dinein", "takeaway", "delivery"] as const).filter((k) => (k === "delivery" ? !!venue.delivery : venue[k]));
+  // If the owner turns an order type off, fall back to one that's on.
+  useEffect(() => { if (orderTypes.length && !orderTypes.includes(type)) setType(orderTypes[0]); }, [orderTypes.join(), type]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (checkout) { setStep("order"); setErr(""); } }, [checkout]);
+  const needsDetails = type !== "dinein" || askPhone !== "off";
+  function goDetails() {
+    setErr("");
+    if (type === "dinein" && !table) return setErr(t("scanTable"));
+    // Rendering the next step inside the tap is what lets iOS open the keyboard on its first field.
+    flushSync(() => setStep("details"));
+    nameInput.current?.focus();
+  }
   const add = (id: string, n = 1) => {
     if (n > 0) { const d = dishes.find((x) => x.id === id.split("::")[0]); if (d) track("AddToCart", { name: d.name, value: Number(unitPrice(d, id.split("::")[1] ?? null) ?? 0) * n, currency: currencyCode }); }
     setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) + n) }));
@@ -324,6 +343,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
     const next = [saved, ...mine].slice(0, 20);
     setMine(next);
     try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* storage unavailable */ }
+    try { localStorage.setItem("mnu.guest", JSON.stringify({ name: name.trim(), phone: phone.trim(), ...(type === "delivery" ? { addr, extra, dropoff } : {}) })); } catch { /* storage unavailable */ }
     track("Purchase", { value: total, currency: currencyCode });
     setPlaced(number); setCart({}); setCheckout(false);
   }
@@ -375,7 +395,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
         <p className="g-foot">{t("menuBy")} <a href="/">mnu.digital</a></p>
       </main>
 
-      {count > 0 && !checkout && (
+      {count > 0 && !checkout && canOrder && (
         <button className="g-bar" type="button" onClick={() => setCheckout(true)}><span>{count === 1 ? t("oneItem") : t("nItems", { n: count })}</span><b>{t("viewOrder")} · {money(total, venue.currency)}</b></button>
       )}
 
@@ -405,26 +425,41 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
         </Sheet>
       )}
 
-      {checkout && (
+      {checkout && canOrder && (
         <Sheet closeLabel={t("close")} onClose={() => setCheckout(false)} label={t("yourOrder")} className="g-light">
+          {step === "order" ? (
             <div className="g-sheet-body">
               <h3>{t("yourOrder")}</h3>
               <ul className="g-lines">{lines.map((l) => (
                 <li key={l.key}><span>{lineName(l.dish, l.variant)}</span><div className="g-qty"><button type="button" onClick={() => add(l.key, -1)} aria-label={t("removeOne")}>−</button><span>{l.q}</span><button type="button" onClick={() => add(l.key)} aria-label={t("addOne")}>+</button></div><em>{money(l.q * l.price, venue.currency)}</em></li>
               ))}</ul>
+              {venue.notes && (noteOpen || note
+                ? <label className="g-field g-note">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} autoFocus={!note} /></label>
+                : <button type="button" className="g-note-add" onClick={() => setNoteOpen(true)}>+ {t("addNote")}</button>)}
               {orderTypes.length > 1 && (
                 <div className="g-seg">
-                  {venue.dinein && <button type="button" aria-pressed={type === "dinein"} onClick={() => setType("dinein")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M5 9v11M19 9v11M7 9l2-5h6l2 5M9 15h6" /></svg>{t("atTable")}</button>}
-                  {venue.takeaway && <button type="button" aria-pressed={type === "takeaway"} onClick={chooseTakeaway}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z" /><path d="M9 11V6a3 3 0 0 1 6 0v5" /></svg>{t("takeaway")}</button>}
-                  {venue.delivery && <button type="button" aria-pressed={type === "delivery"} onClick={() => setType("delivery")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" /><circle cx="7" cy="17.5" r="1.8" /><circle cx="17" cy="17.5" r="1.8" /></svg>{t("delivery")}</button>}
+                  {venue.dinein && <button type="button" aria-pressed={type === "dinein"} onClick={() => { setType("dinein"); setErr(""); }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M5 9v11M19 9v11M7 9l2-5h6l2 5M9 15h6" /></svg>{t("atTable")}</button>}
+                  {venue.takeaway && <button type="button" aria-pressed={type === "takeaway"} onClick={() => { setType("takeaway"); setErr(""); }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z" /><path d="M9 11V6a3 3 0 0 1 6 0v5" /></svg>{t("takeaway")}</button>}
+                  {venue.delivery && <button type="button" aria-pressed={type === "delivery"} onClick={() => { setType("delivery"); setErr(""); }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" /><circle cx="7" cy="17.5" r="1.8" /><circle cx="17" cy="17.5" r="1.8" /></svg>{t("delivery")}</button>}
                 </div>
               )}
-              {type === "dinein"
-                ? (table
-                  ? <div className="g-fixed"><span>{t("yourTable")}</span><b>{tableText(table)}</b></div>
-                  : <div className="g-hint"><p>{t("scanTable")}</p><button type="button" className="g-scan-btn" onClick={() => setScanning(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10" /></svg>{t("scanTableBtn")}</button></div>)
-                : <label className="g-field">{t("nameForOrder")}<input ref={nameInput} value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" /></label>}
-              {askPhone !== "off" && <label className="g-field">{askPhone === "required" ? t("phone") : t("phoneOptional")}<input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" inputMode="tel" dir="ltr" /></label>}
+              {type === "dinein" && (table
+                ? <div className="g-fixed"><span>{t("yourTable")}</span><b>{tableText(table)}</b></div>
+                : <div className="g-hint"><p>{t("scanTable")}</p><button type="button" className="g-scan-btn" onClick={() => setScanning(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10" /></svg>{t("scanTableBtn")}</button></div>)}
+              {err && <p className="g-err">{err}</p>}
+              <button className="g-cta g-sticky" type="button" disabled={busy || !lines.length || (type === "dinein" && !table)} onClick={needsDetails ? goDetails : place}>
+                {busy ? t("sending") : `${needsDetails ? t("continue") : t("placeOrder")} · ${money(total, venue.currency)}`}
+              </button>
+            </div>
+          ) : (
+            <div className="g-sheet-body">
+              <div className="g-step-head">
+                <button type="button" className="g-back" onClick={() => { setStep("order"); setErr(""); }} aria-label={t("yourOrder")}>‹</button>
+                <div><small>{t("stepOf", { n: 2 })}</small><h3>{type === "delivery" ? t("deliveryDetails") : t("yourDetails")}</h3></div>
+              </div>
+              <div className="g-progress" aria-hidden="true"><i /><i /></div>
+              {type !== "dinein" && <label className="g-field">{t("nameForOrder")}<input ref={nameInput} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></label>}
+              {askPhone !== "off" && <label className="g-field">{askPhone === "required" ? t("phone") : t("phoneOptional")}<input ref={type === "dinein" ? nameInput : undefined} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" inputMode="tel" dir="ltr" /></label>}
               {type === "delivery" && (
                 <div className="g-delivery">
                   <AddressInput value={addr} onChange={setAddr} label={t("address")} placeholder={t("addressPlaceholder")} lang={lang} />
@@ -432,22 +467,24 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
                     <label className="g-field">{t("apt")}<input value={extra.apt} onChange={(e) => setExtra({ ...extra, apt: e.target.value })} autoComplete="address-line2" /></label>
                     <label className="g-field">{t("floor")}<input value={extra.floor} onChange={(e) => setExtra({ ...extra, floor: e.target.value })} inputMode="numeric" /></label>
                   </div>
-                  <div className="g-row2">
-                    <label className="g-field">{t("building")}<input value={extra.building} onChange={(e) => setExtra({ ...extra, building: e.target.value })} /></label>
-                    <label className="g-field">{t("gateCode")}<input value={extra.code} onChange={(e) => setExtra({ ...extra, code: e.target.value })} /></label>
-                  </div>
                   <div className="g-field"><span>{t("dropoff")}</span>
                     <div className="g-chips">{(["hand", "door", "call"] as const).map((k) => <button key={k} type="button" aria-pressed={dropoff === k} onClick={() => setDropoff(k)}>{t(k === "hand" ? "dropHand" : k === "door" ? "dropDoor" : "dropCall")}</button>)}</div>
                   </div>
-                  <label className="g-field">{t("courierNote")}<input value={extra.instructions} onChange={(e) => setExtra({ ...extra, instructions: e.target.value })} placeholder={t("courierPlaceholder")} /></label>
+                  {moreOpen || extra.building || extra.code || extra.instructions ? (
+                    <>
+                      <div className="g-row2">
+                        <label className="g-field">{t("building")}<input value={extra.building} onChange={(e) => setExtra({ ...extra, building: e.target.value })} /></label>
+                        <label className="g-field">{t("gateCode")}<input value={extra.code} onChange={(e) => setExtra({ ...extra, code: e.target.value })} /></label>
+                      </div>
+                      <label className="g-field">{t("courierNote")}<input value={extra.instructions} onChange={(e) => setExtra({ ...extra, instructions: e.target.value })} placeholder={t("courierPlaceholder")} /></label>
+                    </>
+                  ) : <button type="button" className="g-note-add" onClick={() => setMoreOpen(true)}>+ {t("moreDelivery")}</button>}
                 </div>
               )}
-              {venue.notes && (noteOpen || note
-                ? <label className="g-field g-note">{t("noteLabel")}<input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} autoFocus={!note} /></label>
-                : <button type="button" className="g-note-add" onClick={() => setNoteOpen(true)}>+ {t("addNote")}</button>)}
               {err && <p className="g-err">{err}</p>}
-              <button className="g-cta g-sticky" type="button" disabled={busy || !lines.length || (type === "dinein" && !table)} onClick={place}>{busy ? t("sending") : `${t("placeOrder")} · ${money(total, venue.currency)}`}</button>
+              <button className="g-cta g-sticky" type="button" disabled={busy || !lines.length} onClick={place}>{busy ? t("sending") : `${t("placeOrder")} · ${money(total, venue.currency)}`}</button>
             </div>
+          )}
         </Sheet>
       )}
 
@@ -467,7 +504,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
                   <ul>{lines.map((l) => <li key={l.key}><span>{l.q}× {lineName(l.dish, l.variant)}</span><em>{money(l.q * l.price, venue.currency)}</em></li>)}</ul>
                   <div className="g-order-total"><span>{t("total")}</span><b>{money(total, venue.currency)}</b></div>
                   <div className="g-draft-actions">
-                    <button type="button" className="g-cta" onClick={() => { setShowMine(false); setCheckout(true); }}>{t("finishOrder")}</button>
+                    {canOrder && <button type="button" className="g-cta" onClick={() => { setShowMine(false); setCheckout(true); }}>{t("finishOrder")}</button>}
                     <button type="button" className="g-cta ghost" onClick={() => { setCart({}); setNote(""); if (!mine.length) setShowMine(false); }}>{t("deleteDraft")}</button>
                   </div>
                 </div>

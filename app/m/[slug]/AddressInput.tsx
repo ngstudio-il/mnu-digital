@@ -33,6 +33,8 @@ export default function AddressInput({ value, onChange, label, placeholder, lang
   const [items, setItems] = useState<{ id: string; main: string; rest: string; prediction: Places }[]>([]);
   const [active, setActive] = useState(-1);
   const session = useRef<Places | null>(null);
+  // An address remembered from the guest's last order arrives after the first render.
+  useEffect(() => { if (value?.address) setText(value.address); }, [value?.address]);
 
   useEffect(() => {
     if (!key) return;

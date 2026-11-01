@@ -4,6 +4,8 @@ import SignupConversion from "@/components/marketing/SignupConversion";
 export const metadata: Metadata = {
   title: "mnu.digital · Digital menus for restaurants",
   description: "Digital QR menus for restaurants, cafés, bars and hotels. Update dishes and prices from your phone and take orders from the table.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.mnu.digital"),
+  openGraph: { images: [{ url: "/og", width: 800, height: 800 }], siteName: "mnu.digital", type: "website" },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };

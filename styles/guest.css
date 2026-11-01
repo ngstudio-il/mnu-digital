@@ -213,3 +213,11 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-delivery, .g-delivery .g-field { min-width: 0; }
 .g-field input { min-width: 0; width: 100%; box-sizing: border-box; }
 .g-seg button { min-width: 0; padding-inline: 6px; font-size: 13.5px; }
+/* Checkout step 2: the guest's details */
+.g-step-head { display: flex; align-items: center; gap: 12px; }
+.g-step-head small { display: block; font-size: 12px; color: var(--dim); font-weight: 500; }
+.g-step-head h3 { margin: 0; }
+.g-back { flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--sheet); color: var(--paper); font-size: 24px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding-bottom: 3px; }
+[dir="rtl"] .g-back { transform: scaleX(-1); }
+.g-progress { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: -2px 0 4px; }
+.g-progress i { height: 4px; border-radius: 99px; background: var(--brand); }

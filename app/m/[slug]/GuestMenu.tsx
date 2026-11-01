@@ -500,13 +500,15 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
               <h3>{t("myOrders")}</h3>
               {count > 0 && (
                 <div className="g-order g-draft">
-                  <div className="g-order-top"><b>{t("draft")}</b><span className="g-pill st-draft">{t("notSent")}</span></div>
+                  <div className="g-order-top"><b>{t("draft")}</b><span className="g-draft-tools"><span className="g-pill st-draft">{t("notSent")}</span>
+                    <button type="button" className="g-trash" onClick={() => { setCart({}); setNote(""); if (!mine.length) setShowMine(false); }} aria-label={t("deleteDraft")} title={t("deleteDraft")}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></svg>
+                    </button></span></div>
                   <small>{t("draftIntro")}</small>
                   <ul>{lines.map((l) => <li key={l.key}><span>{l.q}× {lineName(l.dish, l.variant)}</span><em>{money(l.q * l.price, venue.currency)}</em></li>)}</ul>
                   <div className="g-order-total"><span>{t("total")}</span><b>{money(total, venue.currency)}</b></div>
                   <div className="g-draft-actions">
                     {canOrder && <button type="button" className="g-cta" onClick={() => { setShowMine(false); setCheckout(true); }}>{t("finishOrder")}</button>}
-                    <button type="button" className="g-cta ghost" onClick={() => { setCart({}); setNote(""); if (!mine.length) setShowMine(false); }}>{t("deleteDraft")}</button>
                   </div>
                 </div>
               )}

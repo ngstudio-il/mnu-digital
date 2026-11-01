@@ -162,7 +162,11 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-draft { border-style: dashed; border-color: var(--line-strong); }
 .g-pill.st-draft { background: #f4efe2; color: #8a6d2a; }
 .g-draft-actions { display: grid; gap: 8px; margin-top: 6px; }
-.g-draft-actions .g-cta { padding: 13px; font-size: 15px; }
+.g-draft-actions .g-cta { padding: 16px; font-size: 16px; }
+.g-draft-tools { display: inline-flex; align-items: center; gap: 8px; }
+.g-trash { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #fbecea; color: #c4614f; display: grid; place-items: center; cursor: pointer; padding: 0; transition: background .2s; }
+.g-trash:hover { background: #f6d9d5; }
+.g-trash svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Long orders: the item list scrolls on its own so the buttons stay in view */
 .g-lines, .g-order ul { max-height: min(28vh, 210px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }

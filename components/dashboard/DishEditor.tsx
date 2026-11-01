@@ -165,7 +165,7 @@ export default function DishEditor({ draft, cats, onClose, onSaved }: { draft: D
         </header>
         <div className="editor-body">
         <div className="editor-main">
-        <label className="field" htmlFor="d-name">Dish name<input id="d-name" autoFocus value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Grilled salmon" /></label>
+        <label className="field" htmlFor="d-name">Dish name<input id="d-name" autoFocus={!d.id && typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches} value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Grilled salmon" /></label>
         <div className="field">
           <div className="ai-row">
             <label htmlFor="d-desc">Description</label>

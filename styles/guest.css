@@ -232,8 +232,9 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-note-wrap input { width: 100%; padding-inline-end: 40px; }
 .g-note-x { position: absolute; top: 50%; inset-inline-end: 8px; translate: 0 -50%; width: 26px; height: 26px; border-radius: 50%; border: 0; background: var(--chip); color: var(--dim); font-size: 17px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0 0 2px; }
 .g-note-x:hover { color: var(--paper); }
-/* Every dish card is the same height, with or without a photo, description, tags or + button. */
-.g-item, .g-item.noimg, .cards-list .g-item, .cards-list .g-item.noimg { box-sizing: border-box; height: 104px; }
-.g-info { min-width: 0; max-height: 100%; overflow: hidden; }
+/* Dish cards share a minimum height, so short ones line up; long names, bigger fonts or tags
+   make a card grow instead of being cut off. */
+.g-item, .g-item.noimg, .cards-list .g-item, .cards-list .g-item.noimg { box-sizing: border-box; min-height: 104px; }
+.g-info { min-width: 0; }
 .g-info b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .g-info:has(.g-tags) p { -webkit-line-clamp: 1; }

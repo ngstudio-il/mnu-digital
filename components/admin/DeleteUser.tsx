@@ -29,7 +29,7 @@ export default function DeleteUser({ userId, email, label = "Delete user", small
             <ul className="del-list">
               <li>The account <b>{email}</b> (they can’t log in any more)</li>
               <li>Their venue, menu, photos, orders, chat and analytics</li>
-              <li>Their Stripe subscription is cancelled right away (past payments stay in Stripe)</li>
+              <li>Their PayPal subscription is cancelled right away (past payments stay in PayPal)</li>
             </ul>
             <label className="field" htmlFor="del-confirm">Type <b>{email}</b> to confirm
               <input id="del-confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" spellCheck={false} />

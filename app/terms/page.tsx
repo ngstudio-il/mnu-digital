@@ -26,7 +26,7 @@ const SECTIONS: LegalSection[] = [
     "We may attempt to process payments in advance of renewal. If payment fails, we may retry billing and may suspend or terminate access until payment is received.",
     "All fees are stated in U.S. Dollars unless otherwise indicated and are non-cancelable and non-refundable except as required by applicable law or expressly agreed by us in writing.",
     "We reserve the right to modify pricing, plans, features, usage quotas, and billing terms at any time. Any changes may apply prospectively.",
-    "Payments may be processed by third-party payment processors such as Stripe, and your use of such services may be subject to their terms and policies.",
+    "Payments may be processed by third-party payment processors such as PayPal, and your use of such services may be subject to their terms and policies.",
   ] },
   { title: "Free Plans, Trials, and Beta Features", body: [
     "We may offer free plans, free trials, promotional plans, or beta / pre-release features from time to time.",

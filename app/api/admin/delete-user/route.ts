@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { billingConfigured, stripe } from "@/lib/stripe";
+import { paypal, paypalConfigured } from "@/lib/paypal";
 
 // Admin only: deletes a user completely. Cancels their Stripe subscription right away, removes
 // their uploaded files, their venues (with dishes, orders, chat, analytics, translations) and the
@@ -32,6 +33,14 @@ export async function POST(request: Request) {
       if (!s.stripe_subscription_id) continue;
       try { await stripe().subscriptions.cancel(s.stripe_subscription_id); done.push("Stripe subscription cancelled"); }
       catch { /* already cancelled, or from test mode */ }
+    }
+  }
+  if (venueIds.length && paypalConfigured()) {
+    const { data: subs } = await db.from("subscriptions").select("*").in("venue_id", venueIds);
+    for (const s of (subs ?? []) as { paypal_subscription_id?: string | null }[]) {
+      if (!s.paypal_subscription_id) continue;
+      try { await paypal("POST", `/v1/billing/subscriptions/${encodeURIComponent(s.paypal_subscription_id)}/cancel`, { reason: "Account deleted" }); done.push("PayPal subscription cancelled"); }
+      catch { /* already cancelled */ }
     }
   }
 

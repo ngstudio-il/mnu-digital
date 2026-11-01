@@ -1,0 +1,10 @@
+/* Loaded on every page (app/layout.tsx). */
+
+/* Phones and tablets zoom the page in when a field with text under 16px gets focus (iPhone does
+   this), which shifts the layout and leaves fixed bars and buttons out of place. Fields are at
+   least 16px there, so nothing zooms. Pinch-to-zoom still works. */
+@media (pointer: coarse), (max-width: 900px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea { font-size: max(16px, 1em) !important; }
+}

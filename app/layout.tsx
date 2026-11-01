@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import SignupConversion from "@/components/marketing/SignupConversion";
+import "@/styles/base.css";
 
 export const metadata: Metadata = {
   title: "mnu.digital · Digital menus for restaurants",

@@ -1,6 +1,6 @@
 // Words on the guest menu. English and Hebrew are written by hand; every other
 // language is translated once by AI and cached in the ui_translations table.
-export const UI_VERSION = 10;
+export const UI_VERSION = 11;
 
 export const UI_EN = {
   type_Restaurant: "Restaurant",
@@ -40,6 +40,19 @@ export const UI_EN = {
   atTable: "At the table",
   takeaway: "Take Away",
   delivery: "Delivery",
+  call: "Call",
+  directions: "Directions",
+  hours: "Opening hours",
+  wifi: "Wi-Fi",
+  wifiNetwork: "Network",
+  wifiPassword: "Password",
+  copy: "Copy",
+  copied: "Copied",
+  about: "About us",
+  info: "Info",
+  searchDishes: "Search the menu",
+  noResults: "No dishes match “{q}”.",
+  results: "Results",
   continue: "Continue",
   yourDetails: "Your details",
   deliveryDetails: "Delivery details",
@@ -144,6 +157,19 @@ export const UI_HE: UiStrings = {
   atTable: "בשולחן",
   takeaway: "Take Away",
   delivery: "משלוח",
+  call: "חיוג",
+  directions: "ניווט",
+  hours: "שעות פתיחה",
+  wifi: "Wi-Fi",
+  wifiNetwork: "רשת",
+  wifiPassword: "סיסמה",
+  copy: "העתקה",
+  copied: "הועתק",
+  about: "עלינו",
+  info: "מידע",
+  searchDishes: "חיפוש בתפריט",
+  noResults: "אין מנות שמתאימות ל־“{q}”.",
+  results: "תוצאות",
   continue: "המשך",
   yourDetails: "הפרטים שלך",
   deliveryDetails: "פרטי המשלוח",

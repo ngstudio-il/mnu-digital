@@ -11,6 +11,7 @@ export type Venue = {
   is_public?: boolean;
   timezone?: string | null;
   marketing?: Marketing;
+  info?: VenueInfo;
   setup_done?: boolean;
   tables: number;
   ordering_on: boolean;
@@ -65,6 +66,13 @@ export type Order = {
   total: number;
   created_at: string;
   order_items?: OrderItem[];
+};
+
+// Business details shown in the guest menu's header (Settings → General → On your menu).
+// hide: fields filled in but not shown right now. search: dish search box (on unless false).
+export type VenueInfo = {
+  phone?: string; address?: string; hours?: string; wifi_name?: string; wifi_password?: string; about?: string;
+  hide?: ("phone" | "address" | "hours" | "wifi" | "about")[]; search?: boolean;
 };
 
 export type DeliveryAddress = {

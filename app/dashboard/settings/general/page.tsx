@@ -8,6 +8,7 @@ import { planSummary, slugify } from "@/lib/format";
 import type { Venue } from "@/lib/types";
 import BillingDetailsCard from "@/components/billing/BillingDetailsCard";
 import { VENUE_TYPES } from "@/lib/venue-types";
+import VenueInfoCard from "@/components/dashboard/VenueInfoCard";
 
 export default function Settings() {
   const { venue, setVenue, user, toast, subscription, openBilling } = useDash();
@@ -91,6 +92,8 @@ export default function Settings() {
         <label className="field" htmlFor="v-slug">Menu link<input id="v-slug" value={slug} onChange={(e) => setSlug(e.target.value)} /><small>/m/{slugify(slug || name)}. Changing it breaks QR codes you already printed.</small></label>
         <div><button className="btn" type="submit" disabled={busy}>{busy ? "Saving…" : "Save changes"}</button></div>
       </form>
+
+      <VenueInfoCard />
 
       <div className="card">
         <h3>Ordering</h3>

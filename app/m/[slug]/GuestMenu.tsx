@@ -28,7 +28,7 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
 };
 
 // Design fields the dashboard's live preview may change while the owner edits them.
-const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path"] as const;
+const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path", "info"] as const;
 
 export default function GuestMenu({ venue: savedVenue, categories: savedCats, dishes: savedDishes, table: initialTable, i18n, ownerView = false, preview = false, startLang, inactive = false }: Props) {
   const [venue, setVenue] = useState(savedVenue);
@@ -221,12 +221,24 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
     return () => clearInterval(t);
   }, [showMine, refreshLive]);
 
+  // Business details in the header (Settings → General → On your menu), and dish search.
+  const info = venue.info ?? {};
+  const showInfo = (k: "phone" | "address" | "hours" | "wifi" | "about") => !(info.hide ?? []).includes(k) && !!(k === "wifi" ? info.wifi_name || info.wifi_password : info[k]?.trim());
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const searchOn = info.search !== false;
+  const [query, setQuery] = useState("");
+
   const groups = useMemo(() => {
     const g = categories.map((c) => ({ id: c.id, name: (lang !== i18n.primary && i18n.content[lang]?.[tkey.cat(c.id)]?.name) || c.name, items: dishes.filter((d) => d.category_id === c.id) })).filter((g) => g.items.length);
     const loose = dishes.filter((d) => !d.category_id || !categories.some((c) => c.id === d.category_id));
     if (loose.length) g.push({ id: "other", name: ui.more, items: loose });
     return g;
   }, [categories, dishes, lang, i18n, ui]);
+  // While searching, one list of the dishes whose name or description (in any language shown) matches.
+  const fold = (s: string) => s.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f\u0591-\u05C7]/g, "");
+  const q = fold(query.trim());
+  const shown = q ? [{ id: "search", name: t("results"), items: groups.flatMap((g) => g.items).filter((d) => fold(`${dishName(d)} ${dishDesc(d)} ${d.name} ${d.description ?? ""}`).includes(q)) }] : groups;
 
   // The category bar follows the scroll: the section in view is highlighted and kept visible in the bar.
   const catsNav = useRef<HTMLElement>(null);
@@ -364,6 +376,15 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
         {photoUrl(venue.logo_path) && <LogoMark className="g-logo" src={photoUrl(venue.logo_path)!} alt={`${venue.name} logo`} layout={venue.logo_layout} />}
         <small>{(ui[`type_${venue.type.replace(/\s+/g, "")}` as UiKey] ?? venue.type).toUpperCase()}</small>
         <h1>{venue.name}</h1>
+        {showInfo("about") && <button type="button" className="g-about" onClick={() => setInfoOpen(true)}>{info.about}</button>}
+        {(showInfo("phone") || showInfo("address") || showInfo("hours") || showInfo("wifi")) && (
+          <div className="g-info-row">
+            {showInfo("phone") && <a className="g-chip" href={`tel:${info.phone!.replace(/[^\d+]/g, "")}`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /></svg>{t("call")}</a>}
+            {showInfo("address") && <a className="g-chip" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(info.address!)}`} target="_blank" rel="noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z" /><circle cx="12" cy="9" r="2.5" /></svg>{t("directions")}</a>}
+            {showInfo("hours") && <button type="button" className="g-chip" onClick={() => setInfoOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>{t("hours")}</button>}
+            {showInfo("wifi") && <button type="button" className="g-chip" onClick={() => setInfoOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0" /><circle cx="12" cy="19" r="1" /></svg>{t("wifi")}</button>}
+          </div>
+        )}
         {table && <span className="g-table">{tableText(table)}</span>}
         <div className="g-top">
           {(mine.length > 0 || count > 0) && <button type="button" className="g-mine" onClick={() => setShowMine(true)}>{t("myOrders")}<b>{mine.length + (count > 0 ? 1 : 0)}</b></button>}
@@ -374,14 +395,22 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
           )}
         </div>
       </header>
-      <nav className="g-cats" ref={catsNav} aria-label={t("menu")}>{groups.map((g) => (
+      {searchOn && (
+        <div className="g-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("searchDishes")} aria-label={t("searchDishes")} enterKeyHint="search" />
+          {query && <button type="button" onClick={() => setQuery("")} aria-label={t("close")}>×</button>}
+        </div>
+      )}
+      <nav className="g-cats" ref={catsNav} aria-label={t("menu")} hidden={!!q}>{groups.map((g) => (
         <a key={g.id} href={`#c-${g.id}`} data-cat={g.id} className={activeCat === g.id ? "on" : undefined} aria-current={activeCat === g.id ? "true" : undefined}
           onClick={(e) => { e.preventDefault(); jumpTo(g.id); }}>{g.name}</a>
       ))}</nav>
 
       <main className="g-list">
         {groups.length === 0 && <p className="g-empty">{t("empty")}</p>}
-        {groups.map((g) => (
+        {q && !shown[0].items.length && <p className="g-empty">{t("noResults", { q: query.trim() })}</p>}
+        {shown.filter((g) => g.items.length).map((g) => (
           <section key={g.id} id={`c-${g.id}`}>
             <h2>{g.name}</h2>
             {g.items.map((d) => { const src = photoUrl(d.image_path); return (
@@ -498,6 +527,25 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
               <button className="g-cta g-sticky" type="button" disabled={busy || !lines.length} onClick={place}>{busy ? t("sending") : `${t("placeOrder")} · ${money(total, venue.currency)}`}</button>
             </div>
           )}
+        </Sheet>
+      )}
+
+      {infoOpen && (
+        <Sheet closeLabel={t("close")} onClose={() => { setInfoOpen(false); setCopied(false); }} label={t("info")} className="g-light">
+          <div className="g-sheet-body g-infosheet">
+            <h3>{venue.name}</h3>
+            {showInfo("about") && <p className="g-info-about">{info.about}</p>}
+            {showInfo("hours") && <div className="g-info-block"><b>{t("hours")}</b><p>{info.hours}</p></div>}
+            {showInfo("wifi") && (
+              <div className="g-info-block"><b>{t("wifi")}</b>
+                {info.wifi_name && <p>{t("wifiNetwork")}: <span translate="no">{info.wifi_name}</span></p>}
+                {info.wifi_password && <p className="g-wifi-pass">{t("wifiPassword")}: <code translate="no">{info.wifi_password}</code>
+                  <button type="button" onClick={() => { navigator.clipboard?.writeText(info.wifi_password!).then(() => setCopied(true)).catch(() => {}); }}>{copied ? `✓ ${t("copied")}` : t("copy")}</button></p>}
+              </div>
+            )}
+            {showInfo("address") && <div className="g-info-block"><b>{t("directions")}</b><p><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(info.address!)}`} target="_blank" rel="noreferrer">{info.address}</a></p></div>}
+            {showInfo("phone") && <a className="g-cta" href={`tel:${info.phone!.replace(/[^\d+]/g, "")}`}>{t("call")} · <span dir="ltr">{info.phone}</span></a>}
+          </div>
         </Sheet>
       )}
 

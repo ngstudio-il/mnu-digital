@@ -279,3 +279,6 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 .g-hours div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
 .g-hours dt { color: var(--paper); font-weight: 500; }
 .g-hours dd { margin: 0; color: var(--text); text-align: end; }
+.g-add, .g-qty button { display: inline-grid; place-items: center; padding: 0; }
+.g-pm { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; display: block; }
+.g-qty .g-pm { width: 13px; height: 13px; }

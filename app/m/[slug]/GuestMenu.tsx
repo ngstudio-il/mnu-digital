@@ -31,6 +31,11 @@ const GUEST_STATUS: Record<string, [UiKey, string]> = {
 // Design fields the dashboard's live preview may change while the owner edits them.
 const PREVIEW_FIELDS = ["brand", "bg_color", "logo_layout", "theme", "font", "cover_path", "logo_path", "info"] as const;
 
+// Drawn rather than typed, so the + and − sit exactly in the middle of their round buttons
+// (the font's own + sits a little low).
+const Plus = () => <svg className="g-pm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
+const Minus = () => <svg className="g-pm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>;
+
 export default function GuestMenu({ venue: savedVenue, categories: savedCats, dishes: savedDishes, table: initialTable, i18n, ownerView = false, preview = false, startLang, inactive = false }: Props) {
   const [venue, setVenue] = useState(savedVenue);
   // In the dashboard preview, dragging categories or dishes reorders this copy straight away.
@@ -441,10 +446,10 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
                 <div className="g-info"><b>{dishName(d)}</b><p>{dishDesc(d)}</p>{d.tags?.length > 0 && <div className="g-tags">{d.tags.map((x) => <span key={x}>{label(x)}</span>)}</div>}</div>
                 <div className="g-side">{priceText(d) && <em>{priceText(d)}</em>}
                   {canOrder && dishPrice(d) && (opts(d).length ? (
-                    <button className="g-add" type="button" onClick={(e) => { e.stopPropagation(); openDish(d); }} aria-label={`${t("add")}: ${dishName(d)}`}>+</button>
+                    <button className="g-add" type="button" onClick={(e) => { e.stopPropagation(); openDish(d); }} aria-label={`${t("add")}: ${dishName(d)}`}><Plus /></button>
                   ) : cart[d.id] ? (
-                    <div className="g-qty" onClick={(e) => e.stopPropagation()}><button type="button" onClick={() => add(d.id, -1)} aria-label={`${t("removeOne")}: ${dishName(d)}`}>−</button><span>{cart[d.id]}</span><button type="button" onClick={() => add(d.id)} aria-label={`${t("addOne")}: ${dishName(d)}`}>+</button></div>
-                  ) : <button className="g-add" type="button" onClick={(e) => { e.stopPropagation(); add(d.id); }} aria-label={`${t("add")}: ${dishName(d)}`}>+</button>)}
+                    <div className="g-qty" onClick={(e) => e.stopPropagation()}><button type="button" onClick={() => add(d.id, -1)} aria-label={`${t("removeOne")}: ${dishName(d)}`}><Minus /></button><span>{cart[d.id]}</span><button type="button" onClick={() => add(d.id)} aria-label={`${t("addOne")}: ${dishName(d)}`}><Plus /></button></div>
+                  ) : <button className="g-add" type="button" onClick={(e) => { e.stopPropagation(); add(d.id); }} aria-label={`${t("add")}: ${dishName(d)}`}><Plus /></button>)}
                 </div>
               </article>
             ); })}
@@ -489,7 +494,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
             <div className="g-sheet-body">
               <h3>{t("yourOrder")}</h3>
               <ul className="g-lines">{lines.map((l) => (
-                <li key={l.key}><span>{lineName(l.dish, l.variant)}</span><div className="g-qty"><button type="button" onClick={() => add(l.key, -1)} aria-label={t("removeOne")}>−</button><span>{l.q}</span><button type="button" onClick={() => add(l.key)} aria-label={t("addOne")}>+</button></div><em>{money(l.q * l.price, venue.currency)}</em></li>
+                <li key={l.key}><span>{lineName(l.dish, l.variant)}</span><div className="g-qty"><button type="button" onClick={() => add(l.key, -1)} aria-label={t("removeOne")}><Minus /></button><span>{l.q}</span><button type="button" onClick={() => add(l.key)} aria-label={t("addOne")}><Plus /></button></div><em>{money(l.q * l.price, venue.currency)}</em></li>
               ))}</ul>
               {venue.notes && (noteOpen || note
                 ? <label className="g-field g-note">{t("noteLabel")}

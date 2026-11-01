@@ -102,11 +102,9 @@ renderGuest();
 
 // Photo marquee (list doubled for a seamless loop)
 (function () {
-  var langs = ['en', 'he', 'ar', 'en', 'he'];
-  var items = MENU.map(function (d, i) {
-    var l = langs[i];
-    return '<figure class="shot"><img src="' + d.full + '" alt="' + esc(d.en[0]) + '"><span class="lang-tag">' + { en: 'English', he: 'עברית', ar: 'العربية' }[l] + '</span>' +
-      '<figcaption dir="' + (l === 'en' ? 'ltr' : 'rtl') + '"><b>' + esc(d[l][0]) + '</b><em>$' + d.price + '</em></figcaption></figure>';
+  var items = MENU.map(function (d) {
+    return '<figure class="shot"><img src="' + d.full + '" alt="' + esc(d.en[0]) + '">' +
+      '<figcaption dir="ltr"><b>' + esc(d.en[0]) + '</b><em>$' + d.price + '</em></figcaption></figure>';
   }).join('');
   document.getElementById('track').innerHTML = items + items;
 })();

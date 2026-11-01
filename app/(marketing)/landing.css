@@ -509,3 +509,22 @@ footer .logo img { height: 40px; }
 .cf form { display: block; }
 .cf-field small { display: inline; margin: 0; font-size: 12px; }
 .cf h3, .cf-sub { grid-column: auto; }
+
+/* How it works: pictures fill their frame, centred */
+.flow-pic { position: relative; }
+.flow-pic img { position: absolute; inset: 0; object-position: 50% 52%; }
+.swatch-pic { justify-content: center; align-items: center; }
+/* Step 1: a printed menu in a camera frame */
+.snap-pic { background: radial-gradient(circle at 50% 120%, rgba(111,147,147,.45), transparent 70%), #2b3638; }
+.snap-paper { width: 92px; height: 116px; rotate: -5deg; background: #fbf8f1; border-radius: 4px; padding: 12px 12px; display: grid; align-content: start; gap: 7px; box-shadow: 0 14px 28px rgba(0,0,0,.35); }
+.snap-paper b { font: 600 10px Georgia, serif; letter-spacing: .2em; color: #3b2a1e; text-align: center; padding-bottom: 4px; border-bottom: 1px solid rgba(59,42,30,.25); }
+.snap-paper i { height: 4px; border-radius: 2px; background: rgba(59,42,30,.22); }
+.snap-paper i:nth-of-type(even) { width: 70%; }
+.snap-frame { position: absolute; width: 150px; height: 128px; top: 50%; left: 50%; translate: -50% -50%; background:
+  linear-gradient(#9fd1b0, #9fd1b0) top left / 22px 3px, linear-gradient(#9fd1b0, #9fd1b0) top left / 3px 22px,
+  linear-gradient(#9fd1b0, #9fd1b0) top right / 22px 3px, linear-gradient(#9fd1b0, #9fd1b0) top right / 3px 22px,
+  linear-gradient(#9fd1b0, #9fd1b0) bottom left / 22px 3px, linear-gradient(#9fd1b0, #9fd1b0) bottom left / 3px 22px,
+  linear-gradient(#9fd1b0, #9fd1b0) bottom right / 22px 3px, linear-gradient(#9fd1b0, #9fd1b0) bottom right / 3px 22px; background-repeat: no-repeat; }
+.snap-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: snap-flash 4s ease-out infinite; }
+@keyframes snap-flash { 0%, 88% { opacity: 0; } 90% { opacity: .55; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .snap-flash { animation: none; } }

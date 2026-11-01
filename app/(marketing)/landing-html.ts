@@ -27,7 +27,6 @@ export const LANDING_HTML = String.raw`<header>
           <div class="stats"><span><b>24h</b>to go live</span><span><b>3</b>languages</span><span><b>0</b>reprints</span></div>
           <div class="ctas">
             <a class="btn" href="/signup">Start for Free</a>
-            <a class="btn ghost" href="#live">Try the live demo</a>
           </div>
         </div>
         <div class="hx-visual" aria-hidden="true">
@@ -107,7 +106,7 @@ export const LANDING_HTML = String.raw`<header>
     <div class="wrap">
       <div class="head">
         <h2>Menus that make people hungry</h2>
-        <p>Full-size photos, clear prices, every dish in your guest's language.</p>
+        <p>Full-size photos, clear prices and a menu guests love to browse.</p>
       </div>
     </div>
     <div class="marquee"><div class="track" id="track"></div></div>
@@ -121,7 +120,7 @@ export const LANDING_HTML = String.raw`<header>
         <p>From a printed card to a live menu, usually within a day. No designer, no developer.</p>
       </div>
       <ol class="flow">
-        <li><span class="num">01</span><div class="flow-pic"><img src="/assets/food/bread.jpg" alt=""></div><h3>Photograph your menu</h3><p>Snap the printed menu or send a PDF. We pull in every dish and price.</p></li>
+        <li><span class="num">01</span><div class="flow-pic snap-pic" aria-hidden="true"><div class="snap-paper"><b>MENU</b><i></i><i></i><i></i><i></i><i></i></div><span class="snap-frame"></span><span class="snap-flash"></span></div><h3>Photograph your menu</h3><p>Snap the printed menu or send a PDF. We pull in every dish and price.</p></li>
         <li><span class="num">02</span><div class="flow-pic swatch-pic"><span style="background:#6f9393"></span><span style="background:#f2f1eb"></span><span style="background:#363d41"></span><span style="background:#d2b49b"></span></div><h3>Choose a style</h3><p>Match the menu to your logo, colours and fonts.</p></li>
         <li><span class="num">03</span><div class="flow-pic"><img src="/assets/food/salmon.jpg" alt=""></div><h3>Add photos</h3><p>Upload your own dish photos, or keep it text-only.</p></li>
         <li><span class="num">04</span><div class="flow-pic qr-pic"><canvas class="qr" width="25" height="25"></canvas></div><h3>Place the QR code</h3><p>Put it on the tables. Every edit is live for guests right away.</p></li>

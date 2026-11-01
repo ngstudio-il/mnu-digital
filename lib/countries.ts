@@ -22,4 +22,23 @@ export function guessCountry() {
   return "";
 }
 
+// A likely country from a time zone (e.g. the venue's), for zones that clearly belong to one country.
+const ZONES: Record<string, string> = {
+  "Asia/Jerusalem": "IL", "Asia/Tel_Aviv": "IL", "Europe/London": "GB", "Europe/Dublin": "IE", "Europe/Paris": "FR", "Europe/Berlin": "DE",
+  "Europe/Madrid": "ES", "Europe/Rome": "IT", "Europe/Amsterdam": "NL", "Europe/Brussels": "BE", "Europe/Lisbon": "PT", "Europe/Vienna": "AT",
+  "Europe/Zurich": "CH", "Europe/Stockholm": "SE", "Europe/Oslo": "NO", "Europe/Copenhagen": "DK", "Europe/Helsinki": "FI", "Europe/Warsaw": "PL",
+  "Europe/Prague": "CZ", "Europe/Athens": "GR", "Europe/Istanbul": "TR", "Europe/Moscow": "RU", "Europe/Kiev": "UA", "Europe/Kyiv": "UA",
+  "Europe/Budapest": "HU", "Europe/Bucharest": "RO", "Asia/Dubai": "AE", "Asia/Tokyo": "JP", "Asia/Seoul": "KR", "Asia/Shanghai": "CN",
+  "Asia/Hong_Kong": "HK", "Asia/Singapore": "SG", "Asia/Kolkata": "IN", "Asia/Bangkok": "TH", "America/Toronto": "CA", "America/Vancouver": "CA",
+  "America/Mexico_City": "MX", "America/Sao_Paulo": "BR", "America/Argentina/Buenos_Aires": "AR", "America/Bogota": "CO", "America/Lima": "PE",
+  "America/Santiago": "CL", "Africa/Johannesburg": "ZA", "Africa/Cairo": "EG", "Pacific/Auckland": "NZ",
+};
+const US = /^America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Detroit|Boise|Indiana\/.+|Kentucky\/.+|North_Dakota\/.+)$|^Pacific\/Honolulu$/;
+export function countryFromZone(tz: string | null | undefined) {
+  if (!tz) return "";
+  if (US.test(tz)) return "US";
+  if (tz.startsWith("Australia/")) return "AU";
+  return ZONES[tz] ?? "";
+}
+
 export type BillingDetails = { country: string; name: string; tax_id: string; address: string };

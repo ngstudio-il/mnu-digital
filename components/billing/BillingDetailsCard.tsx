@@ -2,18 +2,19 @@
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import BillingDetailsForm, { billingValid } from "./BillingDetailsForm";
-import { guessCountry, type BillingDetails } from "@/lib/countries";
+import { countryFromZone, guessCountry, type BillingDetails } from "@/lib/countries";
 
 // Settings → General: the details printed on invoices.
-export default function BillingDetailsCard({ venueId, venueName, toast }: { venueId: string; venueName: string; toast: (m: string) => void }) {
+// support: an admin is viewing; nothing is guessed from the admin's own browser.
+export default function BillingDetailsCard({ venueId, venueName, timezone, support, toast }: { venueId: string; venueName: string; timezone: string | null; support: boolean; toast: (m: string) => void }) {
   const [v, setV] = useState<BillingDetails | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     supabaseBrowser().from("billing_profiles").select("country, name, tax_id, address").eq("venue_id", venueId).maybeSingle()
       .then(({ data }: { data: { country: string; name: string; tax_id: string | null; address: string | null } | null }) =>
-        setV(data ? { country: data.country, name: data.name, tax_id: data.tax_id ?? "", address: data.address ?? "" } : { country: guessCountry(), name: venueName, tax_id: "", address: "" }));
-  }, [venueId, venueName]);
+        setV(data ? { country: data.country, name: data.name, tax_id: data.tax_id ?? "", address: data.address ?? "" } : { country: countryFromZone(timezone) || (support ? "" : guessCountry()), name: venueName, tax_id: "", address: "" }));
+  }, [venueId, venueName, timezone, support]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();

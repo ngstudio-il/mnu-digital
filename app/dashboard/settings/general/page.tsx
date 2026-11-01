@@ -16,7 +16,8 @@ export default function Settings() {
   const [type, setType] = useState(venue.type);
   const [currency, setCurrency] = useState(venue.currency);
   const [slug, setSlug] = useState(venue.slug);
-  const [tz, setTz] = useState(venue.timezone || browserZone());
+  // An admin in support mode sees the venue's own zone, not their own browser's.
+  const [tz, setTz] = useState(venue.timezone || (venue.owner_id !== user.id ? "UTC" : browserZone()));
   const zones = useMemo(() => { const z = allZones(); return z.includes(tz) ? z : [tz, ...z]; }, [tz]);
   const [busy, setBusy] = useState(false);
   const [ai, setAi] = useState<{ used: number; quota: number } | null>(null);
@@ -111,7 +112,7 @@ export default function Settings() {
         </div>
       </div>
 
-      <BillingDetailsCard venueId={venue.id} venueName={venue.name} toast={toast} />
+      <BillingDetailsCard venueId={venue.id} venueName={venue.name} timezone={venue.timezone ?? null} support={venue.owner_id !== user.id} toast={toast} />
 
       <div className="card">
         <h3>Plan &amp; account</h3>

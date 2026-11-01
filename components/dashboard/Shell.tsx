@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Subscription, Venue } from "@/lib/types";
 import { planSummary } from "@/lib/format";
+import { browserZone } from "@/lib/timezone";
 import { VenueContext } from "./VenueContext";
 import SupportChat from "@/components/SupportChat";
 import ProfileDialog from "./ProfileDialog";
@@ -45,6 +46,13 @@ export default function Shell({ initialVenue, support = false, subscription, use
     return () => { document.removeEventListener("keydown", esc); document.body.style.overflow = ""; };
   }, [preview]);
   const [venue, setVenue] = useState(initialVenue);
+  // The venue's time zone, once, from the owner's own device (never from an admin in support mode).
+  useEffect(() => {
+    if (support || venue.timezone) return;
+    const tz = browserZone();
+    supabaseBrowser().from("venues").update({ timezone: tz }).eq("id", venue.id).select().single()
+      .then(({ data }: { data: Venue | null }) => { if (data) setVenue(data); });
+  }, [support, venue.id, venue.timezone]);
   const [newOrders, setNewOrders] = useState(0);
   const [orderTick, setOrderTick] = useState(0);
   const [msg, setMsg] = useState("");

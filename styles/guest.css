@@ -225,3 +225,5 @@ body { margin: 0; background: var(--ink); color: var(--text); font: 400 15px/1.5
 [dir="rtl"] .g-back { transform: scaleX(-1); }
 .g-progress { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: -2px 0 4px; }
 .g-progress i { height: 4px; border-radius: 99px; background: var(--brand); }
+/* A required field that's still empty after trying to send */
+.g-bad input, .g-bad input:focus { border-color: #c4614f; box-shadow: 0 0 0 3px rgba(196,97,79,.14); outline: none; }

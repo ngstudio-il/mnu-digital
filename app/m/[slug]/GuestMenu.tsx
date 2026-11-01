@@ -156,6 +156,8 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   // Checkout is two steps when it needs the guest's details: the order, then name / phone / address.
   const [step, setStep] = useState<"order" | "details">("order");
   const [moreOpen, setMoreOpen] = useState(false);
+  const [bad, setBad] = useState<"name" | "phone" | "address" | null>(null);
+  const fixed = (k: typeof bad) => { if (bad === k) { setBad(null); setErr(""); } };
   const [noteOpen, setNoteOpen] = useState(false);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
@@ -302,7 +304,7 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   useEffect(() => { if (checkout) { setStep("order"); setErr(""); } }, [checkout]);
   const needsDetails = type !== "dinein" || askPhone !== "off";
   function goDetails() {
-    setErr("");
+    setErr(""); setBad(null);
     if (type === "dinein" && !table) return setErr(t("scanTable"));
     // Rendering the next step inside the tap is what lets iOS open the keyboard on its first field.
     flushSync(() => setStep("details"));
@@ -316,9 +318,13 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
   async function place() {
     setErr("");
     if (type === "dinein" && !table) return setErr(t("scanTable"));
-    if (type !== "dinein" && !name.trim()) return setErr(t("errName"));
-    if (askPhone === "required" && phone.replace(/\D/g, "").length < 6) return setErr(t("errPhone"));
-    if (type === "delivery" && !addr?.address) return setErr(t("errAddress"));
+    // The first missing field gets a red frame and the focus.
+    const missing = type !== "dinein" && !name.trim() ? "name" : askPhone === "required" && phone.replace(/\D/g, "").length < 6 ? "phone" : type === "delivery" && !addr?.address ? "address" : null;
+    setBad(missing);
+    if (missing) {
+      document.getElementById(`g-in-${missing}`)?.focus();
+      return setErr(t(missing === "name" ? "errName" : missing === "phone" ? "errPhone" : "errAddress"));
+    }
     setBusy(true);
     const label = type === "dinein" ? table! : type === "delivery" ? "Delivery" : "Takeaway";
     const args = {
@@ -459,11 +465,11 @@ export default function GuestMenu({ venue: savedVenue, categories: savedCats, di
                 <div><small>{t("stepOf", { n: 2 })}</small><h3>{type === "delivery" ? t("deliveryDetails") : t("yourDetails")}</h3></div>
               </div>
               <div className="g-progress" aria-hidden="true"><i /><i /></div>
-              {type !== "dinein" && <label className="g-field">{t("nameForOrder")}<input ref={nameInput} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></label>}
-              {askPhone !== "off" && <label className="g-field">{askPhone === "required" ? t("phone") : t("phoneOptional")}<input ref={type === "dinein" ? nameInput : undefined} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" inputMode="tel" dir="ltr" /></label>}
+              {type !== "dinein" && <label className={`g-field${bad === "name" ? " g-bad" : ""}`}>{t("nameForOrder")}<input id="g-in-name" ref={nameInput} value={name} onChange={(e) => { setName(e.target.value); fixed("name"); }} autoComplete="name" aria-invalid={bad === "name"} /></label>}
+              {askPhone !== "off" && <label className={`g-field${bad === "phone" ? " g-bad" : ""}`}>{askPhone === "required" ? t("phone") : t("phoneOptional")}<input id="g-in-phone" aria-invalid={bad === "phone"} ref={type === "dinein" ? nameInput : undefined} type="tel" value={phone} onChange={(e) => { setPhone(e.target.value); fixed("phone"); }} autoComplete="tel" inputMode="tel" dir="ltr" /></label>}
               {type === "delivery" && (
                 <div className="g-delivery">
-                  <AddressInput value={addr} onChange={setAddr} label={t("address")} placeholder={t("addressPlaceholder")} lang={lang} />
+                  <AddressInput invalid={bad === "address"} value={addr} onChange={(v) => { setAddr(v); if (v) fixed("address"); }} label={t("address")} placeholder={t("addressPlaceholder")} lang={lang} />
                   <div className="g-row2">
                     <label className="g-field">{t("apt")}<input value={extra.apt} onChange={(e) => setExtra({ ...extra, apt: e.target.value })} autoComplete="address-line2" /></label>
                     <label className="g-field">{t("floor")}<input value={extra.floor} onChange={(e) => setExtra({ ...extra, floor: e.target.value })} inputMode="numeric" /></label>

@@ -25,7 +25,7 @@ function loadPlaces(key: string): Promise<Places> {
 
 // Street address with Google Places suggestions (NEXT_PUBLIC_GOOGLE_MAPS_KEY).
 // Without a key, or if Google can't load, it's a plain text field.
-export default function AddressInput({ value, onChange, label, placeholder, lang }: { value: PickedAddress | null; onChange: (v: PickedAddress | null) => void; label: string; placeholder: string; lang: string }) {
+export default function AddressInput({ value, onChange, label, placeholder, lang, invalid = false }: { value: PickedAddress | null; onChange: (v: PickedAddress | null) => void; label: string; placeholder: string; lang: string; invalid?: boolean }) {
   const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? "";
   const [text, setText] = useState(value?.address ?? "");
   const [lib, setLib] = useState<Places | null>(null);
@@ -79,9 +79,9 @@ export default function AddressInput({ value, onChange, label, placeholder, lang
   }
 
   return (
-    <div className="g-field g-addr">
-      <label htmlFor="g-addr">{label}</label>
-      <input id="g-addr" value={text} onChange={(e) => type(e.target.value)} placeholder={placeholder} autoComplete={failed ? "street-address" : "off"}
+    <div className={`g-field g-addr${invalid ? " g-bad" : ""}`}>
+      <label htmlFor="g-in-address">{label}</label>
+      <input id="g-in-address" aria-invalid={invalid} value={text} onChange={(e) => type(e.target.value)} placeholder={placeholder} autoComplete={failed ? "street-address" : "off"}
         role="combobox" aria-expanded={items.length > 0} aria-controls="g-addr-list" aria-autocomplete="list"
         onKeyDown={(e) => {
           if (!items.length) return;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { contactLink, type LegalSection } from "@/components/legal/LegalPage";
 
-export const metadata: Metadata = { title: "Accessibility Statement · mnu.digital", description: "MNU Digital LLC's commitment to digital accessibility." };
+export const metadata: Metadata = { title: "Accessibility Statement · mnu.digital", description: "MNU Digital's commitment to digital accessibility." };
 
 const SECTIONS: LegalSection[] = [
   { title: "Conformance Status", body: [
@@ -19,5 +19,5 @@ const SECTIONS: LegalSection[] = [
 ];
 
 export default function Accessibility() {
-  return <LegalPage title="Accessibility Statement" updated="April 24, 2026" intro={["At MNU Digital LLC (\"MNU\", \"we\", \"our\", or \"us\"), we recognize the importance of digital accessibility and are committed to improving the user experience for all users, regardless of ability.", "We are continually working to improve the accessibility and usability of our website and platform available at https://mnu.digital, and applying relevant accessibility principles and standards where reasonably practicable."]} sections={SECTIONS} />;
+  return <LegalPage title="Accessibility Statement" updated="April 24, 2026" intro={["At MNU Digital (\"MNU\", \"we\", \"our\", or \"us\"), we recognize the importance of digital accessibility and are committed to improving the user experience for all users, regardless of ability.", "We are continually working to improve the accessibility and usability of our website and platform available at https://mnu.digital, and applying relevant accessibility principles and standards where reasonably practicable."]} sections={SECTIONS} />;
 }

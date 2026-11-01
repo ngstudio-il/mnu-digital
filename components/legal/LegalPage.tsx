@@ -23,7 +23,7 @@ export default function LegalPage({ title, updated, intro, sections }: { title: 
         ))}
       </main>
       <footer className="legal-foot">
-        <span>© 2026 MNU Digital LLC</span>
+        <span>© 2026 MNU Digital</span>
         <nav><Link href="/terms">Terms of Service</Link><Link href="/privacy">Privacy Policy</Link><Link href="/accessibility">Accessibility</Link><Link href="/">mnu.digital</Link></nav>
       </footer>
     </div>

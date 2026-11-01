@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage, { contactLink, type LegalSection } from "@/components/legal/LegalPage";
 
-export const metadata: Metadata = { title: "Terms of Service · mnu.digital", description: "The terms that govern the use of MNU Digital LLC's services." };
+export const metadata: Metadata = { title: "Terms of Service · mnu.digital", description: "The terms that govern the use of MNU Digital's services." };
 
 const contactingUs = <a href="mailto:office@ngstudio.co.il">contacting us here</a>;
 
@@ -121,7 +121,7 @@ export default function Terms() {
       title="Terms of Service"
       updated="April 24, 2026"
       intro={[
-        "Welcome to MNU Digital LLC (\"MNU\", \"Company\", \"we\", \"our\", or \"us\"). These Terms of Service (\"Terms\") constitute a legally binding agreement between you (\"Customer\", \"you\", or \"your\") and MNU Digital LLC and govern your access to and use of our website, platform, applications, software, and related services available through https://mnu.digital and any related domains, subdomains, applications, and services (collectively, the \"Services\").",
+        "Welcome to MNU Digital (\"MNU\", \"Company\", \"we\", \"our\", or \"us\"). These Terms of Service (\"Terms\") constitute a legally binding agreement between you (\"Customer\", \"you\", or \"your\") and MNU Digital and govern your access to and use of our website, platform, applications, software, and related services available through https://mnu.digital and any related domains, subdomains, applications, and services (collectively, the \"Services\").",
         <>By accessing, registering for, or using the Services, you acknowledge that you have read, understood, and agree to be bound by these Terms and our <Link href="/privacy">Privacy Policy</Link>, <Link href="/accessibility">Accessibility Statement</Link>, and any additional policies or guidelines we may publish from time to time. If you do not agree, you may not use the Services.</>,
       ]}
       sections={SECTIONS}

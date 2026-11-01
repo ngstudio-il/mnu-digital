@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { contactLink, type LegalSection } from "@/components/legal/LegalPage";
 
-export const metadata: Metadata = { title: "Privacy Policy · mnu.digital", description: "How MNU Digital LLC collects, uses and protects information." };
+export const metadata: Metadata = { title: "Privacy Policy · mnu.digital", description: "How MNU Digital collects, uses and protects information." };
 
 const SECTIONS: LegalSection[] = [
   { title: "Information We Collect", body: [
@@ -70,5 +70,5 @@ const SECTIONS: LegalSection[] = [
 ];
 
 export default function Privacy() {
-  return <LegalPage title="Privacy Policy" updated="April 24, 2026" intro={["Welcome to MNU Digital LLC (\"MNU\", \"we\", \"our\", or \"us\"). This Privacy Policy describes how we collect, use, process, disclose, and protect information when you access or use our website, platform, and related services available through https://mnu.digital and any related domains, subdomains, applications, or services (collectively, the \"Services\"). By accessing or using our Services, you acknowledge and agree to the practices described in this Privacy Policy."]} sections={SECTIONS} />;
+  return <LegalPage title="Privacy Policy" updated="April 24, 2026" intro={["Welcome to MNU Digital (\"MNU\", \"we\", \"our\", or \"us\"). This Privacy Policy describes how we collect, use, process, disclose, and protect information when you access or use our website, platform, and related services available through https://mnu.digital and any related domains, subdomains, applications, or services (collectively, the \"Services\"). By accessing or using our Services, you acknowledge and agree to the practices described in this Privacy Policy."]} sections={SECTIONS} />;
 }
